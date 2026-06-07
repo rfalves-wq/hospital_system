@@ -1,0 +1,48 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+
+    <title>Acolhimento</title>
+
+    <link rel="stylesheet"
+          href="{% static 'acolhimento/css/atendimento.css' %}">
+</head>
+
+<body>
+
+<div class="container">
+
+    <span class="subtitulo">
+        ACOLHIMENTO
+    </span>
+
+    <h1>
+        Selecione o tipo de atendimento
+    </h1>
+
+    <div class="cards">
+
+        <a href="{% url 'atendimento_normal' %}" class="card normal">
+            Atendimento<br>Normal
+        </a>
+
+        <a href="{% url 'triagem_risco' %}" class="card risco">
+            Risco
+        </a>
+
+        <a href="{% url 'atendimento_preferencial' %}" class="card preferencial">
+            Atendimento<br>Preferencial
+        </a>
+
+    </div>
+
+</div>
+
+<script src="{% static 'acolhimento/js/atendimento.js' %}"></script>
+
+</body>
+</html>

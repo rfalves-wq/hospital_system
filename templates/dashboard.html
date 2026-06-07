@@ -1,0 +1,222 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container-fluid p-4">
+
+    <div class="dashboard-header">
+        <h2>🏥 Sistema Hospitalar</h2>
+        <p>Bem-vindo ao painel de gestão hospitalar</p>
+    </div>
+
+    <!-- Atendimento -->
+    <h4 class="section-title">🏥 Atendimento</h4>
+
+    <div class="row g-4">
+
+     <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
+    <a href="{% url 'tipo_atendimento' %}" class="text-decoration-none">
+        <div class="card acolhimento">
+            <div class="card-body">
+                <h1>🩺</h1>
+                <h5>Acolhimento</h5>
+            </div>
+        </div>
+    </a>
+</div>
+
+        <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
+            <div class="card recepcao">
+                <div class="card-body">
+                    <h1>🏥</h1>
+                    <h5>Recepção</h5>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
+            <div class="card classificacao">
+                <div class="card-body">
+                    <h1>🚦</h1>
+                    <h5>Classificação de Risco</h5>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
+            <div class="card painel">
+                <div class="card-body">
+                    <h1>📢</h1>
+                    <h5>Painel de Chamados</h5>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Assistência -->
+    <h4 class="section-title">🏨 Assistência Hospitalar</h4>
+
+    <div class="row g-4">
+
+        <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
+            <div class="card maternidade">
+                <div class="card-body">
+                    <h1>👶</h1>
+                    <h5>Maternidade</h5>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
+            <div class="card internacao">
+                <div class="card-body">
+                    <h1>🛏️</h1>
+                    <h5>Centro de Internações</h5>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
+            <div class="card enfermagem">
+                <div class="card-body">
+                    <h1>💉</h1>
+                    <h5>Posto de Enfermagem</h5>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Especialidades -->
+    <h4 class="section-title">👨‍⚕️ Especialidades</h4>
+
+    <div class="row g-4">
+
+        <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
+            <div class="card pediatria">
+                <div class="card-body">
+                    <h1>👶</h1>
+                    <h5>Pediatria</h5>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
+            <div class="card cardiologia">
+                <div class="card-body">
+                    <h1>🫀</h1>
+                    <h5>Cardiologia</h5>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
+            <div class="card ortopedia">
+                <div class="card-body">
+                    <h1>🦴</h1>
+                    <h5>Ortopedia</h5>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
+            <div class="card neurologia">
+                <div class="card-body">
+                    <h1>🧠</h1>
+                    <h5>Neurologia</h5>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
+            <div class="card oftalmologia">
+                <div class="card-body">
+                    <h1>👁️</h1>
+                    <h5>Oftalmologia</h5>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
+            <div class="card odontologia">
+                <div class="card-body">
+                    <h1>🦷</h1>
+                    <h5>Odontologia</h5>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Diagnóstico -->
+    <h4 class="section-title">🧪 Diagnóstico</h4>
+
+    <div class="row g-4">
+
+        <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
+            <div class="card laboratorio">
+                <div class="card-body">
+                    <h1>🧪</h1>
+                    <h5>Laboratório</h5>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
+            <div class="card imagem">
+                <div class="card-body">
+                    <h1>📷</h1>
+                    <h5>Centro de Imagem</h5>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Emergência -->
+    <h4 class="section-title">🚨 Emergência e UTI</h4>
+
+    <div class="row g-4">
+
+        <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
+            <div class="card emergencia">
+                <div class="card-body">
+                    <h1>🚨</h1>
+                    <h5>Emergência</h5>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
+            <div class="card uti-adulto">
+                <div class="card-body">
+                    <h1>🧑‍⚕️</h1>
+                    <h5>UTI Adulto</h5>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
+            <div class="card uti-neonatal">
+                <div class="card-body">
+                    <h1>👶</h1>
+                    <h5>UTI Neonatal</h5>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
+            <div class="card centro-cirurgico">
+                <div class="card-body">
+                    <h1>🏥</h1>
+                    <h5>Centro Cirúrgico</h5>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
