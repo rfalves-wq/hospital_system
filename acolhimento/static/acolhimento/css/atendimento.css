@@ -5,73 +5,217 @@
 }
 
 body{
-    background:#f4f4f4;
-    font-family:Arial, sans-serif;
+    background:#f4f6f9;
+    font-family:Arial, Helvetica, sans-serif;
 }
 
 .container{
     width:95%;
-    margin:30px auto;
-    background:white;
-    border-radius:25px;
-    padding:80px 30px;
-    text-align:center;
+    max-width:1800px;
+    margin:20px auto;
+    background:#fff;
+    border-radius:20px;
+    padding:30px;
+    box-shadow:0 4px 15px rgba(0,0,0,.08);
 }
 
 .subtitulo{
     color:#8b7b46;
-    font-weight:bold;
+    font-weight:700;
     letter-spacing:2px;
+    text-transform:uppercase;
 }
 
 h1{
-    margin-top:20px;
-    font-size:60px;
+    margin:15px 0 30px;
+    font-size:38px;
     font-weight:700;
+    color:#222;
 }
 
-.cards{
-    margin-top:80px;
+/* ===========================
+   DADOS DO PACIENTE
+=========================== */
 
+.paciente-box{
+    background:#fafafa;
+    padding:25px;
+    border-radius:15px;
+    margin-bottom:25px;
+    border:1px solid #ddd;
+}
+
+.paciente-box h3{
+    margin-bottom:20px;
+    color:#333;
+}
+
+.paciente-grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:15px;
+}
+
+.form-group{
+    display:flex;
+    flex-direction:column;
+}
+
+.form-group label{
+    font-weight:600;
+    color:#444;
+    margin-bottom:6px;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea{
+    width:100%;
+    height:45px;
+    padding:10px;
+    border:1px solid #ccc;
+    border-radius:8px;
+    font-size:15px;
+}
+
+.form-group input:focus{
+    outline:none;
+    border-color:#8b7b46;
+    box-shadow:0 0 5px rgba(139,123,70,.3);
+}
+
+#idade{
+    background:#f2f2f2;
+    font-weight:bold;
+    text-align:center;
+}
+
+/* ===========================
+   SINAIS VITAIS
+=========================== */
+
+.sinais-vitais{
+    display:grid;
+    grid-template-columns:180px repeat(5,1fr);
+    gap:3px;
+    margin-bottom:40px;
+}
+
+.vital-card{
+    background:#e8dfbd;
+    padding:15px;
+    min-height:110px;
+    border-radius:8px;
+}
+
+.vital-card label{
+    display:block;
+    font-size:20px;
+    font-weight:700;
+    margin-bottom:10px;
+}
+
+.vital-card input{
+    width:100%;
+    height:42px;
+    border-radius:8px;
+    border:1px solid #bbb;
+    padding:10px;
+}
+
+.titulo{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-direction:column;
+    font-size:22px;
+    font-weight:bold;
+}
+
+/* ===========================
+   BOTÕES DE ATENDIMENTO
+=========================== */
+
+.cards{
     display:flex;
     justify-content:center;
-    gap:40px;
+    gap:30px;
     flex-wrap:wrap;
+    margin-top:30px;
+}
+
+.cards a{
+    text-decoration:none;
 }
 
 .card{
-    width:380px;
-    height:170px;
-
-    border-radius:30px;
+    width:320px;
+    height:140px;
 
     display:flex;
     align-items:center;
     justify-content:center;
 
-    text-decoration:none;
+    border-radius:20px;
 
-    font-size:36px;
+    font-size:30px;
+    font-weight:700;
     text-align:center;
 
-    color:white;
-
-    transition:0.3s;
+    transition:.3s;
 }
 
 .card:hover{
-    transform:translateY(-8px);
+    transform:translateY(-5px);
+    box-shadow:0 6px 15px rgba(0,0,0,.15);
 }
 
 .normal{
     background:#e3c95f;
-    color:#4d4d4d;
+    color:#444;
 }
 
 .risco{
     background:#c75252;
+    color:#fff;
 }
 
 .preferencial{
     background:#79a95c;
+    color:#fff;
+}
+
+/* ===========================
+   RESPONSIVO
+=========================== */
+
+@media (max-width:1200px){
+
+    .paciente-grid{
+        grid-template-columns:repeat(2,1fr);
+    }
+
+    .sinais-vitais{
+        grid-template-columns:repeat(3,1fr);
+    }
+}
+
+@media (max-width:768px){
+
+    .paciente-grid{
+        grid-template-columns:1fr;
+    }
+
+    .sinais-vitais{
+        grid-template-columns:1fr;
+    }
+
+    .card{
+        width:100%;
+        max-width:350px;
+    }
+
+    h1{
+        font-size:28px;
+    }
 }
