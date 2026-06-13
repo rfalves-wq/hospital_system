@@ -4,7 +4,6 @@ Django settings for hospital_system project.
 
 from pathlib import Path
 
-# Diretório base do projeto
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Segurança
@@ -23,7 +22,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    # Apps do sistema
     'accounts',
     'unidades',
     'dashboard',
@@ -69,7 +67,7 @@ DATABASES = {
     }
 }
 
-# Validação de senha
+# Senhas
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -85,14 +83,15 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-# Idioma e fuso horário
+# Idioma e Fuso Horário
 LANGUAGE_CODE = 'pt-br'
 
 TIME_ZONE = 'America/Sao_Paulo'
 
 USE_I18N = True
 
-USE_TZ = True
+# Horário do Brasil gravado diretamente no banco
+USE_TZ = False
 
 # Arquivos estáticos
 STATIC_URL = 'static/'
@@ -101,7 +100,7 @@ STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
 
-# Modelo de usuário personalizado
+# Usuário personalizado
 AUTH_USER_MODEL = 'accounts.Usuario'
 
 # Login

@@ -24,68 +24,34 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
 });
-
 document.addEventListener("DOMContentLoaded", function () {
 
     const dataNascimento = document.getElementById("data_nascimento");
     const idade = document.getElementById("idade");
 
-    dataNascimento.addEventListener("change", function () {
+    if (!dataNascimento || !idade) return;
 
-        if (!this.value) {
-            idade.value = "";
-            return;
-        }
-
-        const nascimento = new Date(this.value);
+    function calcularIdade(data) {
+        const nascimento = new Date(data);
         const hoje = new Date();
 
         let anos = hoje.getFullYear() - nascimento.getFullYear();
 
-        const mesAtual = hoje.getMonth();
-        const diaAtual = hoje.getDate();
+        const mes = hoje.getMonth() - nascimento.getMonth();
 
-        const mesNascimento = nascimento.getMonth();
-        const diaNascimento = nascimento.getDate();
-
-        if (
-            mesAtual < mesNascimento ||
-            (mesAtual === mesNascimento && diaAtual < diaNascimento)
-        ) {
+        if (mes < 0 || (mes === 0 && hoje.getDate() < nascimento.getDate())) {
             anos--;
         }
 
-        idade.value = anos + " anos";
-    });
+        return anos;
+    }
 
-});
-
-
-
-document.addEventListener("DOMContentLoaded", function () {
-
-    const campos = document.querySelectorAll(
-        'input, select, textarea'
-    );
-
-    campos.forEach((campo, indice) => {
-
-        campo.addEventListener("keydown", function(e) {
-
-            if (e.key === "Enter") {
-
-                e.preventDefault();
-
-                const proximo = campos[indice + 1];
-
-                if (proximo) {
-                    proximo.focus();
-                }
-
-            }
-
-        });
-
+    dataNascimento.addEventListener("change", function () {
+        if (this.value) {
+            idade.value = calcularIdade(this.value);
+        } else {
+            idade.value = "";
+        }
     });
 
 });
