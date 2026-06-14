@@ -24,7 +24,13 @@
     {{ erro }}
 </div>
 {% endif %}
-
+{% if messages %}
+    {% for message in messages %}
+        <div class="alerta-sucesso">
+            {{ message }}
+        </div>
+    {% endfor %}
+{% endif %}
     <form method="POST">
         {% csrf_token %}
 

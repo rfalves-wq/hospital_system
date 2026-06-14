@@ -270,3 +270,31 @@ h1{
     margin-bottom:15px;
     text-align:center;
 }
+
+.alerta-sucesso {
+    background: #e6ffed;
+    color: #1b7f3a;
+    border: 1px solid #a6e3b1;
+    padding: 12px;
+    border-radius: 10px;
+    margin: 15px 0;
+    font-weight: bold;
+    text-align: center;
+}
+
+.alerta-sucesso {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+    padding: 12px;
+    border-radius: 10px;
+    margin: 15px 0;
+    font-weight: bold;
+    text-align: center;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+}

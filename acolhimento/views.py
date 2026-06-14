@@ -1,3 +1,4 @@
+from django.contrib import messages
 from django.shortcuts import render, redirect
 from django.db.models import Q
 from .models import Acolhimento
@@ -8,29 +9,18 @@ def tipo_atendimento(request):
     paciente = None
     erro = None
 
-    # =========================
-    # 🔍 BUSCA (GET)
-    # =========================
     cpf = request.GET.get('cpf')
     nome = request.GET.get('nome')
 
     if cpf or nome:
-        filtros = Q()
-
-        if cpf:
-            filtros |= Q(cpf__icontains=cpf)
-
-        if nome:
-            filtros |= Q(nome_paciente__icontains=nome)
-
-        paciente = Acolhimento.objects.filter(filtros).first()
+        paciente = Acolhimento.objects.filter(
+            Q(cpf__icontains=cpf) |
+            Q(nome_paciente__icontains=nome)
+        ).first()
 
         if not paciente:
             erro = "Paciente não encontrado."
 
-    # =========================
-    # 💾 SALVAR (POST)
-    # =========================
     if request.method == 'POST':
 
         sinais_obrigatorios = [
@@ -48,21 +38,13 @@ def tipo_atendimento(request):
                     'paciente': paciente
                 })
 
-        # 🔥 tratamento de temperatura
         temperatura = request.POST.get('temperatura')
-        try:
+        if temperatura:
             temperatura = float(temperatura.replace(',', '.'))
-        except (ValueError, AttributeError):
-            return render(request, 'acolhimento/tipo_atendimento.html', {
-                'erro': '⚠️ Temperatura inválida.',
-                'paciente': paciente
-            })
 
-        # 🔢 idade segura
         idade = request.POST.get('idade')
         idade = int(idade) if idade and idade.isdigit() else None
 
-        # 💾 salvar
         Acolhimento.objects.create(
             nome_paciente=request.POST.get('nome_paciente'),
             cpf=request.POST.get('cpf'),
@@ -76,13 +58,14 @@ def tipo_atendimento(request):
             tipo_atendimento=request.POST.get('tipo_atendimento')
         )
 
+        messages.success(request, "✔️ Atendimento registrado com sucesso!")
+
         return redirect('tipo_atendimento')
 
     return render(request, 'acolhimento/tipo_atendimento.html', {
         'paciente': paciente,
         'erro': erro
     })
-
 
 def atendimento_normal(request):
     return render(request, 'acolhimento/normal.html')
