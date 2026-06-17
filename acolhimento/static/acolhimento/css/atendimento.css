@@ -33,9 +33,83 @@ h1{
     color:#222;
 }
 
-/* ===========================
+/* ==========================
+   BUSCA
+========================== */
+
+.busca-paciente{
+    background:#f8f9fa;
+    border:1px solid #ddd;
+    border-radius:15px;
+    padding:20px;
+    margin-bottom:20px;
+}
+
+.busca-grid{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:15px;
+}
+
+.form-group{
+    display:flex;
+    flex-direction:column;
+}
+
+.form-group label{
+    font-weight:600;
+    color:#444;
+    margin-bottom:6px;
+}
+
+.form-group input{
+    width:100%;
+    height:45px;
+    padding:10px;
+    border:1px solid #ccc;
+    border-radius:8px;
+    font-size:15px;
+}
+
+.form-group input:focus{
+    outline:none;
+    border-color:#8b7b46;
+    box-shadow:0 0 5px rgba(139,123,70,.3);
+}
+
+/* ==========================
+   TABELA DE PACIENTES
+========================== */
+
+.tabela-pacientes{
+    width:100%;
+    border-collapse:collapse;
+    margin:20px 0;
+}
+
+.tabela-pacientes th{
+    background:#0d6efd;
+    color:#fff;
+    padding:10px;
+    text-align:left;
+}
+
+.tabela-pacientes td{
+    border:1px solid #ddd;
+    padding:10px;
+}
+
+.tabela-pacientes tbody tr{
+    cursor:pointer;
+}
+
+.tabela-pacientes tbody tr:hover{
+    background:#d9ecff;
+}
+
+/* ==========================
    DADOS DO PACIENTE
-=========================== */
+========================== */
 
 .paciente-box{
     background:#fafafa;
@@ -56,43 +130,15 @@ h1{
     gap:15px;
 }
 
-.form-group{
-    display:flex;
-    flex-direction:column;
-}
-
-.form-group label{
-    font-weight:600;
-    color:#444;
-    margin-bottom:6px;
-}
-
-.form-group input,
-.form-group select,
-.form-group textarea{
-    width:100%;
-    height:45px;
-    padding:10px;
-    border:1px solid #ccc;
-    border-radius:8px;
-    font-size:15px;
-}
-
-.form-group input:focus{
-    outline:none;
-    border-color:#8b7b46;
-    box-shadow:0 0 5px rgba(139,123,70,.3);
-}
-
 #idade{
     background:#f2f2f2;
     font-weight:bold;
     text-align:center;
 }
 
-/* ===========================
+/* ==========================
    SINAIS VITAIS
-=========================== */
+========================== */
 
 .sinais-vitais{
     display:grid;
@@ -132,9 +178,9 @@ h1{
     font-weight:bold;
 }
 
-/* ===========================
-   BOTÕES DE ATENDIMENTO
-=========================== */
+/* ==========================
+   BOTÕES
+========================== */
 
 .cards{
     display:flex;
@@ -144,25 +190,19 @@ h1{
     margin-top:30px;
 }
 
-.cards a{
-    text-decoration:none;
-}
-
 .card{
     width:320px;
     height:140px;
-
     display:flex;
     align-items:center;
     justify-content:center;
-
     border-radius:20px;
-
     font-size:30px;
     font-weight:700;
     text-align:center;
-
     transition:.3s;
+    border:none;
+    cursor:pointer;
 }
 
 .card:hover{
@@ -185,9 +225,39 @@ h1{
     color:#fff;
 }
 
-/* ===========================
+/* ==========================
+   ALERTAS
+========================== */
+
+.alerta-erro{
+    background:#ffe5e5;
+    color:#b30000;
+    border:1px solid #ffb3b3;
+    padding:15px;
+    border-radius:10px;
+    margin:20px 0;
+    font-weight:bold;
+    text-align:center;
+}
+
+.alerta-sucesso{
+    background:#d4edda;
+    color:#155724;
+    border:1px solid #c3e6cb;
+    padding:12px;
+    border-radius:10px;
+    margin:15px 0;
+    font-weight:bold;
+    text-align:center;
+}
+
+.resultado-busca{
+    margin-bottom:20px;
+}
+
+/* ==========================
    RESPONSIVO
-=========================== */
+========================== */
 
 @media (max-width:1200px){
 
@@ -218,83 +288,72 @@ h1{
     h1{
         font-size:28px;
     }
+}/* ==========================
+   TOPO DA PÁGINA
+========================== */
+
+.topo-pagina{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:30px;
+    padding-bottom:20px;
+    border-bottom:1px solid #ececec;
 }
 
-.alerta-erro{
-    background:#ffe5e5;
-    color:#b30000;
-    border:1px solid #ffb3b3;
-    padding:15px;
-    border-radius:10px;
-    margin:20px 0;
-    font-weight:bold;
-    text-align:center;
+.topo-pagina h1{
+    margin:0;
+    font-size:38px;
+    font-weight:700;
+    color:#222;
 }
 
-.campo-erro{
-    border:2px solid #dc3545 !important;
-    background:#fff5f5;
+/* BOTÃO SAIR */
+
+.btn-sair{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+
+    min-width:170px;
+    height:48px;
+
+    background:#ffffff;
+    color:#555;
+
+    text-decoration:none;
+
+    border:2px solid #dcdcdc;
+    border-radius:50px;
+
+    font-size:15px;
+    font-weight:600;
+
+    transition:all .3s ease;
 }
 
-.busca-paciente{
-    background:#f8f9fa;
-    border:1px solid #ddd;
-    border-radius:15px;
-    padding:20px;
-    margin-bottom:20px;
+.btn-sair:hover{
+    background:#fafafa;
+    color:#c75252;
+    border-color:#c75252;
+    box-shadow:0 4px 10px rgba(0,0,0,.08);
 }
 
-.busca-grid{
-    display:grid;
-    grid-template-columns:2fr 2fr 1fr;
-    gap:15px;
-    align-items:end;
+.btn-sair:active{
+    transform:scale(.98);
 }
 
-.botao-busca button{
-    width:100%;
-    height:45px;
-    border:none;
-    border-radius:8px;
-    background:#8b7b46;
-    color:#fff;
-    font-weight:bold;
-    cursor:pointer;
-}
+/* RESPONSIVO */
 
-.alerta-erro{
-    background:#ffe5e5;
-    color:#b30000;
-    padding:12px;
-    border-radius:10px;
-    margin-bottom:15px;
-    text-align:center;
-}
+@media(max-width:768px){
 
-.alerta-sucesso {
-    background: #e6ffed;
-    color: #1b7f3a;
-    border: 1px solid #a6e3b1;
-    padding: 12px;
-    border-radius: 10px;
-    margin: 15px 0;
-    font-weight: bold;
-    text-align: center;
-}
+    .topo-pagina{
+        flex-direction:column;
+        align-items:flex-start;
+        gap:15px;
+    }
 
-.alerta-sucesso {
-    background: #d4edda;
-    color: #155724;
-    border: 1px solid #c3e6cb;
-    padding: 12px;
-    border-radius: 10px;
-    margin: 15px 0;
-    font-weight: bold;
-    text-align: center;
-    animation: fadeIn 0.3s ease-in-out;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-5px); }
-    to { opacity: 1; transform: translateY(0); }
+    .btn-sair{
+        width:100%;
+    }
 }
