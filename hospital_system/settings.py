@@ -26,7 +26,7 @@ INSTALLED_APPS = [
     'unidades',
     'dashboard',
     'acolhimento',
-    'recepcao',
+    
 ]
 
 # Middlewares
