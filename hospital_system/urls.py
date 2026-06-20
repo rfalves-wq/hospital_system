@@ -25,6 +25,10 @@ urlpatterns = [
         include('acolhimento.urls')
     ),
 
+path(
+        'recepcao/',
+        include('recepcao.urls')
+    ),
     
     
 ]
