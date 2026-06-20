@@ -160,6 +160,7 @@ body {
                 </div>
 
                 <!-- ================= REGISTRO ================= -->
+                 
                 <div class="tab-pane fade" id="registro">
 
                     <div class="barra-dourada"></div>
@@ -332,14 +333,22 @@ body {
                                            <div class="row g-2">
 
     <div class="col-12 col-md-6 mb-3">
-        <label>Telefone</label>
-        <input type="text" class="form-control" name="telefone">
-    </div>
+    <label>Telefone</label>
+    <input type="text"
+           class="form-control"
+           name="telefone"
+           id="telefone"
+           placeholder="(00) 00000-0000">
+</div>
 
     <div class="col-12 col-md-6 mb-3">
-        <label>E-mail</label>
-        <input type="email" class="form-control" name="email">
-    </div>
+    <label>E-mail</label>
+    <input type="email"
+           class="form-control"
+           name="email"
+           id="email"
+           placeholder="exemplo@email.com">
+</div>
 
 </div>
 
@@ -373,12 +382,47 @@ body {
                                 <h5 class="text-primary">Endereço</h5><hr>
                             </div>
 
-                            <div class="col-md-3 mb-3"><input class="form-control" name="cep" placeholder="CEP"></div>
-                            <div class="col-md-3 mb-3"><input class="form-control" name="municipio" placeholder="Município"></div>
-                            <div class="col-md-3 mb-3"><input class="form-control" name="bairro" placeholder="Bairro"></div>
-                            <div class="col-md-3 mb-3"><input class="form-control" name="logradouro" placeholder="Logradouro"></div>
-                            <div class="col-md-2 mb-3"><input class="form-control" name="numero" placeholder="Número"></div>
-                            <div class="col-md-10 mb-3"><input class="form-control" name="complemento" placeholder="Complemento"></div>
+                            <div class="col-md-3 mb-3">
+    <input class="form-control"
+           id="cep"
+           name="cep"
+           placeholder="CEP">
+</div>
+
+<div class="col-md-3 mb-3">
+    <input class="form-control"
+           id="municipio"
+           name="municipio"
+           placeholder="Município">
+</div>
+
+<div class="col-md-3 mb-3">
+    <input class="form-control"
+           id="bairro"
+           name="bairro"
+           placeholder="Bairro">
+</div>
+
+<div class="col-md-3 mb-3">
+    <input class="form-control"
+           id="logradouro"
+           name="logradouro"
+           placeholder="Logradouro">
+</div>
+
+<div class="col-md-2 mb-3">
+    <input class="form-control"
+           id="numero"
+           name="numero"
+           placeholder="Número">
+</div>
+
+<div class="col-md-10 mb-3">
+    <input class="form-control"
+           id="complemento"
+           name="complemento"
+           placeholder="Complemento">
+</div>
 
                         </div>
 
@@ -417,200 +461,221 @@ body {
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
 <script>
+/* =========================
+   ABRIR REGISTRO + PREENCHER
+========================= */
 document.addEventListener('click', function (e) {
 
-    const link = e.target.closest('.paciente-link');
-    if (!link) return;
+    const el = e.target.closest('.paciente-link');
+    if (!el) return;
 
     e.preventDefault();
 
-    const setVal = (id, val) => {
-        const el = document.getElementById(id);
-        if (el) el.value = val || '';
+    const set = (id, val) => {
+        const input = document.getElementById(id);
+        if (input) input.value = val || '';
     };
 
-    setVal('nome_completo', link.dataset.nome);
-    setVal('cpf', link.dataset.cpf);
-    setVal('data_nascimento', link.dataset.nascimento);
+    set('nome_completo', el.dataset.nome);
+    set('cpf', el.dataset.cpf);
+    set('data_nascimento', el.dataset.nascimento);
 
-    bootstrap.Tab.getOrCreateInstance(
-        document.querySelector('[data-bs-target="#registro"]')
-    ).show();
+    const tab = document.querySelector('button[data-bs-target="#registro"]');
+    if (tab) new bootstrap.Tab(tab).show();
 });
-</script>
-<script>
+
+
+/* =========================
+   ENTER → PRÓXIMO CAMPO
+========================= */
 document.addEventListener('keydown', function (e) {
 
     if (e.key !== 'Enter') return;
 
-    const campoAtual = e.target;
-
-    // só atua dentro do formulário
-    const form = campoAtual.closest('form');
+    const el = e.target;
+    const form = el.closest('form');
     if (!form) return;
 
-    // não interferir em textarea
-    if (campoAtual.tagName.toLowerCase() === 'textarea') return;
+    if (el.tagName === 'TEXTAREA') return;
 
     e.preventDefault();
 
-    const campos = Array.from(
-        form.querySelectorAll('input, select, textarea')
-    ).filter(el =>
-        !el.disabled &&
-        !el.readOnly &&
-        el.offsetParent !== null &&
-        el.type !== 'hidden'
-    );
+    const fields = [...form.querySelectorAll('input, select, textarea')]
+        .filter(f =>
+            !f.disabled &&
+            !f.readOnly &&
+            f.type !== 'hidden' &&
+            f.offsetParent !== null
+        );
 
-    const indice = campos.indexOf(campoAtual);
+    const i = fields.indexOf(el);
 
-    if (indice > -1 && indice < campos.length - 1) {
-        campos[indice + 1].focus();
-        campos[indice + 1].select?.();
+    if (i > -1 && i < fields.length - 1) {
+        fields[i + 1].focus();
+        fields[i + 1].select?.();
     }
 });
-</script>
-<script>
+
+
+/* =========================
+   CPF MÁSCARA
+========================= */
 document.addEventListener('input', function (e) {
 
     if (e.target.id !== 'cpf') return;
 
-    let value = e.target.value;
+    let v = e.target.value.replace(/\D/g, '').slice(0, 11);
 
-    // remove tudo que não for número
-    value = value.replace(/\D/g, '');
+    v = v.replace(/(\d{3})(\d)/, '$1.$2');
+    v = v.replace(/(\d{3})(\d)/, '$1.$2');
+    v = v.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
 
-    // aplica máscara
-    value = value.replace(/(\d{3})(\d)/, '$1.$2');
-    value = value.replace(/(\d{3})(\d)/, '$1.$2');
-    value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
-
-    e.target.value = value;
+    e.target.value = v;
 });
-</script>
 
-<script>
+
+/* =========================
+   IDADE (VERSÃO ÚNICA CORRETA)
+========================= */
 function calcularIdadeAuto() {
 
-    const inputData = document.getElementById('data_nascimento');
-    const inputIdade = document.getElementById('idade');
+    const data = document.getElementById('data_nascimento');
+    const idade = document.getElementById('idade');
+    const resp = document.getElementById('responsavel_container');
 
-    if (!inputData || !inputIdade) return;
+    if (!data || !idade) return;
 
-    const data = inputData.value;
-    if (!data) {
-        inputIdade.value = '';
+    if (!data.value) {
+        idade.value = '';
+        if (resp) resp.style.display = 'none';
         return;
     }
 
-    const nascimento = new Date(data);
+    const nasc = new Date(data.value);
     const hoje = new Date();
 
-    let idade = hoje.getFullYear() - nascimento.getFullYear();
+    let i = hoje.getFullYear() - nasc.getFullYear();
+    const m = hoje.getMonth() - nasc.getMonth();
 
-    const mes = hoje.getMonth() - nascimento.getMonth();
+    if (m < 0 || (m === 0 && hoje.getDate() < nasc.getDate())) i--;
 
-    if (mes < 0 || (mes === 0 && hoje.getDate() < nascimento.getDate())) {
-        idade--;
-    }
+    idade.value = i;
 
-    inputIdade.value = idade;
-}
-
-document.addEventListener('DOMContentLoaded', function () {
-    const inputData = document.getElementById('data_nascimento');
-
-    if (inputData) {
-        inputData.addEventListener('change', calcularIdadeAuto);
-    }
-});
-</script>
-
-<script>
-function calcularIdadeAuto() {
-
-    const inputData = document.getElementById('data_nascimento');
-    const inputIdade = document.getElementById('idade');
-    const container = document.getElementById('responsavel_container');
-
-    if (!inputData || !inputIdade) return;
-
-    const data = inputData.value;
-
-    if (!data) {
-        inputIdade.value = '';
-        container.style.display = 'none';
-        return;
-    }
-
-    const nascimento = new Date(data);
-    const hoje = new Date();
-
-    let idade = hoje.getFullYear() - nascimento.getFullYear();
-
-    const mes = hoje.getMonth() - nascimento.getMonth();
-
-    if (mes < 0 || (mes === 0 && hoje.getDate() < nascimento.getDate())) {
-        idade--;
-    }
-
-    inputIdade.value = idade;
-
-    // REGRA PRINCIPAL
-    if (idade < 18) {
-        container.style.display = 'flex';
-    } else {
-        container.style.display = 'none';
-
-        // limpa campos quando maior de idade
-        const nomeResp = document.getElementById('nome_responsavel');
-        const cpfResp = document.getElementById('cpf_responsavel');
-
-        if (nomeResp) nomeResp.value = '';
-        if (cpfResp) cpfResp.value = '';
+    if (resp) {
+        resp.style.display = i < 18 ? 'flex' : 'none';
     }
 }
 
-document.addEventListener('DOMContentLoaded', function () {
-    const inputData = document.getElementById('data_nascimento');
-
-    if (inputData) {
-        inputData.addEventListener('change', calcularIdadeAuto);
-    }
+document.addEventListener('DOMContentLoaded', () => {
+    const el = document.getElementById('data_nascimento');
+    if (el) el.addEventListener('change', calcularIdadeAuto);
 });
-</script>
-<script>
-const ufNaturalidade = document.getElementById("uf_naturalidade");
-const naturalidade = document.getElementById("naturalidade");
 
-ufNaturalidade.addEventListener("change", function () {
 
-    const uf = this.value;
+/* =========================
+   NATURALIDADE (IBGE)
+========================= */
+document.addEventListener('DOMContentLoaded', () => {
 
-    naturalidade.innerHTML =
-        '<option>Carregando municípios...</option>';
+    const uf = document.getElementById('uf_naturalidade');
+    const cidade = document.getElementById('naturalidade');
 
-    fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${uf}/municipios`)
-        .then(response => response.json())
-        .then(cidades => {
+    if (!uf || !cidade) return;
 
-            naturalidade.innerHTML =
-                '<option value="">Selecione</option>';
+    uf.addEventListener('change', function () {
 
-            cidades.forEach(cidade => {
+        cidade.innerHTML = '<option>Carregando...</option>';
 
-                naturalidade.innerHTML += `
-                    <option value="${cidade.nome}">
-                        ${cidade.nome}
-                    </option>
-                `;
+        fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${this.value}/municipios`)
+            .then(r => r.json())
+            .then(data => {
+
+                cidade.innerHTML = '<option value="">Selecione</option>';
+
+                data.forEach(c => {
+                    cidade.innerHTML += `<option value="${c.nome}">${c.nome}</option>`;
+                });
+
             });
 
-        });
+    });
+});
 
+
+/* =========================
+   CEP (VIACEP)
+========================= */
+document.addEventListener('DOMContentLoaded', () => {
+
+    const cep = document.getElementById('cep');
+    const municipio = document.getElementById('municipio');
+
+    if (!cep || !municipio) return;
+
+    cep.addEventListener('blur', function () {
+
+        let v = this.value.replace(/\D/g, '');
+
+        if (v.length !== 8) return;
+
+        fetch(`https://viacep.com.br/ws/${v}/json/`)
+            .then(r => r.json())
+            .then(d => {
+
+                if (d.erro) return;
+
+                municipio.value = d.localidade || '';
+
+            });
+    });
+
+    cep.addEventListener('input', function () {
+
+        let v = this.value.replace(/\D/g, '').slice(0, 8);
+
+        if (v.length > 5) v = v.replace(/^(\d{5})(\d)/, '$1-$2');
+
+        this.value = v;
+    });
+});
+
+
+/* =========================
+   TELEFONE
+========================= */
+document.addEventListener('input', function (e) {
+
+    if (e.target.id !== 'telefone') return;
+
+    let v = e.target.value.replace(/\D/g, '').slice(0, 11);
+
+    if (v.length <= 10) {
+        v = v.replace(/(\d{2})(\d)/, '($1) $2');
+        v = v.replace(/(\d{4})(\d)/, '$1-$2');
+    } else {
+        v = v.replace(/(\d{2})(\d)/, '($1) $2');
+        v = v.replace(/(\d{5})(\d)/, '$1-$2');
+    }
+
+    e.target.value = v;
+});
+
+
+/* =========================
+   EMAIL VALIDAÇÃO
+========================= */
+document.addEventListener('input', function (e) {
+
+    if (e.target.id !== 'email') return;
+
+    if (e.target.checkValidity()) {
+        e.target.classList.add('is-valid');
+        e.target.classList.remove('is-invalid');
+    } else {
+        e.target.classList.add('is-invalid');
+        e.target.classList.remove('is-valid');
+    }
 });
 </script>
 </body>
