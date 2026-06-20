@@ -53,25 +53,23 @@ body {
 
     <!-- TABS -->
     <ul class="nav nav-tabs">
-
         <li class="nav-item">
-            <button class="nav-link active" id="fila-tab" data-bs-toggle="tab" data-bs-target="#fila">
+            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#fila">
                 Fila da Recepção
             </button>
         </li>
 
         <li class="nav-item">
-            <button class="nav-link" id="registro-tab" data-bs-toggle="tab" data-bs-target="#registro">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#registro">
                 Registro de Paciente
             </button>
         </li>
 
         <li class="nav-item">
-            <button class="nav-link" id="historico-tab" data-bs-toggle="tab" data-bs-target="#historico">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#historico">
                 Histórico
             </button>
         </li>
-
     </ul>
 
     <div class="card shadow-sm mt-3">
@@ -83,14 +81,12 @@ body {
                 <div class="tab-pane fade show active" id="fila">
 
                     <div class="barra-dourada"></div>
-
                     <h4>Fila da Recepção</h4>
                     <p class="text-muted">Pacientes aguardando cadastro administrativo.</p>
 
                     <div class="fila-box">
 
                         {% if acolhimentos %}
-
                         <div class="table-responsive">
                         <table class="table table-striped table-hover align-middle">
 
@@ -107,7 +103,6 @@ body {
                             </thead>
 
                             <tbody>
-
                             {% for acolhimento in acolhimentos %}
                             <tr>
 
@@ -151,15 +146,14 @@ body {
 
                             </tr>
                             {% endfor %}
-
                             </tbody>
+
                         </table>
                         </div>
-
                         {% else %}
-                        <div class="alert alert-secondary">
-                            Nenhum paciente aguardando na recepção.
-                        </div>
+                            <div class="alert alert-secondary">
+                                Nenhum paciente aguardando na recepção.
+                            </div>
                         {% endif %}
 
                     </div>
@@ -169,7 +163,6 @@ body {
                 <div class="tab-pane fade" id="registro">
 
                     <div class="barra-dourada"></div>
-
                     <h4>Registro de Paciente</h4>
 
                     <form method="post">
@@ -178,30 +171,32 @@ body {
                         <div class="row">
 
                             <!-- IDENTIFICAÇÃO -->
-                            <div class="col-12"><h5 class="text-primary mt-2">Identificação</h5><hr></div>
-
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Nome completo *</label>
-                                <input type="text" class="form-control" name="nome_completo" id="nome_paciente">
+                            <div class="col-12">
+                                <h5 class="text-primary mt-2">Identificação</h5><hr>
                             </div>
 
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">Nome social</label>
+                                <label>Nome completo *</label>
+                                <input type="text" class="form-control" name="nome_completo" id="nome_completo">
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label>Nome social</label>
                                 <input type="text" class="form-control" name="nome_social">
                             </div>
 
                             <div class="col-md-3 mb-3">
-                                <label class="form-label">CPF *</label>
+                                <label>CPF *</label>
                                 <input type="text" class="form-control" name="cpf" id="cpf">
                             </div>
 
                             <div class="col-md-3 mb-3">
-                                <label class="form-label">CNS</label>
+                                <label>CNS</label>
                                 <input type="text" class="form-control" name="cns">
                             </div>
 
                             <div class="col-md-3 mb-3">
-                                <label class="form-label">Sexo</label>
+                                <label>Sexo</label>
                                 <select class="form-control" name="sexo">
                                     <option>Masculino</option>
                                     <option>Feminino</option>
@@ -211,7 +206,7 @@ body {
                             </div>
 
                             <div class="col-md-3 mb-3">
-                                <label class="form-label">Raça/Cor</label>
+                                <label>Raça/Cor</label>
                                 <select class="form-control" name="raca_cor">
                                     <option>Branca</option>
                                     <option>Preta</option>
@@ -223,61 +218,97 @@ body {
                             </div>
 
                             <div class="col-md-3 mb-3">
-                                <label class="form-label">Nascimento</label>
+                                <label>Nascimento</label>
                                 <input type="date" class="form-control" name="data_nascimento" id="data_nascimento">
                             </div>
 
                             <div class="col-md-3 mb-3">
-    <label class="form-label">Idade</label>
-    <input type="number" class="form-control bg-light" name="idade" readonly>
-</div>
+                                <label>Idade</label>
+                                <input type="number" class="form-control bg-light" name="idade" readonly>
+                            </div>
 
                             <div class="col-md-3 mb-3">
-                                <label class="form-label">Nacionalidade</label>
+                                <label>Nacionalidade</label>
                                 <input type="text" class="form-control" name="nacionalidade">
                             </div>
 
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Naturalidade</label>
+                            <div class="col-md-3 mb-3">
+                                <label>Naturalidade</label>
                                 <input type="text" class="form-control" name="naturalidade">
                             </div>
 
                             <!-- FILIAÇÃO -->
-                            <div class="col-12 mt-3"><h5 class="text-primary">Filiação</h5><hr></div>
+                            <div class="col-12 mt-3">
+                                <h5 class="text-primary">Filiação</h5><hr>
+                            </div>
 
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">Nome da mãe</label>
+                                <label>Nome da mãe</label>
                                 <input type="text" class="form-control" name="nome_mae">
                             </div>
 
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">Nome do pai</label>
+                                <label>Nome do pai</label>
                                 <input type="text" class="form-control" name="nome_pai">
                             </div>
 
-                            <!-- CONTATO -->
-                            <div class="col-12 mt-3"><h5 class="text-primary">Contato</h5><hr></div>
-
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label">Telefone</label>
-                                <input type="text" class="form-control" name="telefone">
+                            <!-- CONTATO + CONDIÇÃO SOCIAL -->
+                            <div class="col-12 mt-3">
+                                <h5 class="text-primary">Contato e Condição Social</h5><hr>
                             </div>
 
-                            <div class="col-md-8 mb-3">
-                                <label class="form-label">E-mail</label>
-                                <input type="email" class="form-control" name="email">
-                            </div>
+                            <div class="row g-3">
 
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label">Situação de rua</label>
-                                <select class="form-control" name="situacao_rua">
-                                    <option>Não</option>
-                                    <option>Sim</option>
-                                </select>
+                                <div class="col-12 col-md-6">
+                                    <div class="card shadow-sm h-100">
+                                        <div class="card-header bg-light">
+                                            <strong>Contato</strong>
+                                        </div>
+                                        <div class="card-body">
+
+                                           <div class="row g-2">
+
+    <div class="col-12 col-md-6 mb-3">
+        <label>Telefone</label>
+        <input type="text" class="form-control" name="telefone">
+    </div>
+
+    <div class="col-12 col-md-6 mb-3">
+        <label>E-mail</label>
+        <input type="email" class="form-control" name="email">
+    </div>
+
+</div>
+
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-12 col-md-6">
+                                    <div class="card shadow-sm h-100">
+                                        <div class="card-header bg-light">
+                                            <strong>Condição Social</strong>
+                                        </div>
+                                        <div class="card-body">
+
+                                            <div class="mb-3">
+                                                <label>Situação de rua</label>
+                                                <select class="form-control" name="situacao_rua">
+                                                    <option>Não</option>
+                                                    <option>Sim</option>
+                                                </select>
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                </div>
+
                             </div>
 
                             <!-- ENDEREÇO -->
-                            <div class="col-12 mt-3"><h5 class="text-primary">Endereço</h5><hr></div>
+                            <div class="col-12 mt-3">
+                                <h5 class="text-primary">Endereço</h5><hr>
+                            </div>
 
                             <div class="col-md-3 mb-3"><input class="form-control" name="cep" placeholder="CEP"></div>
                             <div class="col-md-3 mb-3"><input class="form-control" name="municipio" placeholder="Município"></div>
@@ -288,10 +319,7 @@ body {
 
                         </div>
 
-                        <button type="submit" class="btn btn-primary">
-                            Salvar
-                        </button>
-
+                        <button type="submit" class="btn btn-primary">Salvar</button>
                     </form>
 
                 </div>
@@ -340,104 +368,14 @@ document.addEventListener('click', function (e) {
         if (el) el.value = val || '';
     };
 
-    setVal('nome_paciente', link.dataset.nome);
+    setVal('nome_completo', link.dataset.nome);
     setVal('cpf', link.dataset.cpf);
     setVal('data_nascimento', link.dataset.nascimento);
 
     bootstrap.Tab.getOrCreateInstance(
-        document.getElementById('registro-tab')
+        document.querySelector('[data-bs-target="#registro"]')
     ).show();
-
-    // 🔥 força cálculo de idade após preenchimento automático
-    calcularIdadeAuto();
 });
-
-
-// ===============================
-// CÁLCULO AUTOMÁTICO DE IDADE
-// ===============================
-document.addEventListener('DOMContentLoaded', function () {
-
-    const inputData = document.getElementById('data_nascimento');
-    const inputIdade = document.querySelector('input[name="idade"]');
-
-    function calcularIdade(dataNasc) {
-        if (!dataNasc) return '';
-
-        const hoje = new Date();
-        const nasc = new Date(dataNasc);
-
-        let idade = hoje.getFullYear() - nasc.getFullYear();
-
-        const mes = hoje.getMonth() - nasc.getMonth();
-
-        if (mes < 0 || (mes === 0 && hoje.getDate() < nasc.getDate())) {
-            idade--;
-        }
-
-        return idade;
-    }
-
-    window.calcularIdadeAuto = function () {
-        if (!inputData || !inputIdade) return;
-        inputIdade.value = calcularIdade(inputData.value);
-    };
-
-    if (inputData) {
-        inputData.addEventListener('input', calcularIdadeAuto);
-        inputData.addEventListener('change', calcularIdadeAuto);
-    }
-
-    // 🔥 caso já venha preenchido ao abrir aba
-    setTimeout(calcularIdadeAuto, 300);
-});
-
-// ===============================
-// ENTER = PRÓXIMO CAMPO (TAB)
-// ===============================
-document.addEventListener('DOMContentLoaded', function () {
-
-    const form = document.querySelector('form');
-
-    if (!form) return;
-
-    const focusableSelectors = `
-        input:not([type="hidden"]):not([disabled]):not([readonly]),
-        select:not([disabled]),
-        textarea:not([disabled]),
-        button:not([disabled])
-    `;
-
-    form.addEventListener('keydown', function (e) {
-
-        if (e.key !== 'Enter') return;
-
-        const target = e.target;
-
-        // evita submit em botão ou textarea
-        if (target.tagName === 'TEXTAREA') return;
-        if (target.type === 'submit') return;
-
-        const focusables = Array.from(form.querySelectorAll(focusableSelectors))
-            .filter(el => el.offsetParent !== null); // visíveis
-
-        const index = focusables.indexOf(target);
-
-        if (index > -1) {
-            e.preventDefault();
-
-            const next = focusables[index + 1];
-
-            if (next) {
-                next.focus();
-            } else {
-                form.submit(); // último campo envia
-            }
-        }
-    });
-
-});
-
 </script>
 
 </body>
