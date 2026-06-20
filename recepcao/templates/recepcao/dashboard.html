@@ -222,20 +222,83 @@ body {
                                 <input type="date" class="form-control" name="data_nascimento" id="data_nascimento">
                             </div>
 
-                            <div class="col-md-3 mb-3">
-                                <label>Idade</label>
-                                <input type="number" class="form-control bg-light" name="idade" readonly>
-                            </div>
+   <div class="col-md-3 mb-3">
+    <label>Idade</label>
+    <input type="number"
+           class="form-control bg-light"
+           name="idade"
+           id="idade"
+           readonly
+           tabindex="-1"
+           aria-readonly="true">
+</div>
+<div id="responsavel_container" class="row g-3 mt-2" style="display:none;">
+
+    <div class="col-12">
+        <h6 class="text-danger">Responsável Legal (obrigatório para menor de idade)</h6>
+        <hr>
+    </div>
+
+    <div class="col-md-6">
+        <label>Nome do responsável</label>
+        <input type="text" class="form-control" name="nome_responsavel" id="nome_responsavel">
+    </div>
+
+    <div class="col-md-3">
+        <label>CPF do responsável</label>
+        <input type="text" class="form-control" name="cpf_responsavel" id="cpf_responsavel">
+    </div>
+
+</div>
 
                             <div class="col-md-3 mb-3">
-                                <label>Nacionalidade</label>
-                                <input type="text" class="form-control" name="nacionalidade">
-                            </div>
+    <label>Nacionalidade</label>
+    <select class="form-control" name="nacionalidade" id="nacionalidade">
+        <option value="">Selecione</option>
+        <option value="Brasileira">Brasileira</option>
+        <option value="Estrangeira">Estrangeira</option>
+    </select>
+</div>
 
-                            <div class="col-md-3 mb-3">
-                                <label>Naturalidade</label>
-                                <input type="text" class="form-control" name="naturalidade">
-                            </div>
+ <div class="col-md-3 mb-3">
+    <label>Estado de nascimento (UF)</label>
+    <select class="form-control" id="uf_naturalidade" name="uf_naturalidade">
+        <option value="">Selecione</option>
+        <option value="AC">Acre</option>
+        <option value="AL">Alagoas</option>
+        <option value="AP">Amapá</option>
+        <option value="AM">Amazonas</option>
+        <option value="BA">Bahia</option>
+        <option value="CE">Ceará</option>
+        <option value="DF">Distrito Federal</option>
+        <option value="ES">Espírito Santo</option>
+        <option value="GO">Goiás</option>
+        <option value="MA">Maranhão</option>
+        <option value="MT">Mato Grosso</option>
+        <option value="MS">Mato Grosso do Sul</option>
+        <option value="MG">Minas Gerais</option>
+        <option value="PA">Pará</option>
+        <option value="PB">Paraíba</option>
+        <option value="PR">Paraná</option>
+        <option value="PE">Pernambuco</option>
+        <option value="PI">Piauí</option>
+        <option value="RJ">Rio de Janeiro</option>
+        <option value="RN">Rio Grande do Norte</option>
+        <option value="RS">Rio Grande do Sul</option>
+        <option value="RO">Rondônia</option>
+        <option value="RR">Roraima</option>
+        <option value="SC">Santa Catarina</option>
+        <option value="SP">São Paulo</option>
+        <option value="SE">Sergipe</option>
+        <option value="TO">Tocantins</option>
+    </select>
+</div>
+<div class="col-md-3 mb-3">
+    <label>Naturalidade (Cidade)</label>
+    <select class="form-control" id="naturalidade" name="naturalidade">
+        <option value="">Selecione o estado primeiro</option>
+    </select>
+</div>
 
                             <!-- FILIAÇÃO -->
                             <div class="col-12 mt-3">
@@ -377,6 +440,178 @@ document.addEventListener('click', function (e) {
     ).show();
 });
 </script>
+<script>
+document.addEventListener('keydown', function (e) {
 
+    if (e.key !== 'Enter') return;
+
+    const campoAtual = e.target;
+
+    // só atua dentro do formulário
+    const form = campoAtual.closest('form');
+    if (!form) return;
+
+    // não interferir em textarea
+    if (campoAtual.tagName.toLowerCase() === 'textarea') return;
+
+    e.preventDefault();
+
+    const campos = Array.from(
+        form.querySelectorAll('input, select, textarea')
+    ).filter(el =>
+        !el.disabled &&
+        !el.readOnly &&
+        el.offsetParent !== null &&
+        el.type !== 'hidden'
+    );
+
+    const indice = campos.indexOf(campoAtual);
+
+    if (indice > -1 && indice < campos.length - 1) {
+        campos[indice + 1].focus();
+        campos[indice + 1].select?.();
+    }
+});
+</script>
+<script>
+document.addEventListener('input', function (e) {
+
+    if (e.target.id !== 'cpf') return;
+
+    let value = e.target.value;
+
+    // remove tudo que não for número
+    value = value.replace(/\D/g, '');
+
+    // aplica máscara
+    value = value.replace(/(\d{3})(\d)/, '$1.$2');
+    value = value.replace(/(\d{3})(\d)/, '$1.$2');
+    value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+
+    e.target.value = value;
+});
+</script>
+
+<script>
+function calcularIdadeAuto() {
+
+    const inputData = document.getElementById('data_nascimento');
+    const inputIdade = document.getElementById('idade');
+
+    if (!inputData || !inputIdade) return;
+
+    const data = inputData.value;
+    if (!data) {
+        inputIdade.value = '';
+        return;
+    }
+
+    const nascimento = new Date(data);
+    const hoje = new Date();
+
+    let idade = hoje.getFullYear() - nascimento.getFullYear();
+
+    const mes = hoje.getMonth() - nascimento.getMonth();
+
+    if (mes < 0 || (mes === 0 && hoje.getDate() < nascimento.getDate())) {
+        idade--;
+    }
+
+    inputIdade.value = idade;
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    const inputData = document.getElementById('data_nascimento');
+
+    if (inputData) {
+        inputData.addEventListener('change', calcularIdadeAuto);
+    }
+});
+</script>
+
+<script>
+function calcularIdadeAuto() {
+
+    const inputData = document.getElementById('data_nascimento');
+    const inputIdade = document.getElementById('idade');
+    const container = document.getElementById('responsavel_container');
+
+    if (!inputData || !inputIdade) return;
+
+    const data = inputData.value;
+
+    if (!data) {
+        inputIdade.value = '';
+        container.style.display = 'none';
+        return;
+    }
+
+    const nascimento = new Date(data);
+    const hoje = new Date();
+
+    let idade = hoje.getFullYear() - nascimento.getFullYear();
+
+    const mes = hoje.getMonth() - nascimento.getMonth();
+
+    if (mes < 0 || (mes === 0 && hoje.getDate() < nascimento.getDate())) {
+        idade--;
+    }
+
+    inputIdade.value = idade;
+
+    // REGRA PRINCIPAL
+    if (idade < 18) {
+        container.style.display = 'flex';
+    } else {
+        container.style.display = 'none';
+
+        // limpa campos quando maior de idade
+        const nomeResp = document.getElementById('nome_responsavel');
+        const cpfResp = document.getElementById('cpf_responsavel');
+
+        if (nomeResp) nomeResp.value = '';
+        if (cpfResp) cpfResp.value = '';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    const inputData = document.getElementById('data_nascimento');
+
+    if (inputData) {
+        inputData.addEventListener('change', calcularIdadeAuto);
+    }
+});
+</script>
+<script>
+const ufNaturalidade = document.getElementById("uf_naturalidade");
+const naturalidade = document.getElementById("naturalidade");
+
+ufNaturalidade.addEventListener("change", function () {
+
+    const uf = this.value;
+
+    naturalidade.innerHTML =
+        '<option>Carregando municípios...</option>';
+
+    fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${uf}/municipios`)
+        .then(response => response.json())
+        .then(cidades => {
+
+            naturalidade.innerHTML =
+                '<option value="">Selecione</option>';
+
+            cidades.forEach(cidade => {
+
+                naturalidade.innerHTML += `
+                    <option value="${cidade.nome}">
+                        ${cidade.nome}
+                    </option>
+                `;
+            });
+
+        });
+
+});
+</script>
 </body>
 </html>
