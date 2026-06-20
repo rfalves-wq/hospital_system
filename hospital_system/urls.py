@@ -30,5 +30,5 @@ path(
         include('recepcao.urls')
     ),
     
-    
+    path('accounts/', include('accounts.urls'))
 ]
