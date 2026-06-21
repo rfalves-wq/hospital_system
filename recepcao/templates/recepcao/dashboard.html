@@ -149,21 +149,24 @@ body{
 
                 <thead class="table-primary">
 
-                    <tr>
-                        <th>Paciente</th>
-                        <th class="d-none d-xl-table-cell">CPF</th>
-                        <th class="d-none d-lg-table-cell">Nascimento</th>
-                        <th>Idade</th>
-                        <th>PA</th>
-                        <th>Temp.</th>
-                        <th>FR</th>
-                        <th>Pulso</th>
-                        <th>Dor</th>
-                        <th>Tipo</th>
-                        <th class="d-none d-md-table-cell">Data</th>
-                        <th>Hora</th>
-                        <th>Ação</th>
-                    </tr>
+                  <thead class="table-primary">
+    <tr>
+        <th>Paciente</th>
+        <th>BAM</th>
+        <th class="d-none d-xl-table-cell">CPF</th>
+        <th class="d-none d-lg-table-cell">Nascimento</th>
+        <th>Idade</th>
+        <th>PA</th>
+        <th>Temp.</th>
+        <th>FR</th>
+        <th>Pulso</th>
+        <th>Dor</th>
+        <th>Tipo</th>
+        <th class="d-none d-md-table-cell">Data</th>
+        <th>Hora</th>
+        <th>Ação</th>
+    </tr>
+</thead>
 
                 </thead>
 
@@ -183,6 +186,11 @@ body{
 
                         </a>
                     </td>
+                    <td>
+  <span >
+    {{ acolhimento.numero_bam }}
+</span>
+</td>
 
                     <td class="d-none d-xl-table-cell">
                         {{ acolhimento.cpf }}
