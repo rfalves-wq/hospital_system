@@ -19,6 +19,13 @@ class Acolhimento(models.Model):
         null=True
     )
 
+    numero_bam = models.CharField(
+        max_length=20,
+        verbose_name='Nº BAM',
+        blank=True,
+        null=True
+    )
+
     data_nascimento = models.DateField()
 
     idade = models.PositiveIntegerField(
@@ -66,8 +73,6 @@ class Acolhimento(models.Model):
     data_acolhimento = models.DateTimeField(
         auto_now_add=True
     )
-
-    
 
     def __str__(self):
         return f'{self.nome_paciente} - {self.tipo_atendimento}'

@@ -43,6 +43,7 @@ def tipo_atendimento(request):
         Acolhimento.objects.create(
             nome_paciente=request.POST.get("nome_paciente"),
             cpf=request.POST.get("cpf"),
+            numero_bam=request.POST.get("numero_bam"),
             data_nascimento=request.POST.get("data_nascimento"),
             idade=idade,
             pressao_arterial=request.POST.get("pressao_arterial"),
@@ -55,7 +56,7 @@ def tipo_atendimento(request):
             tipo_atendimento=request.POST.get(
                 "tipo_atendimento"
             ),
-        )
+)
 
         messages.success(
             request,
@@ -92,6 +93,7 @@ def buscar_paciente(request):
         dados.append({
             "nome": paciente.nome_paciente,
             "cpf": paciente.cpf,
+            "numero_bam": paciente.numero_bam,
             "data_nascimento": (
                 paciente.data_nascimento.strftime("%Y-%m-%d")
                 if paciente.data_nascimento
