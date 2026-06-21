@@ -238,3 +238,15 @@ campos.forEach((campo, index) => {
     });
 
 });
+
+
+function fecharModal(){
+    document.getElementById("modal-sucesso").style.display = "none";
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+    const modal = document.getElementById("modal-sucesso");
+    if(modal){
+        modal.style.display = "flex";
+    }
+});

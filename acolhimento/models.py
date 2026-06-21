@@ -67,6 +67,8 @@ class Acolhimento(models.Model):
         auto_now_add=True
     )
 
+    
+
     def __str__(self):
         return f'{self.nome_paciente} - {self.tipo_atendimento}'
 
