@@ -157,16 +157,15 @@
                 placeholder="000.000.000-00">
         </div>
 
-        <div class="form-group">
-            <label>Nº do BAM</label>
-            <input
-                type="text"
-                id="numero_bam"
-                name="numero_bam"
-                placeholder="Ex.: 2026000123"
-                maxlength="20"
-                required>
-        </div>
+<div class="form-group">
+    <label>Nº do BAM</label>
+    <input
+        type="text"
+        id="numero_bam"
+        value="{{ paciente.numero_bam }}"
+        placeholder="Gerado automaticamente"
+        readonly>
+</div>
 
         <div class="form-group">
             <label>Data de Nascimento</label>
