@@ -1,4 +1,4 @@
-from django.db import models
+from django.db import models, transaction
 from django.utils import timezone
 
 
@@ -15,6 +15,8 @@ class Acolhimento(models.Model):
 
     numero_bam = models.CharField(
         max_length=20,
+        unique=True,
+        db_index=True,
         blank=True,
         null=True,
         verbose_name='Nº BAM'
@@ -37,26 +39,31 @@ class Acolhimento(models.Model):
 
         if not self.numero_bam:
 
+            # 🔴 CORRETO: evita erro de timezone "naive datetime"
             hoje = timezone.now().date()
+            prefixo = hoje.strftime("%Y%m%d")
 
-            ultimo = (
-                Acolhimento.objects
-                .order_by('-id')
-                .values_list('numero_bam', flat=True)
-                .first()
-            )
+            with transaction.atomic():
 
-            if ultimo:
-                try:
-                    sequencial = int(ultimo[-4:]) + 1
-                except:
+                ultimo = (
+                    Acolhimento.objects
+                    .select_for_update()
+                    .filter(numero_bam__startswith=prefixo)
+                    .order_by('-numero_bam')
+                    .first()
+                )
+
+                if ultimo and ultimo.numero_bam:
+                    sequencial = int(ultimo.numero_bam[-4:]) + 1
+                else:
                     sequencial = 1
-            else:
-                sequencial = 1
 
-            self.numero_bam = f"{hoje.strftime('%Y%m%d')}{sequencial:04d}"
+                self.numero_bam = f"{prefixo}{sequencial:04d}"
 
         super().save(*args, **kwargs)
+
+    class Meta:
+        ordering = ['-data_acolhimento']
 
     def __str__(self):
         return f"{self.nome_paciente} - {self.tipo_atendimento}"
