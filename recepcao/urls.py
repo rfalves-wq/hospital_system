@@ -1,6 +1,19 @@
 from django.urls import path
-from .views import recepcao_dashboard
+
+from . import views
 
 urlpatterns = [
-    path('', recepcao_dashboard, name='recepcao_dashboard'),
+
+    path(
+        "",
+        views.recepcao_dashboard,
+        name="recepcao_dashboard"
+    ),
+
+    path(
+        "cadastrar/<int:acolhimento_id>/",
+        views.cadastrar_paciente,
+        name="cadastrar_paciente"
+    ),
+
 ]

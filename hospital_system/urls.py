@@ -1,34 +1,17 @@
 from django.contrib import admin
 from django.urls import path
 from django.urls import include
-
 urlpatterns = [
 
-    path(
-        'admin/',
-        admin.site.urls
-    ),
+    path("admin/", admin.site.urls),
 
-    path(
-        '',
-        include('accounts.urls')
-    ),
+    path("", include("accounts.urls")),
 
-    path(
-        'dashboard/',
-        include('dashboard.urls')
-    ),
+    path("dashboard/", include("dashboard.urls")),
 
-    
-    path(
-        'acolhimento/',
-        include('acolhimento.urls')
-    ),
+    path("acolhimento/", include("acolhimento.urls")),
 
-path(
-        'recepcao/',
-        include('recepcao.urls')
-    ),
-    
-    path('accounts/', include('accounts.urls'))
+    path("recepcao/", include("recepcao.urls")),
+
+    path("classificacao/", include("classificacao.urls")),
 ]

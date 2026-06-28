@@ -93,15 +93,19 @@
                                         <tr>
 
                                             <td>
-                                                <a href="#" class="paciente-link"
-                                                    data-nome="{{ acolhimento.nome_paciente }}"
-                                                    data-cpf="{{ acolhimento.cpf }}"
-                                                    data-nascimento="{{ acolhimento.data_nascimento|date:'Y-m-d' }}">
+    <a href="#" class="paciente-link"
+        data-nome="{% if acolhimento.paciente %}{{ acolhimento.paciente.nome_completo }}{% else %}{{ acolhimento.nome_paciente }}{% endif %}"
+        data-cpf="{% if acolhimento.paciente %}{{ acolhimento.paciente.cpf }}{% else %}{{ acolhimento.cpf }}{% endif %}"
+        data-nascimento="{{ acolhimento.data_nascimento|date:'Y-m-d' }}">
 
-                                                    {{ acolhimento.nome_paciente }}
+        {% if acolhimento.paciente %}
+            {{ acolhimento.paciente.nome_completo }}
+        {% else %}
+            {{ acolhimento.nome_paciente }}
+        {% endif %}
 
-                                                </a>
-                                            </td>
+    </a>
+</td>
                                             <td>
                                                 <span>
                                                     {{ acolhimento.numero_bam }}
@@ -217,15 +221,12 @@
 
                                             <td>
 
-                                                <a href="#" class="btn btn-success btn-sm paciente-link"
-                                                    data-nome="{{ acolhimento.nome_paciente }}"
-                                                    data-cpf="{{ acolhimento.cpf }}"
-                                                    data-nascimento="{{ acolhimento.data_nascimento|date:'Y-m-d' }}">
+                                              <a href="{% url 'cadastrar_paciente' acolhimento.id %}"
+   class="btn btn-success btn-sm">
 
-                                                    Registrar
+    Registrar
 
-                                                </a>
-
+</a>
                                                 <a href="#" class="btn btn-danger btn-sm paciente-link"
                                                     data-nome="{{ acolhimento.nome_paciente }}"
                                                     data-cpf="{{ acolhimento.cpf }}"
@@ -304,11 +305,16 @@
                                 <div class="col-md-3 mb-3">
                                     <label>Sexo</label>
                                     <select class="form-control" name="sexo">
-                                        <option>Masculino</option>
-                                        <option>Feminino</option>
-                                        <option>Outro</option>
-                                        <option>Não informado</option>
-                                    </select>
+
+    <option value="">Selecione</option>
+
+    <option value="M">Masculino</option>
+
+    <option value="F">Feminino</option>
+
+    <option value="O">Outro</option>
+
+</select>
                                 </div>
 
                                 <div class="col-md-3 mb-3">
@@ -319,13 +325,15 @@
                                         <option>Parda</option>
                                         <option>Amarela</option>
                                         <option>Indígena</option>
-                                        <option>Não informado</option>
+                                        <option value="Não Informado">
+    Não Informado
+</option>
                                     </select>
                                 </div>
 
                                 <div class="col-md-3 mb-3">
                                     <label>Nascimento</label>
-                                    <input type="date" class="form-control" name="data_nascimento" id="data_nascimento">
+                                    <input type="date" class="form-control" name="nascimento" id="data_nascimento">
                                 </div>
 
                                 <div class="col-md-3 mb-3">
@@ -365,7 +373,7 @@
 
                                 <div class="col-md-3 mb-3">
                                     <label>Estado de nascimento (UF)</label>
-                                    <select class="form-control" id="uf_naturalidade" name="uf_naturalidade">
+                                    <select class="form-control" id="uf_nascimento" name="uf_nascimento">
                                         <option value="">Selecione</option>
                                         <option value="AC">Acre</option>
                                         <option value="AL">Alagoas</option>
@@ -463,10 +471,13 @@
 
                                                 <div class="mb-3">
                                                     <label>Situação de rua</label>
-                                                    <select class="form-control" name="situacao_rua">
-                                                        <option>Não</option>
-                                                        <option>Sim</option>
-                                                    </select>
+                                                   <select name="situacao_rua" class="form-control">
+
+    <option value="False">Não</option>
+
+    <option value="True">Sim</option>
+
+</select>
                                                 </div>
 
                                             </div>

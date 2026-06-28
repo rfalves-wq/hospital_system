@@ -1,14 +1,12 @@
 from django import forms
-from .models import Recepcao
+from .models import ClassificacaoRisco
 
 
-class RecepcaoForm(forms.ModelForm):
+class ClassificacaoForm(forms.ModelForm):
 
     class Meta:
-
-        model = Recepcao
-
+        model = ClassificacaoRisco
         fields = "__all__"
-    
+
     def save(self, commit=True):
         return super().save(commit=commit)

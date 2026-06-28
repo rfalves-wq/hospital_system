@@ -27,6 +27,7 @@ INSTALLED_APPS = [
     'dashboard',
     'acolhimento',
     'recepcao',
+    'classificacao',
     
 ]
 

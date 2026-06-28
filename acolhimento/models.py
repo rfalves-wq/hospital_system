@@ -1,6 +1,6 @@
 from django.db import models, transaction
 from django.utils import timezone
-
+from recepcao.models import Recepcao
 
 class Acolhimento(models.Model):
 
@@ -12,7 +12,13 @@ class Acolhimento(models.Model):
 
     nome_paciente = models.CharField(max_length=200)
     cpf = models.CharField(max_length=14, blank=True, null=True)
-
+    paciente = models.ForeignKey(
+    Recepcao,
+    on_delete=models.SET_NULL,
+    null=True,
+    blank=True,
+    related_name='acolhimentos'
+)
     numero_bam = models.CharField(
         max_length=20,
         unique=True,
@@ -32,6 +38,19 @@ class Acolhimento(models.Model):
     dor = models.PositiveIntegerField(blank=True, null=True)
 
     tipo_atendimento = models.CharField(max_length=20, choices=TIPO_ATENDIMENTO)
+    STATUS_CHOICES = [
+    ('RECEPCAO', 'Aguardando Recepção'),
+    ('CLASSIFICACAO', 'Aguardando Classificação'),
+    ('CONSULTA', 'Aguardando Consulta'),
+    ('FINALIZADO', 'Finalizado'),
+]
+
+    status = models.CharField(
+    max_length=20,
+    choices=STATUS_CHOICES,
+    default='RECEPCAO'
+)
+    
 
     data_acolhimento = models.DateTimeField(auto_now_add=True)
 
