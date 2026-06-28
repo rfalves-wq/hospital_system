@@ -9,4 +9,10 @@ urlpatterns = [
         name="classificacao_dashboard"
     ),
 
+    path(
+        "classificar/<int:acolhimento_id>/",
+        views.classificar_paciente,
+        name="classificar_paciente"
+    ),
+
 ]

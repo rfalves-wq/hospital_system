@@ -93,19 +93,19 @@
                                         <tr>
 
                                             <td>
-    <a href="#" class="paciente-link"
-        data-nome="{% if acolhimento.paciente %}{{ acolhimento.paciente.nome_completo }}{% else %}{{ acolhimento.nome_paciente }}{% endif %}"
-        data-cpf="{% if acolhimento.paciente %}{{ acolhimento.paciente.cpf }}{% else %}{{ acolhimento.cpf }}{% endif %}"
-        data-nascimento="{{ acolhimento.data_nascimento|date:'Y-m-d' }}">
+                                                <a href="#" class="paciente-link"
+                                                    data-nome="{% if acolhimento.paciente %}{{ acolhimento.paciente.nome_completo }}{% else %}{{ acolhimento.nome_paciente }}{% endif %}"
+                                                    data-cpf="{% if acolhimento.paciente %}{{ acolhimento.paciente.cpf }}{% else %}{{ acolhimento.cpf }}{% endif %}"
+                                                    data-nascimento="{{ acolhimento.data_nascimento|date:'Y-m-d' }}">
 
-        {% if acolhimento.paciente %}
-            {{ acolhimento.paciente.nome_completo }}
-        {% else %}
-            {{ acolhimento.nome_paciente }}
-        {% endif %}
+                                                    {% if acolhimento.paciente %}
+                                                    {{ acolhimento.paciente.nome_completo }}
+                                                    {% else %}
+                                                    {{ acolhimento.nome_paciente }}
+                                                    {% endif %}
 
-    </a>
-</td>
+                                                </a>
+                                            </td>
                                             <td>
                                                 <span>
                                                     {{ acolhimento.numero_bam }}
@@ -221,21 +221,13 @@
 
                                             <td>
 
-                                              <a href="{% url 'cadastrar_paciente' acolhimento.id %}"
-   class="btn btn-success btn-sm">
+                                                <a href="{% url 'cadastrar_paciente' acolhimento.id %}"
+                                                    class="btn btn-success btn-sm">
 
-    Registrar
-
-</a>
-                                                <a href="#" class="btn btn-danger btn-sm paciente-link"
-                                                    data-nome="{{ acolhimento.nome_paciente }}"
-                                                    data-cpf="{{ acolhimento.cpf }}"
-                                                    data-nascimento="{{ acolhimento.data_nascimento|date:'Y-m-d' }}">
-
-                                                    <i class="bi bi-exclamation-triangle-fill"></i>
-                                                    Classificação de Risco
+                                                    Registrar
 
                                                 </a>
+                                               
 
 
                                             </td>
@@ -306,15 +298,15 @@
                                     <label>Sexo</label>
                                     <select class="form-control" name="sexo">
 
-    <option value="">Selecione</option>
+                                        <option value="">Selecione</option>
 
-    <option value="M">Masculino</option>
+                                        <option value="M">Masculino</option>
 
-    <option value="F">Feminino</option>
+                                        <option value="F">Feminino</option>
 
-    <option value="O">Outro</option>
+                                        <option value="O">Outro</option>
 
-</select>
+                                    </select>
                                 </div>
 
                                 <div class="col-md-3 mb-3">
@@ -326,8 +318,8 @@
                                         <option>Amarela</option>
                                         <option>Indígena</option>
                                         <option value="Não Informado">
-    Não Informado
-</option>
+                                            Não Informado
+                                        </option>
                                     </select>
                                 </div>
 
@@ -471,13 +463,13 @@
 
                                                 <div class="mb-3">
                                                     <label>Situação de rua</label>
-                                                   <select name="situacao_rua" class="form-control">
+                                                    <select name="situacao_rua" class="form-control">
 
-    <option value="False">Não</option>
+                                                        <option value="False">Não</option>
 
-    <option value="True">Sim</option>
+                                                        <option value="True">Sim</option>
 
-</select>
+                                                    </select>
                                                 </div>
 
                                             </div>
