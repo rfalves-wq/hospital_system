@@ -85,3 +85,14 @@ def cadastrar_paciente(request, acolhimento_id):
             "acolhimento": acolhimento,
         }
     )
+    
+def enviar_classificacao(request, acolhimento_id):
+
+    acolhimento = get_object_or_404(Acolhimento, id=acolhimento_id)
+
+    if acolhimento.paciente:
+
+        acolhimento.status = "CLASSIFICACAO"
+        acolhimento.save()
+
+    return redirect("recepcao_dashboard")

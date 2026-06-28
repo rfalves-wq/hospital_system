@@ -221,13 +221,25 @@
 
                                             <td>
 
+                                                {% if acolhimento.paciente %}
+
+                                                <a href="{% url 'enviar_classificacao' acolhimento.id %}"
+                                                    class="btn btn-primary btn-sm">
+
+                                                    Enviar para Classificação
+
+                                                </a>
+
+                                                {% else %}
+
                                                 <a href="{% url 'cadastrar_paciente' acolhimento.id %}"
                                                     class="btn btn-success btn-sm">
 
                                                     Registrar
 
                                                 </a>
-                                               
+
+                                                {% endif %}
 
 
                                             </td>

@@ -31,19 +31,41 @@ def tipo_atendimento(request):
 
         idade = request.POST.get("idade")
         idade = int(idade) if idade and idade.isdigit() else None
+        acolhimento = Acolhimento.objects.filter(
+            cpf=request.POST.get("cpf")
+        ).exclude(
+            status="FINALIZADO"
+        ).first()
+        if acolhimento:
 
-        paciente = Acolhimento.objects.create(
-            nome_paciente=request.POST.get("nome_paciente"),
-            cpf=request.POST.get("cpf"),
-            data_nascimento=request.POST.get("data_nascimento"),
-            idade=idade,
-            pressao_arterial=request.POST.get("pressao_arterial"),
-            temperatura=temperatura,
-            frequencia_respiratoria=request.POST.get("frequencia_respiratoria"),
-            pulso=request.POST.get("pulso"),
-            dor=request.POST.get("dor"),
-            tipo_atendimento=request.POST.get("tipo_atendimento"),
-        )
+            acolhimento.pressao_arterial = request.POST.get("pressao_arterial")
+            acolhimento.temperatura = temperatura
+            acolhimento.frequencia_respiratoria = request.POST.get("frequencia_respiratoria")
+            acolhimento.pulso = request.POST.get("pulso")
+            acolhimento.dor = request.POST.get("dor")
+            acolhimento.tipo_atendimento = request.POST.get("tipo_atendimento")
+
+            # garante que ele volte para a fila da recepção
+            acolhimento.status = "RECEPCAO"
+
+            acolhimento.save()
+
+            paciente = acolhimento
+
+        else:
+
+            paciente = Acolhimento.objects.create(
+                nome_paciente=request.POST.get("nome_paciente"),
+                cpf=request.POST.get("cpf"),
+                data_nascimento=request.POST.get("data_nascimento"),
+                idade=idade,
+                pressao_arterial=request.POST.get("pressao_arterial"),
+                temperatura=temperatura,
+                frequencia_respiratoria=request.POST.get("frequencia_respiratoria"),
+                pulso=request.POST.get("pulso"),
+                dor=request.POST.get("dor"),
+                tipo_atendimento=request.POST.get("tipo_atendimento"),
+            )
 
         messages.success(request, f"✔️ Atendimento registrado! BAM: {paciente.numero_bam}")
 
