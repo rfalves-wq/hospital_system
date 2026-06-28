@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="pt-br">
 
@@ -115,20 +116,163 @@ Queixa Principal
 
 </div>
 
-<h5 class="text-danger mt-4">
 
-Classificação Manchester
-
-</h5>
 
 <hr>
 
 <div class="mb-3">
 
-<label>Cor</label>
+<h5 class="text-danger">
 
-{{ form.cor }}
+Protocolo de Manchester
 
+</h5>
+
+<hr>
+
+<div class="row g-3">
+
+    <div class="col-md-4">
+
+        <label class="card border-danger shadow-sm p-3 h-100">
+
+            <input type="radio"
+                   name="cor"
+                   value="VERMELHO"
+                   class="form-check-input mb-2">
+
+            <h4 class="text-danger">
+
+                🔴 Vermelho
+
+            </h4>
+
+            Emergência
+
+            <br>
+
+            Atendimento imediato
+
+        </label>
+
+    </div>
+
+    <div class="col-md-4">
+
+        <label class="card border-warning shadow-sm p-3 h-100">
+
+            <input type="radio"
+                   name="cor"
+                   value="LARANJA"
+                   class="form-check-input mb-2">
+
+            <h4 style="color:orange;">
+
+                🟠 Laranja
+
+            </h4>
+
+            Muito Urgente
+
+            <br>
+
+            Até 10 minutos
+
+        </label>
+
+    </div>
+
+    <div class="col-md-4">
+
+        <label class="card border-warning shadow-sm p-3 h-100">
+
+            <input type="radio"
+                   name="cor"
+                   value="AMARELO"
+                   class="form-check-input mb-2">
+
+            <h4 class="text-warning">
+
+                🟡 Amarelo
+
+            </h4>
+
+            Urgente
+
+            <br>
+
+            Até 60 minutos
+
+        </label>
+
+    </div>
+
+    <div class="col-md-6">
+
+        <label class="card border-success shadow-sm p-3 h-100">
+
+            <input type="radio"
+                   name="cor"
+                   value="VERDE"
+                   class="form-check-input mb-2">
+
+            <h4 class="text-success">
+
+                🟢 Verde
+
+            </h4>
+
+            Pouco Urgente
+
+            <br>
+
+            Até 120 minutos
+
+        </label>
+
+    </div>
+
+    <div class="col-md-6">
+
+        <label class="card border-primary shadow-sm p-3 h-100">
+
+            <input type="radio"
+                   name="cor"
+                   value="AZUL"
+                   class="form-check-input mb-2">
+
+            <h4 class="text-primary">
+
+                🔵 Azul
+
+            </h4>
+
+            Não Urgente
+
+            <br>
+
+            Até 240 minutos
+
+        </label>
+
+    </div>
+
+</div>
+<div class="alert alert-secondary mt-4">
+
+    <strong>
+
+        Tempo máximo de espera:
+
+    </strong>
+
+    <span id="tempoEspera">
+
+        Selecione uma classificação.
+
+    </span>
+
+</div>
 </div>
 
 <h5 class="text-success mt-4">
@@ -203,7 +347,45 @@ Salvar Classificação
 </div>
 
 </div>
+<script>
 
+const radios = document.querySelectorAll('input[name="cor"]');
+
+const tempo = document.getElementById("tempoEspera");
+
+radios.forEach(radio => {
+
+    radio.addEventListener("change", function(){
+
+        switch(this.value){
+
+            case "VERMELHO":
+                tempo.innerHTML = "<strong class='text-danger'>Imediato</strong>";
+                break;
+
+            case "LARANJA":
+                tempo.innerHTML = "<strong style='color:orange'>10 minutos</strong>";
+                break;
+
+            case "AMARELO":
+                tempo.innerHTML = "<strong class='text-warning'>60 minutos</strong>";
+                break;
+
+            case "VERDE":
+                tempo.innerHTML = "<strong class='text-success'>120 minutos</strong>";
+                break;
+
+            case "AZUL":
+                tempo.innerHTML = "<strong class='text-primary'>240 minutos</strong>";
+                break;
+
+        }
+
+    });
+
+});
+
+</script>
 </body>
 
 </html>

@@ -17,9 +17,7 @@ class ClassificacaoForm(forms.ModelForm):
                 "rows": 3,
             }),
 
-            "cor": forms.Select(attrs={
-                "class": "form-select",
-            }),
+            "cor": forms.RadioSelect(),
 
             "peso": forms.NumberInput(attrs={
                 "class": "form-control",
