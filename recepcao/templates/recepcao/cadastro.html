@@ -109,23 +109,24 @@
     {{ form.uf_nascimento.errors }}
 </div>
 
-<div class="col-md-6 mb-3" id="campo-naturalidade">
-    <label for="{{ form.naturalidade.id_for_label }}">Naturalidade</label>
-    {{ form.naturalidade }}
-    {{ form.naturalidade.errors }}
-</div>
+                <div class="col-md-6 mb-3" id="campo-naturalidade">
+                    <label for="{{ form.naturalidade.id_for_label }}">Naturalidade</label>
+                    {{ form.naturalidade }}
+                    {{ form.naturalidade.errors }}
+                </div>
 
-<div class="col-md-3 mb-3 d-flex align-items-end">
-    <div class="form-check">
-        {{ form.situacao_rua }}
-        <label class="form-check-label" for="{{ form.situacao_rua.id_for_label }}">
-            Situação de rua
-        </label>
-        {{ form.situacao_rua.errors }}
-    </div>
-</div>
+                <div class="col-md-3 mb-3 d-flex align-items-end">
+                    <div class="form-check">
+                        {{ form.situacao_rua }}
+                        <label class="form-check-label" for="{{ form.situacao_rua.id_for_label }}">
+                            Situação de rua
+                        </label>
+                        {{ form.situacao_rua.errors }}
+                    </div>
+                </div>
+            </div>
 
-            <div class="section-title">Filiação</div>
+            <div class="mb-3 section-title">Filiação</div>
 
             <div class="row">
                 <div class="col-md-6 mb-3">
@@ -141,7 +142,7 @@
                 </div>
             </div>
 
-            <div class="section-title">Contato</div>
+            <div class="mb-3 section-title">Contato</div>
 
             <div class="row">
                 <div class="col-md-4 mb-3">
@@ -157,7 +158,7 @@
                 </div>
             </div>
 
-            <div class="section-title">Endereço</div>
+            <div class="mb-3 section-title">Endereço</div>
 
             <div class="row">
                 <div class="col-md-3 mb-3">
@@ -197,7 +198,7 @@
                 </div>
             </div>
 
-            <div class="section-title text-danger">Responsável</div>
+            <div class="mb-3 section-title text-danger">Responsável</div>
 
             <div class="row">
                 <div class="col-md-6 mb-3">
@@ -225,8 +226,56 @@
 
         </form>
 
-    </div>
-<script src="{% static 'recepcao/js/cadastro.js' %}"></script>
+    </main>
+
+    <script>
+        // Apply Bootstrap classes to Django-rendered fields and wire client-side validation
+        document.addEventListener('DOMContentLoaded', function () {
+            var form = document.querySelector('.form-box');
+            if (!form) return;
+
+            // Add form-control/form-check-input where appropriate
+            var fields = form.querySelectorAll('input, select, textarea');
+            fields.forEach(function (el) {
+                var type = (el.getAttribute('type') || el.tagName).toLowerCase();
+                if (type === 'checkbox' || type === 'radio') {
+                    if (!el.classList.contains('form-check-input')) el.classList.add('form-check-input');
+                    var lbl = form.querySelector('label[for="' + el.id + '"]');
+                    if (lbl && !lbl.classList.contains('form-check-label')) lbl.classList.add('form-check-label');
+                } else if (type !== 'submit' && type !== 'button' && type !== 'hidden') {
+                    if (!el.classList.contains('form-control')) el.classList.add('form-control');
+                }
+                if (el.required) el.setAttribute('aria-required', 'true');
+            });
+
+            // Move Django errorlists to invalid-feedback and flag inputs
+            var errorlists = form.querySelectorAll('.errorlist');
+            errorlists.forEach(function (ul) {
+                ul.classList.remove('errorlist');
+                ul.classList.add('invalid-feedback');
+                ul.setAttribute('role', 'alert');
+                var prev = ul.previousElementSibling;
+                if (prev && (prev.tagName === 'INPUT' || prev.tagName === 'SELECT' || prev.tagName === 'TEXTAREA')) {
+                    prev.classList.add('is-invalid');
+                }
+            });
+
+            // Bootstrap-style client validation
+            form.addEventListener('submit', function (e) {
+                if (!form.checkValidity()) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    var all = form.querySelectorAll('input, select, textarea');
+                    all.forEach(function (el) {
+                        if (!el.checkValidity()) el.classList.add('is-invalid');
+                    });
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
+    </script>
+
+    <script src="{% static 'recepcao/js/cadastro.js' %}"></script>
 </body>
 
 </html>
