@@ -2,7 +2,9 @@ from django.contrib import messages
 from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from django.db.models import Q
+
 from .models import Acolhimento
+
 
 
 def tipo_atendimento(request):
@@ -26,48 +28,37 @@ def tipo_atendimento(request):
                 })
 
         temperatura = request.POST.get("temperatura")
-        if temperatura:
+
+        try:
             temperatura = float(temperatura.replace(",", "."))
+        except (ValueError, AttributeError):
+            return render(request, "acolhimento/tipo_atendimento.html", {
+                "erro": "⚠️ Temperatura inválida."
+            })
 
         idade = request.POST.get("idade")
         idade = int(idade) if idade and idade.isdigit() else None
-        acolhimento = Acolhimento.objects.filter(
-            cpf=request.POST.get("cpf")
-        ).exclude(
-            status="FINALIZADO"
-        ).first()
-        if acolhimento:
 
-            acolhimento.pressao_arterial = request.POST.get("pressao_arterial")
-            acolhimento.temperatura = temperatura
-            acolhimento.frequencia_respiratoria = request.POST.get("frequencia_respiratoria")
-            acolhimento.pulso = request.POST.get("pulso")
-            acolhimento.dor = request.POST.get("dor")
-            acolhimento.tipo_atendimento = request.POST.get("tipo_atendimento")
+        cpf = request.POST.get("cpf", "").strip()
 
-            # garante que ele volte para a fila da recepção
-            acolhimento.status = "RECEPCAO"
+        paciente = Acolhimento.objects.create(
+            nome_paciente=request.POST.get("nome_paciente"),
+            cpf=cpf,
+            data_nascimento=request.POST.get("data_nascimento"),
+            idade=idade,
+            pressao_arterial=request.POST.get("pressao_arterial"),
+            temperatura=temperatura,
+            frequencia_respiratoria=request.POST.get("frequencia_respiratoria"),
+            pulso=request.POST.get("pulso"),
+            dor=request.POST.get("dor"),
+            tipo_atendimento=request.POST.get("tipo_atendimento"),
+            status="RECEPCAO",
+        )
 
-            acolhimento.save()
-
-            paciente = acolhimento
-
-        else:
-
-            paciente = Acolhimento.objects.create(
-                nome_paciente=request.POST.get("nome_paciente"),
-                cpf=request.POST.get("cpf"),
-                data_nascimento=request.POST.get("data_nascimento"),
-                idade=idade,
-                pressao_arterial=request.POST.get("pressao_arterial"),
-                temperatura=temperatura,
-                frequencia_respiratoria=request.POST.get("frequencia_respiratoria"),
-                pulso=request.POST.get("pulso"),
-                dor=request.POST.get("dor"),
-                tipo_atendimento=request.POST.get("tipo_atendimento"),
-            )
-
-        messages.success(request, f"✔️ Atendimento registrado! BAM: {paciente.numero_bam}")
+        messages.success(
+            request,
+            f"✔️ Atendimento registrado! Encaminhado para recepção. BAM: {paciente.numero_bam}"
+        )
 
         return redirect("tipo_atendimento")
 
@@ -79,16 +70,28 @@ def tipo_atendimento(request):
 
 def buscar_paciente(request):
 
-    busca = request.GET.get("busca", "")
+    busca = request.GET.get("busca", "").strip()
 
-    pacientes = Acolhimento.objects.filter(
-        Q(nome_paciente__icontains=busca)
-        | Q(cpf__icontains=busca)
-    )[:20]
+    pacientes = (
+        Acolhimento.objects
+        .filter(
+            Q(nome_paciente__icontains=busca)
+            | Q(cpf__icontains=busca)
+        )
+        .order_by("-id")
+    )
 
     dados = []
+    cpfs_adicionados = set()
 
     for paciente in pacientes:
+        cpf = (paciente.cpf or "").strip()
+
+        if cpf in cpfs_adicionados:
+            continue
+
+        cpfs_adicionados.add(cpf)
+
         dados.append({
             "nome": paciente.nome_paciente,
             "cpf": paciente.cpf,
@@ -100,6 +103,9 @@ def buscar_paciente(request):
             ),
             "idade": paciente.idade or "",
         })
+
+        if len(dados) >= 20:
+            break
 
     return JsonResponse(dados, safe=False)
 

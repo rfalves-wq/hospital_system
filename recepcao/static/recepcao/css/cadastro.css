@@ -1,0 +1,57 @@
+body {
+    background: #f5f7fb;
+}
+
+label {
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+input:not([type="checkbox"]),
+select,
+textarea {
+    width: 100%;
+    display: block;
+    padding: 8px 10px;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+}
+
+input[type="checkbox"] {
+    width: auto;
+    display: inline-block;
+    padding: 0;
+}
+
+input:not([type="checkbox"]):focus,
+select:focus,
+textarea:focus {
+    outline: none;
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 3px rgba(13, 110, 253, .15);
+}
+
+.section-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #0d6efd;
+    margin-top: 24px;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.errorlist {
+    color: #dc3545;
+    font-size: .875rem;
+    margin: 4px 0 0;
+    padding-left: 18px;
+}
+
+.form-box {
+    background: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, .04);
+}

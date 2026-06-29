@@ -2,9 +2,7 @@ from datetime import date
 
 from django.shortcuts import render, redirect, get_object_or_404
 
-import acolhimento
 from acolhimento.models import Acolhimento
-
 from .forms import RecepcaoForm
 from .models import Recepcao
 
@@ -12,14 +10,14 @@ from .models import Recepcao
 def recepcao_dashboard(request):
 
     acolhimentos = (
-    Acolhimento.objects
-    .select_related("paciente")
-    .filter(
-        data_acolhimento__date=date.today(),
-        status="RECEPCAO"
+        Acolhimento.objects
+        .select_related("paciente")
+        .filter(
+            data_acolhimento__date=date.today(),
+            status="RECEPCAO"
+        )
+        .order_by("-data_acolhimento")
     )
-    .order_by("-data_acolhimento")
-)
 
     return render(
         request,
@@ -29,15 +27,19 @@ def recepcao_dashboard(request):
         }
     )
 
-from django.shortcuts import get_object_or_404, redirect, render
 
 def cadastrar_paciente(request, acolhimento_id):
 
     acolhimento = get_object_or_404(Acolhimento, id=acolhimento_id)
 
+    paciente_existente = Recepcao.objects.filter(cpf=acolhimento.cpf).first()
+
     if request.method == "POST":
 
-        form = RecepcaoForm(request.POST)
+        if paciente_existente:
+            form = RecepcaoForm(request.POST, instance=paciente_existente)
+        else:
+            form = RecepcaoForm(request.POST)
 
         print("===== DADOS RECEBIDOS =====")
         print(request.POST)
@@ -46,12 +48,7 @@ def cadastrar_paciente(request, acolhimento_id):
 
             print("FORMULÁRIO VÁLIDO")
 
-            cpf = form.cleaned_data["cpf"]
-
-            paciente = Recepcao.objects.filter(cpf=cpf).first()
-
-            if paciente is None:
-                paciente = form.save()
+            paciente = form.save()
 
             acolhimento.paciente = paciente
             acolhimento.status = "CLASSIFICACAO"
@@ -68,14 +65,17 @@ def cadastrar_paciente(request, acolhimento_id):
 
     else:
 
-        form = RecepcaoForm(
-            initial={
-                "nome_completo": acolhimento.nome_paciente,
-                "cpf": acolhimento.cpf,
-                "nascimento": acolhimento.data_nascimento,
-                "idade": acolhimento.idade,
-            }
-        )
+        if paciente_existente:
+            form = RecepcaoForm(instance=paciente_existente)
+        else:
+            form = RecepcaoForm(
+                initial={
+                    "nome_completo": acolhimento.nome_paciente,
+                    "cpf": acolhimento.cpf,
+                    "nascimento": acolhimento.data_nascimento,
+                    "idade": acolhimento.idade,
+                }
+            )
 
     return render(
         request,
@@ -83,9 +83,10 @@ def cadastrar_paciente(request, acolhimento_id):
         {
             "form": form,
             "acolhimento": acolhimento,
+            "paciente_existente": paciente_existente,
         }
     )
-    
+
 def enviar_classificacao(request, acolhimento_id):
 
     acolhimento = get_object_or_404(Acolhimento, id=acolhimento_id)

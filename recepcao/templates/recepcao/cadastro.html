@@ -1,185 +1,232 @@
+{% load static %}
+
 <!DOCTYPE html>
 <html lang="pt-br">
 
 <head>
     <meta charset="UTF-8">
     <title>Cadastro do Paciente</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'recepcao/css/cadastro.css' %}">
 </head>
 
 <body>
 
-    <div class="container mt-4">
+    <div class="container my-4">
 
-        <h3 class="mb-3">Cadastro do Paciente</h3>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h3 class="mb-1">Cadastro do Paciente</h3>
+                <div class="text-muted">Recepção administrativa</div>
+            </div>
 
-        <div class="alert alert-info">
-            Atendimento: <strong>{{ acolhimento.numero_bam }}</strong>
+            <a href="{% url 'recepcao_dashboard' %}" class="btn btn-outline-secondary">
+                Voltar
+            </a>
         </div>
 
-        <form method="post">
+        <div class="alert alert-info">
+            Atendimento/BAM: <strong>{{ acolhimento.numero_bam }}</strong>
+        </div>
+
+        {% if paciente_existente %}
+            <div class="alert alert-warning">
+                Paciente já cadastrado. Confira os dados, edite se necessário e salve para enviar à classificação de risco.
+            </div>
+        {% endif %}
+
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger">
+                {{ form.non_field_errors }}
+            </div>
+        {% endif %}
+
+        <form method="post" class="form-box">
             {% csrf_token %}
 
-            <!-- IDENTIFICAÇÃO -->
-            <h5 class="text-primary">Identificação</h5>
-            <hr>
+            <div class="section-title">Identificação</div>
 
             <div class="row">
-
-                <div class="col-md-6 mb-3">
-                    <label>Nome completo</label>
+                <div class="col-md-8 mb-3">
+                    <label for="{{ form.nome_completo.id_for_label }}">Nome completo</label>
                     {{ form.nome_completo }}
+                    {{ form.nome_completo.errors }}
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <label for="{{ form.nome_social.id_for_label }}">Nome social</label>
+                    {{ form.nome_social }}
+                    {{ form.nome_social.errors }}
                 </div>
 
                 <div class="col-md-3 mb-3">
-                    <label>CPF</label>
+                    <label for="{{ form.cpf.id_for_label }}">CPF</label>
                     {{ form.cpf }}
+                    {{ form.cpf.errors }}
                 </div>
 
                 <div class="col-md-3 mb-3">
-                    <label>CNS</label>
+                    <label for="{{ form.cns.id_for_label }}">CNS</label>
                     {{ form.cns }}
+                    {{ form.cns.errors }}
                 </div>
 
                 <div class="col-md-3 mb-3">
-                    <label>Sexo</label>
+                    <label for="{{ form.sexo.id_for_label }}">Sexo</label>
                     {{ form.sexo }}
+                    {{ form.sexo.errors }}
                 </div>
 
                 <div class="col-md-3 mb-3">
-                    <label>Raça/Cor</label>
+                    <label for="{{ form.raca_cor.id_for_label }}">Raça/Cor</label>
                     {{ form.raca_cor }}
+                    {{ form.raca_cor.errors }}
                 </div>
 
                 <div class="col-md-3 mb-3">
-                    <label>Nascimento</label>
+                    <label for="{{ form.nascimento.id_for_label }}">Nascimento</label>
                     {{ form.nascimento }}
-                </div>
-
-                <div class="col-md-3 mb-3">
-                    <label>Idade</label>
-                    {{ form.idade }}
-                </div>
-
-                <div class="col-md-4 mb-3">
-                    <label>Nacionalidade</label>
-                    {{ form.nacionalidade }}
-                </div>
-
-                <div class="col-md-4 mb-3">
-                    <label>UF de nascimento</label>
-                    {{ form.uf_nascimento }}
-                </div>
-
-                <div class="col-md-4 mb-3">
-                    <label>Naturalidade</label>
-                    {{ form.naturalidade }}
-                </div>
-
-            </div>
-
-
-            <!-- FILIAÇÃO -->
-            <h5 class="text-primary mt-3">Filiação</h5>
-            <hr>
-
-            <div class="row">
-
-                <div class="col-md-6 mb-3">
-                    <label>Nome da mãe</label>
-                    {{ form.nome_mae }}
-                </div>
-
-                <div class="col-md-6 mb-3">
-                    <label>Nome do pai</label>
-                    {{ form.nome_pai }}
-                </div>
-
-            </div>
-
-            <!-- CONTATO -->
-            <h5 class="text-primary mt-3">Contato</h5>
-            <hr>
-
-            <div class="row">
-
-                <div class="col-md-6 mb-3">
-                    <label>Telefone</label>
-                    {{ form.telefone }}
-                </div>
-
-                <div class="col-md-6 mb-3">
-                    <label>Email</label>
-                    {{ form.email }}
-                </div>
-
-            </div>
-
-            <!-- ENDEREÇO -->
-            <h5 class="text-primary mt-3">Endereço</h5>
-            <hr>
-
-            <div class="row">
-
-                <div class="col-md-3 mb-3">
-                    <label>CEP</label>
-                    {{ form.cep }}
-                </div>
-
-                <div class="col-md-3 mb-3">
-                    <label>Município</label>
-                    {{ form.municipio }}
-                </div>
-
-                <div class="col-md-3 mb-3">
-                    <label>Bairro</label>
-                    {{ form.bairro }}
-                </div>
-
-                <div class="col-md-3 mb-3">
-                    <label>Logradouro</label>
-                    {{ form.logradouro }}
+                    {{ form.nascimento.errors }}
                 </div>
 
                 <div class="col-md-2 mb-3">
-                    <label>Número</label>
-                    {{ form.numero }}
+                    <label for="{{ form.idade.id_for_label }}">Idade</label>
+                    {{ form.idade }}
+                    {{ form.idade.errors }}
                 </div>
 
-                <div class="col-md-10 mb-3">
-                    <label>Complemento</label>
-                    {{ form.complemento }}
-                </div>
+             <div class="col-md-4 mb-3">
+    <label for="{{ form.nacionalidade.id_for_label }}">Nacionalidade</label>
+    {{ form.nacionalidade }}
+    {{ form.nacionalidade.errors }}
+</div>
 
-            </div>
+<div class="col-md-3 mb-3" id="campo-uf-nascimento">
+    <label for="{{ form.uf_nascimento.id_for_label }}">UF nascimento</label>
+    {{ form.uf_nascimento }}
+    {{ form.uf_nascimento.errors }}
+</div>
 
-            <!-- RESPONSÁVEL -->
-            <h5 class="text-danger mt-3">Responsável</h5>
-            <hr>
+<div class="col-md-6 mb-3" id="campo-naturalidade">
+    <label for="{{ form.naturalidade.id_for_label }}">Naturalidade</label>
+    {{ form.naturalidade }}
+    {{ form.naturalidade.errors }}
+</div>
+
+<div class="col-md-3 mb-3 d-flex align-items-end">
+    <div class="form-check">
+        {{ form.situacao_rua }}
+        <label class="form-check-label" for="{{ form.situacao_rua.id_for_label }}">
+            Situação de rua
+        </label>
+        {{ form.situacao_rua.errors }}
+    </div>
+</div>
+
+            <div class="section-title">Filiação</div>
 
             <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.nome_mae.id_for_label }}">Nome da mãe</label>
+                    {{ form.nome_mae }}
+                    {{ form.nome_mae.errors }}
+                </div>
 
                 <div class="col-md-6 mb-3">
-                    <label>Nome responsável</label>
-                    {{ form.nome_responsavel }}
+                    <label for="{{ form.nome_pai.id_for_label }}">Nome do pai</label>
+                    {{ form.nome_pai }}
+                    {{ form.nome_pai.errors }}
+                </div>
+            </div>
+
+            <div class="section-title">Contato</div>
+
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label for="{{ form.telefone.id_for_label }}">Telefone</label>
+                    {{ form.telefone }}
+                    {{ form.telefone.errors }}
+                </div>
+
+                <div class="col-md-8 mb-3">
+                    <label for="{{ form.email.id_for_label }}">E-mail</label>
+                    {{ form.email }}
+                    {{ form.email.errors }}
+                </div>
+            </div>
+
+            <div class="section-title">Endereço</div>
+
+            <div class="row">
+                <div class="col-md-3 mb-3">
+                    <label for="{{ form.cep.id_for_label }}">CEP</label>
+                    {{ form.cep }}
+                    {{ form.cep.errors }}
+                </div>
+
+                <div class="col-md-5 mb-3">
+                    <label for="{{ form.municipio.id_for_label }}">Município</label>
+                    {{ form.municipio }}
+                    {{ form.municipio.errors }}
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <label for="{{ form.bairro.id_for_label }}">Bairro</label>
+                    {{ form.bairro }}
+                    {{ form.bairro.errors }}
+                </div>
+
+                <div class="col-md-7 mb-3">
+                    <label for="{{ form.logradouro.id_for_label }}">Logradouro</label>
+                    {{ form.logradouro }}
+                    {{ form.logradouro.errors }}
+                </div>
+
+                <div class="col-md-2 mb-3">
+                    <label for="{{ form.numero.id_for_label }}">Número</label>
+                    {{ form.numero }}
+                    {{ form.numero.errors }}
                 </div>
 
                 <div class="col-md-3 mb-3">
-                    <label>CPF responsável</label>
-                    {{ form.cpf_responsavel }}
+                    <label for="{{ form.complemento.id_for_label }}">Complemento</label>
+                    {{ form.complemento }}
+                    {{ form.complemento.errors }}
                 </div>
-
             </div>
 
-            <button class="btn btn-primary mt-3">
-                Salvar Cadastro
-            </button>
+            <div class="section-title text-danger">Responsável</div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.nome_responsavel.id_for_label }}">Nome do responsável</label>
+                    {{ form.nome_responsavel }}
+                    {{ form.nome_responsavel.errors }}
+                </div>
+
+                <div class="col-md-3 mb-3">
+                    <label for="{{ form.cpf_responsavel.id_for_label }}">CPF responsável</label>
+                    {{ form.cpf_responsavel }}
+                    {{ form.cpf_responsavel.errors }}
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-end gap-2 mt-4">
+                <a href="{% url 'recepcao_dashboard' %}" class="btn btn-outline-secondary">
+                    Cancelar
+                </a>
+
+                <button type="submit" class="btn btn-primary">
+                    Salvar e Enviar para Classificação
+                </button>
+            </div>
 
         </form>
 
     </div>
-
+<script src="{% static 'recepcao/js/cadastro.js' %}"></script>
 </body>
 
 </html>
