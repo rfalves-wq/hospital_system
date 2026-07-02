@@ -1,10 +1,11 @@
+from datetime import datetime
+
 from django.contrib import messages
 from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from django.db.models import Q
 
 from .models import Acolhimento
-
 
 
 def tipo_atendimento(request):
@@ -23,29 +24,51 @@ def tipo_atendimento(request):
 
         for campo in sinais_obrigatorios:
             if not request.POST.get(campo):
-                return render(request, "acolhimento/tipo_atendimento.html", {
-                    "erro": "⚠️ Todos os sinais vitais são obrigatórios."
-                })
+                return render(
+                    request,
+                    "acolhimento/tipo_atendimento.html",
+                    {
+                        "erro": "⚠️ Todos os sinais vitais são obrigatórios."
+                    }
+                )
 
+        # Temperatura
         temperatura = request.POST.get("temperatura")
 
         try:
             temperatura = float(temperatura.replace(",", "."))
         except (ValueError, AttributeError):
-            return render(request, "acolhimento/tipo_atendimento.html", {
-                "erro": "⚠️ Temperatura inválida."
-            })
+            return render(
+                request,
+                "acolhimento/tipo_atendimento.html",
+                {
+                    "erro": "⚠️ Temperatura inválida."
+                }
+            )
 
-        idade = request.POST.get("idade")
-        idade = int(idade) if idade and idade.isdigit() else None
+        # Data de nascimento
+        data_nascimento_str = request.POST.get("data_nascimento")
+
+        try:
+            data_nascimento = datetime.strptime(
+                data_nascimento_str,
+                "%Y-%m-%d"
+            ).date()
+        except (ValueError, TypeError):
+            return render(
+                request,
+                "acolhimento/tipo_atendimento.html",
+                {
+                    "erro": "⚠️ Data de nascimento inválida."
+                }
+            )
 
         cpf = request.POST.get("cpf", "").strip()
 
         paciente = Acolhimento.objects.create(
             nome_paciente=request.POST.get("nome_paciente"),
             cpf=cpf,
-            data_nascimento=request.POST.get("data_nascimento"),
-            idade=idade,
+            data_nascimento=data_nascimento,
             pressao_arterial=request.POST.get("pressao_arterial"),
             temperatura=temperatura,
             frequencia_respiratoria=request.POST.get("frequencia_respiratoria"),
@@ -63,6 +86,7 @@ def tipo_atendimento(request):
         return redirect("tipo_atendimento")
 
     return render(request, "acolhimento/tipo_atendimento.html", {"erro": erro})
+
 
 # ==================================
 # BUSCA AUTOMÁTICA AJAX
