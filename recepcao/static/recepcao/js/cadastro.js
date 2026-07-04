@@ -4,24 +4,19 @@ document.addEventListener("DOMContentLoaded", function () {
     const bairroInput = document.getElementById("id_bairro");
     const logradouroInput = document.getElementById("id_logradouro");
 
+    const telefoneInput = document.getElementById("id_telefone");
+    const emailInput = document.getElementById("id_email");
+
+    const nacionalidadeInput = document.getElementById("id_nacionalidade");
+    const campoUfNascimento = document.getElementById("campo-uf-nascimento");
+    const campoNaturalidade = document.getElementById("campo-naturalidade");
+    const ufNascimentoInput = document.getElementById("id_uf_nascimento");
+    const naturalidadeInput = document.getElementById("id_naturalidade");
+
     let ultimoCepBuscado = "";
 
-    if (!cepInput) {
-        return;
-    }
-
-    function limparCep(cep) {
-        return cep.replace(/\D/g, "");
-    }
-
-    function formatarCep(cep) {
-        cep = limparCep(cep);
-
-        if (cep.length > 5) {
-            return cep.slice(0, 5) + "-" + cep.slice(5, 8);
-        }
-
-        return cep;
+    function limparNumeros(valor) {
+        return valor.replace(/\D/g, "");
     }
 
     function preencherCampo(campo, valor) {
@@ -30,17 +25,29 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
+    function formatarCep(cep) {
+        cep = limparNumeros(cep);
+
+        if (cep.length > 5) {
+            return cep.slice(0, 5) + "-" + cep.slice(5, 8);
+        }
+
+        return cep;
+    }
+
     function mostrarErroCep(mensagem) {
         let erro = document.getElementById("erro-cep");
 
-        if (!erro) {
+        if (!erro && cepInput) {
             erro = document.createElement("div");
             erro.id = "erro-cep";
             erro.className = "text-danger small mt-1";
             cepInput.insertAdjacentElement("afterend", erro);
         }
 
-        erro.textContent = mensagem;
+        if (erro) {
+            erro.textContent = mensagem;
+        }
     }
 
     function limparErroCep() {
@@ -52,7 +59,11 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     async function buscarCep() {
-        const cep = limparCep(cepInput.value);
+        if (!cepInput) {
+            return;
+        }
+
+        const cep = limparNumeros(cepInput.value);
 
         if (cep.length !== 8) {
             ultimoCepBuscado = "";
@@ -85,80 +96,48 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    cepInput.addEventListener("input", function () {
-        cepInput.value = formatarCep(cepInput.value);
-        buscarCep();
-    });
+    if (cepInput) {
+        cepInput.addEventListener("input", function () {
+            cepInput.value = formatarCep(cepInput.value);
+            buscarCep();
+        });
 
-    cepInput.addEventListener("blur", buscarCep);
-});
+        cepInput.addEventListener("blur", buscarCep);
+    }
 
-const camposFormulario = Array.from(
-    document.querySelectorAll("input, select, textarea, button")
-).filter(function (campo) {
-    return !campo.disabled && campo.type !== "hidden";
-});
+    if (telefoneInput) {
+        telefoneInput.addEventListener("input", function () {
+            let telefone = limparNumeros(telefoneInput.value);
 
-camposFormulario.forEach(function (campo, indice) {
-    campo.addEventListener("keydown", function (evento) {
-        if (evento.key !== "Enter") {
-            return;
-        }
+            if (telefone.length > 11) {
+                telefone = telefone.slice(0, 11);
+            }
 
-        if (campo.tagName === "TEXTAREA") {
-            return;
-        }
+            if (telefone.length <= 10) {
+                telefone = telefone.replace(/^(\d{2})(\d)/, "($1) $2");
+                telefone = telefone.replace(/(\d{4})(\d)/, "$1-$2");
+            } else {
+                telefone = telefone.replace(/^(\d{2})(\d)/, "($1) $2");
+                telefone = telefone.replace(/(\d{5})(\d)/, "$1-$2");
+            }
 
-        evento.preventDefault();
+            telefoneInput.value = telefone;
+        });
+    }
 
-        const proximoCampo = camposFormulario[indice + 1];
-
-        if (proximoCampo) {
-            proximoCampo.focus();
-        } else {
-            campo.form.submit();
-        }
-    });
-});
-
-
-
-const telefoneInput = document.getElementById("id_telefone");
-
-if (telefoneInput) {
-    telefoneInput.addEventListener("input", function () {
-        let telefone = telefoneInput.value.replace(/\D/g, "");
-
-        if (telefone.length > 11) {
-            telefone = telefone.slice(0, 11);
-        }
-
-        if (telefone.length <= 10) {
-            telefone = telefone.replace(/^(\d{2})(\d)/, "($1) $2");
-            telefone = telefone.replace(/(\d{4})(\d)/, "$1-$2");
-        } else {
-            telefone = telefone.replace(/^(\d{2})(\d)/, "($1) $2");
-            telefone = telefone.replace(/(\d{5})(\d)/, "$1-$2");
-        }
-
-        telefoneInput.value = telefone;
-    });
-}
-
-const emailInput = document.getElementById("id_email");
-
-if (emailInput) {
     function mostrarErroEmail(mensagem) {
         let erro = document.getElementById("erro-email");
 
-        if (!erro) {
+        if (!erro && emailInput) {
             erro = document.createElement("div");
             erro.id = "erro-email";
             erro.className = "text-danger small mt-1";
             emailInput.insertAdjacentElement("afterend", erro);
         }
 
-        erro.textContent = mensagem;
+        if (erro) {
+            erro.textContent = mensagem;
+        }
     }
 
     function limparErroEmail() {
@@ -170,8 +149,11 @@ if (emailInput) {
     }
 
     function validarEmail() {
-        const email = emailInput.value.trim().toLowerCase();
-        emailInput.value = email.replace(/\s/g, "");
+        if (!emailInput) {
+            return;
+        }
+
+        emailInput.value = emailInput.value.trim().toLowerCase().replace(/\s/g, "");
 
         if (!emailInput.value) {
             limparErroEmail();
@@ -187,51 +169,130 @@ if (emailInput) {
         }
     }
 
-    emailInput.addEventListener("input", function () {
-        emailInput.value = emailInput.value.toLowerCase().replace(/\s/g, "");
+    if (emailInput) {
+        emailInput.addEventListener("input", function () {
+            emailInput.value = emailInput.value.toLowerCase().replace(/\s/g, "");
+        });
+
+        emailInput.addEventListener("blur", validarEmail);
+    }
+
+    async function carregarNaturalidades() {
+        if (!ufNascimentoInput || !naturalidadeInput) {
+            return;
+        }
+
+        const uf = ufNascimentoInput.value;
+        const valorAtual = naturalidadeInput.dataset.valorAtual || "";
+
+        naturalidadeInput.innerHTML = '<option value="">Selecione a UF primeiro</option>';
+
+        if (!uf) {
+            return;
+        }
+
+        naturalidadeInput.innerHTML = '<option value="">Carregando cidades...</option>';
+
+        try {
+            const resposta = await fetch(
+                `https://servicodados.ibge.gov.br/api/v1/localidades/estados/${uf}/municipios`
+            );
+
+            const cidades = await resposta.json();
+
+            naturalidadeInput.innerHTML = '<option value="">Selecione a naturalidade</option>';
+
+            cidades.forEach(function (cidade) {
+                const option = document.createElement("option");
+                option.value = cidade.nome;
+                option.textContent = cidade.nome;
+
+                if (cidade.nome === valorAtual) {
+                    option.selected = true;
+                }
+
+                naturalidadeInput.appendChild(option);
+            });
+
+        } catch (erro) {
+            naturalidadeInput.innerHTML = '<option value="">Erro ao carregar cidades</option>';
+        }
+    }
+
+    function controlarCamposNascimento() {
+        if (
+            !nacionalidadeInput ||
+            !campoUfNascimento ||
+            !campoNaturalidade ||
+            !ufNascimentoInput ||
+            !naturalidadeInput
+        ) {
+            return;
+        }
+
+        const nacionalidade = nacionalidadeInput.value.toLowerCase();
+
+        if (nacionalidade === "brasileira") {
+            campoUfNascimento.classList.remove("d-none");
+            campoNaturalidade.classList.remove("d-none");
+
+            ufNascimentoInput.required = true;
+            naturalidadeInput.required = true;
+
+            carregarNaturalidades();
+        } else {
+            campoUfNascimento.classList.add("d-none");
+            campoNaturalidade.classList.add("d-none");
+
+            ufNascimentoInput.required = false;
+            naturalidadeInput.required = false;
+
+            ufNascimentoInput.value = "";
+            naturalidadeInput.innerHTML = '<option value="">Selecione a UF primeiro</option>';
+            naturalidadeInput.value = "";
+        }
+    }
+
+    if (nacionalidadeInput) {
+        nacionalidadeInput.addEventListener("change", controlarCamposNascimento);
+        controlarCamposNascimento();
+    }
+
+    if (ufNascimentoInput) {
+        ufNascimentoInput.addEventListener("change", function () {
+            if (naturalidadeInput) {
+                naturalidadeInput.dataset.valorAtual = "";
+            }
+
+            carregarNaturalidades();
+        });
+    }
+
+    const camposFormulario = Array.from(
+        document.querySelectorAll("input, select, textarea, button")
+    ).filter(function (campo) {
+        return !campo.disabled && campo.type !== "hidden";
     });
 
-    emailInput.addEventListener("blur", validarEmail);
-}
+    camposFormulario.forEach(function (campo, indice) {
+        campo.addEventListener("keydown", function (evento) {
+            if (evento.key !== "Enter") {
+                return;
+            }
 
-const nacionalidadeInput = document.getElementById("id_nacionalidade");
-const campoUfNascimento = document.getElementById("campo-uf-nascimento");
-const campoNaturalidade = document.getElementById("campo-naturalidade");
-const ufNascimentoInput = document.getElementById("id_uf_nascimento");
-const naturalidadeInput = document.getElementById("id_naturalidade");
+            if (campo.tagName === "TEXTAREA") {
+                return;
+            }
 
-function controlarCamposNascimento() {
-    if (
-        !nacionalidadeInput ||
-        !campoUfNascimento ||
-        !campoNaturalidade ||
-        !ufNascimentoInput ||
-        !naturalidadeInput
-    ) {
-        return;
-    }
+            evento.preventDefault();
 
-    const nacionalidade = nacionalidadeInput.value.toLowerCase();
+            const proximoCampo = camposFormulario[indice + 1];
 
-    if (nacionalidade === "brasileira") {
-        campoUfNascimento.classList.remove("d-none");
-        campoNaturalidade.classList.remove("d-none");
-
-        ufNascimentoInput.required = true;
-        naturalidadeInput.required = true;
-    } else {
-        campoUfNascimento.classList.add("d-none");
-        campoNaturalidade.classList.add("d-none");
-
-        ufNascimentoInput.required = false;
-        naturalidadeInput.required = false;
-
-        ufNascimentoInput.value = "";
-        naturalidadeInput.value = "";
-    }
-}
-
-if (nacionalidadeInput) {
-    nacionalidadeInput.addEventListener("change", controlarCamposNascimento);
-    controlarCamposNascimento();
-}
+            if (proximoCampo) {
+                proximoCampo.focus();
+            } else if (campo.form) {
+                campo.form.submit();
+            }
+        });
+    });
+});

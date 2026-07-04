@@ -22,6 +22,36 @@ class Recepcao(models.Model):
         ('Estrangeira', 'Estrangeira'),
     ]
 
+    UF_CHOICES = [
+        ("AC", "Acre"),
+        ("AL", "Alagoas"),
+        ("AP", "Amapá"),
+        ("AM", "Amazonas"),
+        ("BA", "Bahia"),
+        ("CE", "Ceará"),
+        ("DF", "Distrito Federal"),
+        ("ES", "Espírito Santo"),
+        ("GO", "Goiás"),
+        ("MA", "Maranhão"),
+        ("MT", "Mato Grosso"),
+        ("MS", "Mato Grosso do Sul"),
+        ("MG", "Minas Gerais"),
+        ("PA", "Pará"),
+        ("PB", "Paraíba"),
+        ("PR", "Paraná"),
+        ("PE", "Pernambuco"),
+        ("PI", "Piauí"),
+        ("RJ", "Rio de Janeiro"),
+        ("RN", "Rio Grande do Norte"),
+        ("RS", "Rio Grande do Sul"),
+        ("RO", "Rondônia"),
+        ("RR", "Roraima"),
+        ("SC", "Santa Catarina"),
+        ("SP", "São Paulo"),
+        ("SE", "Sergipe"),
+        ("TO", "Tocantins"),
+    ]
+
     # ==========================
     # Dados do Paciente
     # ==========================
@@ -42,8 +72,20 @@ class Recepcao(models.Model):
         choices=NACIONALIDADE_CHOICES
     )
 
-    uf_nascimento = models.CharField("UF de nascimento", max_length=2, blank=True, null=True)
-    naturalidade = models.CharField("Cidade de nascimento", max_length=100, blank=True, null=True)
+    uf_nascimento = models.CharField(
+        "UF de nascimento",
+        max_length=2,
+        choices=UF_CHOICES,
+        blank=True,
+        null=True
+    )
+
+    naturalidade = models.CharField(
+        "Cidade de nascimento",
+        max_length=100,
+        blank=True,
+        null=True
+    )
 
     nome_mae = models.CharField(max_length=200)
     nome_pai = models.CharField(max_length=200, blank=True, null=True)
@@ -57,12 +99,10 @@ class Recepcao(models.Model):
     # Endereço
     # ==========================
     cep = models.CharField(max_length=9)
-
     municipio = models.CharField(max_length=100)
     bairro = models.CharField(max_length=100)
     logradouro = models.CharField(max_length=200)
     numero = models.CharField(max_length=10)
-
     complemento = models.CharField(max_length=100, blank=True, null=True)
 
     # ==========================
@@ -78,8 +118,20 @@ class Recepcao(models.Model):
         null=True
     )
 
-    uf_nascimento_responsavel = models.CharField(max_length=2, blank=True, null=True)
-    naturalidade_responsavel = models.CharField(max_length=100, blank=True, null=True)
+    uf_nascimento_responsavel = models.CharField(
+        "UF de nascimento do responsável",
+        max_length=2,
+        choices=UF_CHOICES,
+        blank=True,
+        null=True
+    )
+
+    naturalidade_responsavel = models.CharField(
+        "Cidade de nascimento do responsável",
+        max_length=100,
+        blank=True,
+        null=True
+    )
 
     # ==========================
     # Controle

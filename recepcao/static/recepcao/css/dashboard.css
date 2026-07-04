@@ -1,81 +1,235 @@
-
-body{
-    background:#f5f5f5;
+body {
+    background: #f3f6fa;
+    color: #1f2937;
+    font-family: Arial, Helvetica, sans-serif;
 }
 
-.barra-dourada{
-    width:40px;
-    height:4px;
-    background:#d4af37;
-    border-radius:10px;
-    margin-bottom:15px;
+.container-fluid {
+    max-width: 1600px;
 }
 
-.fila-box{
-    border:1px dashed #9ec5fe;
-    background:#fff;
-    padding:15px;
-    border-radius:5px;
+.alert {
+    border: 0;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, .06);
 }
 
-.paciente-link{
-    text-decoration:none;
-    font-weight:bold;
-    cursor:pointer;
+.nav-tabs {
+    border-bottom: 1px solid #d8dee9;
 }
 
-.badge{
-    min-width:70px;
-    padding:6px 10px;
+.nav-tabs .nav-link {
+    color: #475569;
+    font-weight: 600;
+    border: 0;
+    border-bottom: 3px solid transparent;
+    padding: 10px 18px;
 }
 
-.table-responsive{
-    overflow-x:auto;
+.nav-tabs .nav-link:hover {
+    color: #0d6efd;
+    border-bottom-color: #b6d4fe;
 }
 
-.table{
-    white-space:nowrap;
-    font-size:14px;
+.nav-tabs .nav-link.active {
+    color: #0d6efd;
+    background: transparent;
+    border-bottom-color: #d4af37;
+}
+
+.card {
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+}
+
+.card-body {
+    padding: 20px;
+}
+
+.barra-dourada {
+    width: 46px;
+    height: 4px;
+    background: #d4af37;
+    border-radius: 10px;
+    margin-bottom: 14px;
+}
+
+h4 {
+    color: #111827;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.text-muted {
+    color: #64748b !important;
+}
+
+.fila-box {
+    border: 1px solid #dbeafe;
+    background: #ffffff;
+    padding: 14px;
+    border-radius: 8px;
+}
+
+.table-responsive {
+    overflow-x: auto;
+    border-radius: 8px;
+}
+
+.table {
+    white-space: nowrap;
+    font-size: 14px;
+    margin-bottom: 0;
+}
+
+.table thead th {
+    background: #dbeafe;
+    color: #0f172a;
+    font-weight: 700;
+    border-bottom: 1px solid #bfdbfe;
+    padding: 12px 10px;
+}
+
+.table tbody td {
+    padding: 12px 10px;
+    color: #1f2937;
 }
 
 .table td,
-.table th{
-    vertical-align:middle;
+.table th {
+    vertical-align: middle;
 }
 
-@media (max-width:1400px){
-    .table{
-        font-size:13px;
+.table-striped > tbody > tr:nth-of-type(odd) > * {
+    background-color: #f8fafc;
+}
+
+.table-hover tbody tr:hover td {
+    background: #eef6ff;
+}
+
+.paciente-link {
+    color: #0d6efd;
+    text-decoration: none;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.paciente-link:hover {
+    color: #084298;
+    text-decoration: underline;
+}
+
+.badge {
+    min-width: 72px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-weight: 700;
+}
+
+.btn-sm {
+    border-radius: 6px;
+    font-weight: 700;
+    padding: 5px 10px;
+}
+
+.btn-success {
+    background: #12805c;
+    border-color: #12805c;
+}
+
+.btn-success:hover {
+    background: #0f6b4d;
+    border-color: #0f6b4d;
+}
+
+.btn-primary {
+    background: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.btn-primary:hover {
+    background: #0b5ed7;
+    border-color: #0b5ed7;
+}
+
+.table-bordered {
+    border-color: #e5e7eb;
+}
+
+.table-secondary th {
+    background: #e2e8f0 !important;
+    color: #1f2937;
+}
+
+@media (max-width: 1400px) {
+    .table {
+        font-size: 13px;
     }
 }
 
-@media (max-width:1200px){
-    .table{
-        font-size:12px;
+@media (max-width: 1200px) {
+    .card-body {
+        padding: 14px;
     }
 
-    .badge{
-        font-size:11px;
+    .fila-box {
+        padding: 10px;
     }
 
-    .btn-sm{
-        font-size:11px;
-        padding:3px 8px;
+    .table {
+        font-size: 12px;
+    }
+
+    .table thead th,
+    .table tbody td {
+        padding: 9px 8px;
+    }
+
+    .badge {
+        min-width: 62px;
+        font-size: 11px;
+    }
+
+    .btn-sm {
+        font-size: 11px;
+        padding: 4px 8px;
     }
 }
 
-@media (max-width:992px){
-    .table{
-        font-size:11px;
+@media (max-width: 992px) {
+    .table {
+        font-size: 11px;
+    }
+
+    .nav-tabs .nav-link {
+        padding: 9px 12px;
     }
 }
 
-@media (max-width:768px){
-    .table{
-        font-size:10px;
+@media (max-width: 768px) {
+    .container-fluid {
+        padding-left: 8px;
+        padding-right: 8px;
     }
 
-    .badge{
-        min-width:auto;
+    .card-body {
+        padding: 10px;
+    }
+
+    .fila-box {
+        padding: 8px;
+    }
+
+    .table {
+        font-size: 10px;
+    }
+
+    .badge {
+        min-width: auto;
+    }
+
+    h4 {
+        font-size: 1.1rem;
     }
 }
