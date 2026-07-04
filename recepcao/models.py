@@ -59,7 +59,7 @@ class Recepcao(models.Model):
     nome_social = models.CharField(max_length=200, blank=True, null=True)
 
     cpf = models.CharField(max_length=14, unique=True)
-    cns = models.CharField("Cartão Nacional de Saúde", max_length=20, blank=True, null=True)
+    cns = models.CharField("Cartão Nacional de Saúde", max_length=18, blank=True, null=True)
 
     sexo = models.CharField(max_length=1, choices=SEXO_CHOICES)
     raca_cor = models.CharField(max_length=20, choices=RACA_CHOICES)

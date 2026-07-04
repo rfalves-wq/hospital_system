@@ -213,3 +213,32 @@ document.addEventListener('input', function (e) {
         e.target.classList.remove('is-valid');
     }
 });
+
+ document.addEventListener("DOMContentLoaded", function () {
+    const botoesAbas = document.querySelectorAll('[data-bs-toggle="tab"]');
+    const abaSalva = localStorage.getItem("abaRecepcaoAtiva");
+
+    if (abaSalva) {
+        const botaoAba = document.querySelector(`[data-bs-target="${abaSalva}"]`);
+
+        if (botaoAba && window.bootstrap) {
+            const aba = new bootstrap.Tab(botaoAba);
+            aba.show();
+        }
+    }
+
+    botoesAbas.forEach(function (botao) {
+        botao.addEventListener("shown.bs.tab", function (evento) {
+            const destino = evento.target.getAttribute("data-bs-target");
+            localStorage.setItem("abaRecepcaoAtiva", destino);
+        });
+    });
+
+    setInterval(function () {
+        const abaAtiva = localStorage.getItem("abaRecepcaoAtiva");
+
+        if (abaAtiva !== "#historico") {
+            window.location.reload();
+        }
+    }, 10000);
+});

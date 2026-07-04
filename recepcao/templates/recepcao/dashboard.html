@@ -29,7 +29,7 @@
 
             <li class="nav-item">
                 <button class="nav-link" data-bs-toggle="tab" data-bs-target="#historico">
-                    Histórico
+                    Histórico ({{ historico|length }})
                 </button>
             </li>
         </ul>
@@ -196,25 +196,78 @@
                     <div class="tab-pane fade" id="historico">
                         <div class="barra-dourada"></div>
 
-                        <h4>Histórico</h4>
+                        <div class="d-flex align-items-center gap-2">
+                            <h4 class="mb-0">Histórico</h4>
 
-                        <table class="table table-bordered mt-3">
-                            <thead class="table-secondary">
-                                <tr>
-                                    <th>Paciente</th>
-                                    <th>Data</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
+                            <span class="badge bg-secondary">
+                                {{ historico|length }} registro(s)
+                            </span>
+                        </div>
 
-                            <tbody>
-                                <tr>
-                                    <td colspan="3" class="text-center text-muted">
-                                        Nenhum registro encontrado.
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                        <p class="text-muted mt-2">
+                            Pacientes já encaminhados pela recepção hoje.
+                        </p>
+
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover mt-3">
+                                <thead class="table-secondary">
+                                    <tr>
+                                        <th>Paciente</th>
+                                        <th>BAM</th>
+                                        <th>CPF</th>
+                                        <th>Data</th>
+                                        <th>Hora</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+                                    {% if historico %}
+                                        {% for item in historico %}
+                                            <tr>
+                                                <td>
+                                                    {% if item.paciente %}
+                                                        {{ item.paciente.nome_completo }}
+                                                    {% else %}
+                                                        {{ item.nome_paciente }}
+                                                    {% endif %}
+                                                </td>
+
+                                                <td>{{ item.numero_bam }}</td>
+
+                                                <td>
+                                                    {% if item.paciente %}
+                                                        {{ item.paciente.cpf }}
+                                                    {% else %}
+                                                        {{ item.cpf }}
+                                                    {% endif %}
+                                                </td>
+
+                                                <td>{{ item.data_acolhimento|date:"d/m/Y" }}</td>
+
+                                                <td>{{ item.data_acolhimento|time:"H:i" }}</td>
+
+                                                <td>
+                                                    {% if item.status == "CLASSIFICACAO" %}
+                                                        <span class="badge bg-primary">Classificação</span>
+                                                    {% elif item.status == "FINALIZADO" %}
+                                                        <span class="badge bg-success">Finalizado</span>
+                                                    {% else %}
+                                                        <span class="badge bg-secondary">{{ item.status }}</span>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    {% else %}
+                                        <tr>
+                                            <td colspan="6" class="text-center text-muted">
+                                                Nenhum registro encontrado.
+                                            </td>
+                                        </tr>
+                                    {% endif %}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
 
                 </div>
@@ -224,8 +277,8 @@
 
     </div>
 
-    <script src="{% static 'recepcao/js/dashboard.js' %}"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{% static 'recepcao/js/dashboard.js' %}"></script>
 
 </body>
 

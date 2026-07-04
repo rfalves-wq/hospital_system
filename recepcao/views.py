@@ -97,3 +97,44 @@ def enviar_classificacao(request, acolhimento_id):
         acolhimento.save()
 
     return redirect("recepcao_dashboard")
+
+
+from datetime import date
+
+from django.shortcuts import render, redirect, get_object_or_404
+
+from acolhimento.models import Acolhimento
+from .forms import RecepcaoForm
+from .models import Recepcao
+
+
+def recepcao_dashboard(request):
+
+    hoje = date.today()
+
+    acolhimentos = (
+        Acolhimento.objects
+        .select_related("paciente")
+        .filter(
+            data_acolhimento__date=hoje,
+            status="RECEPCAO"
+        )
+        .order_by("-data_acolhimento")
+    )
+
+    historico = (
+        Acolhimento.objects
+        .select_related("paciente")
+        .filter(data_acolhimento__date=hoje)
+        .exclude(status="RECEPCAO")
+        .order_by("-data_acolhimento")
+    )
+
+    return render(
+        request,
+        "recepcao/dashboard.html",
+        {
+            "acolhimentos": acolhimentos,
+            "historico": historico,
+        }
+    )

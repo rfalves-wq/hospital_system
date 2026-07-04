@@ -296,3 +296,21 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 });
+
+const cnsInput = document.getElementById("id_cns");
+
+if (cnsInput) {
+    cnsInput.addEventListener("input", function () {
+        let cns = cnsInput.value.replace(/\D/g, "");
+
+        if (cns.length > 15) {
+            cns = cns.slice(0, 15);
+        }
+
+        cns = cns.replace(/^(\d{3})(\d)/, "$1 $2");
+        cns = cns.replace(/^(\d{3})\s(\d{4})(\d)/, "$1 $2 $3");
+        cns = cns.replace(/^(\d{3})\s(\d{4})\s(\d{4})(\d)/, "$1 $2 $3 $4");
+
+        cnsInput.value = cns;
+    });
+}
