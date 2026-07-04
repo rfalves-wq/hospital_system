@@ -31,5 +31,10 @@ urlpatterns = [
         views.atendimento_preferencial,
         name="atendimento_preferencial"
     ),
+    path(
+    "reenviar-recepcao/<int:acolhimento_id>/",
+    views.reenviar_para_recepcao,
+    name="acolhimento_reenviar_recepcao"
+),
     
 ]

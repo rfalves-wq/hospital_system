@@ -1,5 +1,4 @@
 document.addEventListener("DOMContentLoaded", function () {
-
     // =========================
     // MÁSCARA CPF
     // =========================
@@ -7,9 +6,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (cpf) {
         cpf.addEventListener("input", function (e) {
-
             let v = e.target.value.replace(/\D/g, "");
 
+            v = v.slice(0, 11);
             v = v.replace(/(\d{3})(\d)/, "$1.$2");
             v = v.replace(/(\d{3})(\d)/, "$1.$2");
             v = v.replace(/(\d{3})(\d{1,2})$/, "$1-$2");
@@ -25,12 +24,10 @@ document.addEventListener("DOMContentLoaded", function () {
     const idade = document.getElementById("idade");
 
     function calcularIdade(data) {
-
         const nasc = new Date(data);
         const hoje = new Date();
 
         let anos = hoje.getFullYear() - nasc.getFullYear();
-
         const mes = hoje.getMonth() - nasc.getMonth();
 
         if (
@@ -43,29 +40,22 @@ document.addEventListener("DOMContentLoaded", function () {
         return anos;
     }
 
-    if (dataNascimento && idade) {
-
-        function atualizarIdade() {
-
-            if (!dataNascimento.value) {
-                idade.value = "";
-                return;
-            }
-
-            idade.value = calcularIdade(
-                dataNascimento.value
-            );
+    function atualizarIdade() {
+        if (!dataNascimento || !idade) {
+            return;
         }
 
-        dataNascimento.addEventListener(
-            "change",
-            atualizarIdade
-        );
+        if (!dataNascimento.value) {
+            idade.value = "";
+            return;
+        }
 
-        dataNascimento.addEventListener(
-            "input",
-            atualizarIdade
-        );
+        idade.value = calcularIdade(dataNascimento.value);
+    }
+
+    if (dataNascimento && idade) {
+        dataNascimento.addEventListener("change", atualizarIdade);
+        dataNascimento.addEventListener("input", atualizarIdade);
     }
 
     // =========================
@@ -73,20 +63,23 @@ document.addEventListener("DOMContentLoaded", function () {
     // =========================
     const busca = document.getElementById("busca");
     const tabela = document.getElementById("resultado-busca");
-    const tabelaPacientes =
-        document.getElementById("tabela-pacientes");
+    const tabelaPacientes = document.getElementById("tabela-pacientes");
+
+    if (tabelaPacientes) {
+        tabelaPacientes.style.display = "none";
+    }
 
     if (busca && tabela) {
-
         busca.addEventListener("keyup", function () {
-
             const texto = this.value.trim();
 
             if (texto.length < 2) {
                 tabela.innerHTML = "";
+
                 if (tabelaPacientes) {
                     tabelaPacientes.style.display = "none";
                 }
+
                 return;
             }
 
@@ -94,23 +87,20 @@ document.addEventListener("DOMContentLoaded", function () {
                 tabelaPacientes.style.display = "table";
             }
 
-            fetch(
-                `/acolhimento/buscar-paciente/?busca=${texto}`
-            )
-                .then(response => response.json())
-                .then(data => {
-
+            fetch(`/acolhimento/buscar-paciente/?busca=${encodeURIComponent(texto)}`)
+                .then(function (response) {
+                    return response.json();
+                })
+                .then(function (data) {
                     tabela.innerHTML = "";
 
-                    data.forEach(paciente => {
-
+                    data.forEach(function (paciente) {
                         tabela.innerHTML += `
                             <tr
                                 data-nome="${paciente.nome}"
                                 data-cpf="${paciente.cpf}"
                                 data-data="${paciente.data_nascimento}"
                                 data-idade="${paciente.idade}">
-                                
                                 <td>${paciente.nome}</td>
                                 <td>${paciente.cpf}</td>
                                 <td>${paciente.data_nascimento}</td>
@@ -118,113 +108,115 @@ document.addEventListener("DOMContentLoaded", function () {
                             </tr>
                         `;
                     });
-
                 });
         });
 
-        // =========================
-        // SELECIONAR PACIENTE
-        // =========================
         tabela.addEventListener("click", function (e) {
-
             const linha = e.target.closest("tr");
 
-            if (!linha) return;
+            if (!linha) {
+                return;
+            }
 
-            document.getElementById(
-                "nome_paciente"
-            ).value = linha.dataset.nome;
+            const nomePaciente = document.getElementById("nome_paciente");
+            const cpfPaciente = document.getElementById("cpf");
+            const dataNascimentoPaciente = document.getElementById("data_nascimento");
+            const idadePaciente = document.getElementById("idade");
 
-            document.getElementById(
-                "cpf"
-            ).value = linha.dataset.cpf;
+            if (nomePaciente) {
+                nomePaciente.value = linha.dataset.nome;
+            }
 
-            document.getElementById(
-                "data_nascimento"
-            ).value = linha.dataset.data;
+            if (cpfPaciente) {
+                cpfPaciente.value = linha.dataset.cpf;
+            }
 
-            document.getElementById(
-                "idade"
-            ).value = linha.dataset.idade;
+            if (dataNascimentoPaciente) {
+                dataNascimentoPaciente.value = linha.dataset.data;
+            }
 
-            // limpa busca
+            if (idadePaciente) {
+                idadePaciente.value = linha.dataset.idade;
+            }
+
             busca.value = "";
-
-            // esconde tabela
             tabela.innerHTML = "";
 
             if (tabelaPacientes) {
                 tabelaPacientes.style.display = "none";
             }
 
-            window.scrollTo({
-                top: document.querySelector(".paciente-box").offsetTop - 50,
-                behavior: "smooth"
-            });
+            const pacienteBox = document.querySelector(".paciente-box");
+
+            if (pacienteBox) {
+                window.scrollTo({
+                    top: pacienteBox.offsetTop - 50,
+                    behavior: "smooth"
+                });
+            }
         });
     }
-});
 
-document.querySelector("form").addEventListener("submit", function(e){
+    // =========================
+    // VALIDAR SINAIS VITAIS
+    // =========================
+    const formulario = document.querySelector("form");
 
-    const temperatura =
-        parseFloat(document.querySelector(
-            '[name="temperatura"]'
-        ).value.replace(",", "."));
+    if (formulario) {
+        formulario.addEventListener("submit", function (e) {
+            const temperaturaCampo = document.querySelector('[name="temperatura"]');
+            const frCampo = document.querySelector('[name="frequencia_respiratoria"]');
+            const pulsoCampo = document.querySelector('[name="pulso"]');
+            const dorCampo = document.querySelector('[name="dor"]');
 
-    const fr =
-        parseInt(document.querySelector(
-            '[name="frequencia_respiratoria"]'
-        ).value);
+            if (!temperaturaCampo || !frCampo || !pulsoCampo || !dorCampo) {
+                return;
+            }
 
-    const pulso =
-        parseInt(document.querySelector(
-            '[name="pulso"]'
-        ).value);
+            const temperatura = parseFloat(temperaturaCampo.value.replace(",", "."));
+            const fr = parseInt(frCampo.value);
+            const pulso = parseInt(pulsoCampo.value);
+            const dor = parseInt(dorCampo.value);
 
-    const dor =
-        parseInt(document.querySelector(
-            '[name="dor"]'
-        ).value);
+            if (temperatura < 34 || temperatura > 42) {
+                alert("Temperatura inválida.");
+                e.preventDefault();
+                return;
+            }
 
-    if (temperatura < 34 || temperatura > 42) {
-        alert("Temperatura inválida.");
-        e.preventDefault();
-        return;
+            if (fr < 5 || fr > 60) {
+                alert("Frequência respiratória inválida.");
+                e.preventDefault();
+                return;
+            }
+
+            if (pulso < 20 || pulso > 250) {
+                alert("Pulso inválido.");
+                e.preventDefault();
+                return;
+            }
+
+            if (dor < 0 || dor > 10) {
+                alert("Dor deve ser entre 0 e 10.");
+                e.preventDefault();
+            }
+        });
     }
 
-    if (fr < 5 || fr > 60) {
-        alert("Frequência respiratória inválida.");
-        e.preventDefault();
-        return;
-    }
+    // =========================
+    // ENTER = PRÓXIMO CAMPO
+    // =========================
+    const campos = Array.from(
+        document.querySelectorAll("input, select, textarea")
+    ).filter(function (campo) {
+        return !campo.disabled && campo.type !== "hidden" && !campo.readOnly;
+    });
 
-    if (pulso < 20 || pulso > 250) {
-        alert("Pulso inválido.");
-        e.preventDefault();
-        return;
-    }
-
-    if (dor < 0 || dor > 10) {
-        alert("Dor deve ser entre 0 e 10.");
-        e.preventDefault();
-        return;
-    }
-});
-
-// =========================
-// ENTER = PRÓXIMO CAMPO
-// =========================
-
-const campos = document.querySelectorAll(
-    'input, select, textarea'
-);
-
-campos.forEach((campo, index) => {
-
-    campo.addEventListener("keydown", function(e) {
-
-        if (e.key === "Enter") {
+    campos.forEach(function (campo, index) {
+        campo.addEventListener("keydown", function (e) {
+            if (e.key !== "Enter") {
+                return;
+            }
 
             e.preventDefault();
 
@@ -233,22 +225,51 @@ campos.forEach((campo, index) => {
             if (proximoCampo) {
                 proximoCampo.focus();
             }
-        }
-
+        });
     });
 
-});
-
-
-function fecharModal(){
-    document.getElementById("modal-sucesso").style.display = "none";
-}
-
-document.addEventListener("DOMContentLoaded", function () {
+    // =========================
+    // MODAL DE SUCESSO
+    // =========================
     const modal = document.getElementById("modal-sucesso");
-    if(modal){
+
+    if (modal) {
         modal.style.display = "flex";
     }
+
+    // =========================
+    // ABAS
+    // =========================
+    const botoes = document.querySelectorAll(".aba-btn");
+    const abas = document.querySelectorAll(".conteudo-aba");
+
+    botoes.forEach(function (botao) {
+        botao.addEventListener("click", function () {
+            const alvo = botao.dataset.aba;
+
+            botoes.forEach(function (item) {
+                item.classList.remove("active");
+            });
+
+            abas.forEach(function (aba) {
+                aba.classList.remove("active");
+            });
+
+            botao.classList.add("active");
+
+            const abaSelecionada = document.getElementById(alvo);
+
+            if (abaSelecionada) {
+                abaSelecionada.classList.add("active");
+            }
+        });
+    });
 });
 
+function fecharModal() {
+    const modal = document.getElementById("modal-sucesso");
 
+    if (modal) {
+        modal.style.display = "none";
+    }
+}

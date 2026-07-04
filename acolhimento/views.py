@@ -1,7 +1,7 @@
-from datetime import datetime
+from datetime import datetime, date
 
 from django.contrib import messages
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
 from django.db.models import Q
 
@@ -28,11 +28,11 @@ def tipo_atendimento(request):
                     request,
                     "acolhimento/tipo_atendimento.html",
                     {
-                        "erro": "⚠️ Todos os sinais vitais são obrigatórios."
+                        "erro": "⚠️ Todos os sinais vitais são obrigatórios.",
+                        "historico_acolhimentos": buscar_historico_acolhimentos(),
                     }
                 )
 
-        # Temperatura
         temperatura = request.POST.get("temperatura")
 
         try:
@@ -42,11 +42,11 @@ def tipo_atendimento(request):
                 request,
                 "acolhimento/tipo_atendimento.html",
                 {
-                    "erro": "⚠️ Temperatura inválida."
+                    "erro": "⚠️ Temperatura inválida.",
+                    "historico_acolhimentos": buscar_historico_acolhimentos(),
                 }
             )
 
-        # Data de nascimento
         data_nascimento_str = request.POST.get("data_nascimento")
 
         try:
@@ -59,7 +59,8 @@ def tipo_atendimento(request):
                 request,
                 "acolhimento/tipo_atendimento.html",
                 {
-                    "erro": "⚠️ Data de nascimento inválida."
+                    "erro": "⚠️ Data de nascimento inválida.",
+                    "historico_acolhimentos": buscar_historico_acolhimentos(),
                 }
             )
 
@@ -85,7 +86,36 @@ def tipo_atendimento(request):
 
         return redirect("tipo_atendimento")
 
-    return render(request, "acolhimento/tipo_atendimento.html", {"erro": erro})
+    return render(
+        request,
+        "acolhimento/tipo_atendimento.html",
+        {
+            "erro": erro,
+            "historico_acolhimentos": buscar_historico_acolhimentos(),
+        }
+    )
+
+
+def buscar_historico_acolhimentos():
+    return (
+        Acolhimento.objects
+        .filter(data_acolhimento__date=date.today())
+        .order_by("-data_acolhimento")
+    )
+
+
+def reenviar_para_recepcao(request, acolhimento_id):
+
+    acolhimento = get_object_or_404(Acolhimento, id=acolhimento_id)
+
+    acolhimento.reenviar_para_recepcao()
+
+    messages.success(
+        request,
+        f"Atendimento BAM {acolhimento.numero_bam} reenviado para a recepção."
+    )
+
+    return redirect("tipo_atendimento")
 
 
 # ==================================

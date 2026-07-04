@@ -103,9 +103,12 @@ class Acolhimento(models.Model):
         auto_now_add=True
     )
 
+    def reenviar_para_recepcao(self):
+        self.status = 'RECEPCAO'
+        self.save(update_fields=['status'])
+
     def save(self, *args, **kwargs):
 
-        # Calcula automaticamente a idade
         if self.data_nascimento:
             hoje = date.today()
             self.idade = (
@@ -117,7 +120,6 @@ class Acolhimento(models.Model):
                 )
             )
 
-        # Gera automaticamente o número BAM
         if not self.numero_bam:
 
             hoje = timezone.now().date()
