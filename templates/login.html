@@ -1,46 +1,78 @@
-{% extends 'base.html' %}
+{% extends 'base_login.html' %}
+{% load static %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/login.css' %}">
+{% endblock %}
 
 {% block content %}
 
-<div class="container mt-5">
+<div class="login-page">
 
-<h2>Entrar no Sistema</h2>
+    <div class="login-card">
 
-<form method="post">
+        <div class="login-header">
+            <div class="login-icon">
+                🏥
+            </div>
 
-{% csrf_token %}
+            <h2>Entrar no Sistema</h2>
+            <p>Acesse o painel hospitalar</p>
+        </div>
 
-<div class="mb-3">
+        <div class="login-body">
 
-<label>Usuário</label>
+            {% if form.errors %}
+                <div class="alert alert-danger">
+                    Usuário ou senha inválidos.
+                </div>
+            {% endif %}
 
-<input
-type="text"
-name="username"
-class="form-control">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-info">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
 
-</div>
+            <form method="post">
+                {% csrf_token %}
 
-<div class="mb-3">
+                <div class="mb-3">
+                    <label class="form-label">Usuário</label>
+                    <input
+                        type="text"
+                        name="username"
+                        class="form-control"
+                        placeholder="Digite seu usuário"
+                        autocomplete="username"
+                        required>
+                </div>
 
-<label>Senha</label>
+                <div class="mb-3">
+                    <label class="form-label">Senha</label>
+                    <input
+                        type="password"
+                        name="password"
+                        class="form-control"
+                        placeholder="Digite sua senha"
+                        autocomplete="current-password"
+                        required>
+                </div>
 
-<input
-type="password"
-name="password"
-class="form-control">
+                <button type="submit" class="btn btn-primary btn-login">
+                    Entrar
+                </button>
+            </form>
 
-</div>
+            <div class="login-footer">
+                Sistema de gestão hospitalar
+            </div>
 
-<button
-type="submit"
-class="btn btn-primary">
+        </div>
 
-Entrar
-
-</button>
-
-</form>
+    </div>
 
 </div>
 
