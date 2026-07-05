@@ -265,7 +265,90 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 });
+// =========================
+// HISTÓRICO COM CÓDIGO
+// =========================
+const CODIGO_HISTORICO = "1234";
 
+const btnAdminHistorico = document.getElementById("btn-admin-historico");
+const btnAbaHistorico = document.getElementById("btn-aba-historico");
+const modalHistorico = document.getElementById("modal-historico");
+const inputCodigoHistorico = document.getElementById("codigo-historico");
+const confirmarHistorico = document.getElementById("confirmar-historico");
+const cancelarHistorico = document.getElementById("cancelar-historico");
+const erroCodigoHistorico = document.getElementById("erro-codigo-historico");
+
+function abrirModalHistorico() {
+    if (modalHistorico) {
+        modalHistorico.style.display = "flex";
+    }
+
+    if (inputCodigoHistorico) {
+        inputCodigoHistorico.value = "";
+        inputCodigoHistorico.focus();
+    }
+
+    if (erroCodigoHistorico) {
+        erroCodigoHistorico.textContent = "";
+    }
+}
+
+function fecharModalHistorico() {
+    if (modalHistorico) {
+        modalHistorico.style.display = "none";
+    }
+}
+
+function liberarHistorico() {
+    if (!inputCodigoHistorico) {
+        return;
+    }
+
+    if (inputCodigoHistorico.value !== CODIGO_HISTORICO) {
+        if (erroCodigoHistorico) {
+            erroCodigoHistorico.textContent = "Código incorreto.";
+        }
+
+        inputCodigoHistorico.focus();
+        return;
+    }
+
+    sessionStorage.setItem("historicoAcolhimentoLiberado", "sim");
+
+    fecharModalHistorico();
+
+    if (btnAbaHistorico) {
+        btnAbaHistorico.classList.remove("aba-oculta");
+        btnAbaHistorico.click();
+    }
+}
+
+if (sessionStorage.getItem("historicoAcolhimentoLiberado") === "sim") {
+    if (btnAbaHistorico) {
+        btnAbaHistorico.classList.remove("aba-oculta");
+    }
+}
+
+if (btnAdminHistorico) {
+    btnAdminHistorico.addEventListener("click", abrirModalHistorico);
+}
+
+if (confirmarHistorico) {
+    confirmarHistorico.addEventListener("click", liberarHistorico);
+}
+
+if (cancelarHistorico) {
+    cancelarHistorico.addEventListener("click", fecharModalHistorico);
+}
+
+if (inputCodigoHistorico) {
+    inputCodigoHistorico.addEventListener("keydown", function (evento) {
+        if (evento.key === "Enter") {
+            evento.preventDefault();
+            liberarHistorico();
+        }
+    });
+}
 function fecharModal() {
     const modal = document.getElementById("modal-sucesso");
 

@@ -1,0 +1,483 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Fila Médica</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            background: #f4f7fb;
+        }
+
+        .card-principal {
+            border: 0;
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 8px 28px rgba(15, 23, 42, .08);
+        }
+
+        .card-header-principal {
+            background: #0f4c81;
+            color: #fff;
+            padding: 20px 24px;
+        }
+
+        .nav-tabs .nav-link {
+            font-weight: 700;
+            color: #334155;
+        }
+
+        .nav-tabs .nav-link.active {
+            color: #0f4c81;
+        }
+
+        .badge-piscando {
+            animation: piscarLiberado 1s infinite;
+            box-shadow: 0 0 0 rgba(25, 135, 84, .7);
+        }
+
+        @keyframes piscarLiberado {
+            0% {
+                opacity: 1;
+                box-shadow: 0 0 0 0 rgba(25, 135, 84, .7);
+            }
+
+            50% {
+                opacity: .45;
+                box-shadow: 0 0 0 6px rgba(25, 135, 84, .15);
+            }
+
+            100% {
+                opacity: 1;
+                box-shadow: 0 0 0 0 rgba(25, 135, 84, 0);
+            }
+        }
+
+        .badge-aguardando {
+            opacity: .78;
+        }
+
+        .badge-retorno {
+            animation: piscarRetorno 1.2s infinite;
+        }
+
+        @keyframes piscarRetorno {
+            0% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: .55;
+            }
+
+            100% {
+                opacity: 1;
+            }
+        }
+
+        .solicitacoes {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+
+        .table td,
+        .table th {
+            vertical-align: middle;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container-fluid mt-4">
+
+    <div class="card card-principal">
+
+        <div class="card-header-principal d-flex justify-content-between align-items-center">
+            <div>
+                <h3 class="mb-0">Fila Médica</h3>
+                <small>Pacientes aguardando consulta ou retorno médico</small>
+            </div>
+        </div>
+
+        <div class="card-body">
+
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-success">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <ul class="nav nav-tabs mb-3" id="abasMedico" role="tablist">
+
+                <li class="nav-item" role="presentation">
+                    <button
+                        class="nav-link active"
+                        id="fila-tab"
+                        data-bs-toggle="tab"
+                        data-bs-target="#fila"
+                        type="button"
+                        role="tab">
+                        Fila Médica
+                        <span class="badge bg-primary ms-1">
+                            {{ total_consulta }}
+                        </span>
+                    </button>
+                </li>
+
+                <li class="nav-item" role="presentation">
+                    <button
+                        class="nav-link"
+                        id="meus-tab"
+                        data-bs-toggle="tab"
+                        data-bs-target="#meus"
+                        type="button"
+                        role="tab">
+                        Meus Pacientes
+                        <span class="badge bg-success ms-1">
+                            {{ total_minhas_consultas }}
+                        </span>
+                    </button>
+                </li>
+
+            </ul>
+
+            <div class="tab-content" id="conteudoAbasMedico">
+
+                <div class="tab-pane fade show active" id="fila" role="tabpanel">
+
+                    <div class="table-responsive">
+
+                        <table class="table table-striped table-hover align-middle">
+
+                            <thead class="table-primary">
+                                <tr>
+                                    <th>BAM</th>
+                                    <th>Paciente</th>
+                                    <th>Idade</th>
+                                    <th>Tipo</th>
+                                    <th>Classificação</th>
+                                    <th>Status</th>
+                                    <th>Procedimentos</th>
+                                    <th>Hora</th>
+                                    <th>Ação</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+
+                                {% for acolhimento in acolhimentos %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ acolhimento.numero_bam }}</strong>
+                                        </td>
+
+                                        <td>
+                                            {% if acolhimento.paciente %}
+                                                {{ acolhimento.paciente.nome_completo }}
+                                            {% else %}
+                                                {{ acolhimento.nome_paciente }}
+                                            {% endif %}
+                                        </td>
+
+                                        <td>{{ acolhimento.idade }} anos</td>
+
+                                        <td>
+                                            <span class="badge bg-secondary">
+                                                {{ acolhimento.get_tipo_atendimento_display }}
+                                            </span>
+                                        </td>
+
+                                        <td>
+                                            {% if acolhimento.classificacao %}
+                                                {% if acolhimento.classificacao.cor == "VERMELHO" %}
+                                                    <span class="badge bg-danger">Vermelho</span>
+                                                {% elif acolhimento.classificacao.cor == "LARANJA" %}
+                                                    <span class="badge bg-warning text-dark">Laranja</span>
+                                                {% elif acolhimento.classificacao.cor == "AMARELO" %}
+                                                    <span class="badge bg-warning text-dark">Amarelo</span>
+                                                {% elif acolhimento.classificacao.cor == "VERDE" %}
+                                                    <span class="badge bg-success">Verde</span>
+                                                {% elif acolhimento.classificacao.cor == "AZUL" %}
+                                                    <span class="badge bg-primary">Azul</span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary">
+                                                        {{ acolhimento.classificacao.cor }}
+                                                    </span>
+                                                {% endif %}
+                                            {% else %}
+                                                <span class="text-muted">-</span>
+                                            {% endif %}
+                                        </td>
+
+                                        <td>
+                                            {% if acolhimento.status == "RETORNO_MEDICO" %}
+                                                <span class="badge bg-warning text-dark badge-retorno">
+                                                    Retorno ao Médico
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-primary">
+                                                    Consulta
+                                                </span>
+                                            {% endif %}
+                                        </td>
+
+                                        <td>
+                                            <div class="solicitacoes">
+                                                {% if acolhimento.consulta_medica %}
+
+                                                    {% if acolhimento.consulta_medica.solicita_medicacao %}
+                                                        {% if acolhimento.consulta_medica.medicacao_realizada %}
+                                                            <span class="badge bg-success badge-piscando">
+                                                                Medicação liberada
+                                                            </span>
+                                                        {% else %}
+                                                            <span class="badge bg-danger badge-aguardando">
+                                                                Aguardando medicação
+                                                            </span>
+                                                        {% endif %}
+                                                    {% endif %}
+
+                                                    {% if acolhimento.consulta_medica.solicita_exames_laboratoriais %}
+                                                        {% if acolhimento.consulta_medica.exames_laboratoriais_realizados %}
+                                                            <span class="badge bg-success badge-piscando">
+                                                                Laboratório liberado
+                                                            </span>
+                                                        {% else %}
+                                                            <span class="badge bg-secondary badge-aguardando">
+                                                                Aguardando laboratório
+                                                            </span>
+                                                        {% endif %}
+                                                    {% endif %}
+
+                                                    {% if acolhimento.consulta_medica.solicita_exames_imagem %}
+                                                        {% if acolhimento.consulta_medica.exames_imagem_realizados %}
+                                                            <span class="badge bg-success badge-piscando">
+                                                                Imagem liberada
+                                                            </span>
+                                                        {% else %}
+                                                            <span class="badge bg-info text-dark badge-aguardando">
+                                                                Aguardando imagem
+                                                            </span>
+                                                        {% endif %}
+                                                    {% endif %}
+
+                                                    {% if not acolhimento.consulta_medica.solicita_medicacao and not acolhimento.consulta_medica.solicita_exames_laboratoriais and not acolhimento.consulta_medica.solicita_exames_imagem %}
+                                                        <span class="text-muted">-</span>
+                                                    {% endif %}
+
+                                                {% else %}
+                                                    <span class="text-muted">Primeira consulta</span>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+
+                                        <td>
+                                            {{ acolhimento.data_acolhimento|time:"H:i" }}
+                                        </td>
+
+                                        <td>
+                                            <a href="{% url 'atender_paciente' acolhimento.id %}"
+                                               class="btn btn-primary btn-sm">
+                                                Atender
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="9" class="text-center text-muted py-4">
+                                            Nenhum paciente aguardando consulta médica.
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                </div>
+
+                <div class="tab-pane fade" id="meus" role="tabpanel">
+
+                    <div class="table-responsive">
+
+                        <table class="table table-bordered table-hover align-middle">
+
+                            <thead class="table-success">
+                                <tr>
+                                    <th>BAM</th>
+                                    <th>Paciente</th>
+                                    <th>CID</th>
+                                    <th>Conduta</th>
+                                    <th>Procedimentos</th>
+                                    <th>Status Atual</th>
+                                    <th>Data Consulta</th>
+                                    <th>Ação</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+
+                                {% for consulta in minhas_consultas %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ consulta.acolhimento.numero_bam }}</strong>
+                                        </td>
+
+                                        <td>
+                                            {% if consulta.acolhimento.paciente %}
+                                                {{ consulta.acolhimento.paciente.nome_completo }}
+                                            {% else %}
+                                                {{ consulta.acolhimento.nome_paciente }}
+                                            {% endif %}
+                                        </td>
+
+                                        <td>
+                                            {{ consulta.cid|default:"-" }}
+                                        </td>
+
+                                        <td>
+                                            <span class="badge bg-info text-dark">
+                                                {{ consulta.get_conduta_display }}
+                                            </span>
+                                        </td>
+
+                                        <td>
+                                            <div class="solicitacoes">
+
+                                                {% if consulta.solicita_medicacao %}
+                                                    {% if consulta.medicacao_realizada %}
+                                                        <span class="badge bg-success badge-piscando">
+                                                            Medicação liberada
+                                                        </span>
+                                                    {% else %}
+                                                        <span class="badge bg-danger badge-aguardando">
+                                                            Aguardando medicação
+                                                        </span>
+                                                    {% endif %}
+                                                {% endif %}
+
+                                                {% if consulta.solicita_exames_laboratoriais %}
+                                                    {% if consulta.exames_laboratoriais_realizados %}
+                                                        <span class="badge bg-success badge-piscando">
+                                                            Laboratório liberado
+                                                        </span>
+                                                    {% else %}
+                                                        <span class="badge bg-secondary badge-aguardando">
+                                                            Aguardando laboratório
+                                                        </span>
+                                                    {% endif %}
+                                                {% endif %}
+
+                                                {% if consulta.solicita_exames_imagem %}
+                                                    {% if consulta.exames_imagem_realizados %}
+                                                        <span class="badge bg-success badge-piscando">
+                                                            Imagem liberada
+                                                        </span>
+                                                    {% else %}
+                                                        <span class="badge bg-info text-dark badge-aguardando">
+                                                            Aguardando imagem
+                                                        </span>
+                                                    {% endif %}
+                                                {% endif %}
+
+                                                {% if not consulta.solicita_medicacao and not consulta.solicita_exames_laboratoriais and not consulta.solicita_exames_imagem %}
+                                                    <span class="text-muted">-</span>
+                                                {% endif %}
+
+                                            </div>
+                                        </td>
+
+                                        <td>
+                                            {% if consulta.acolhimento.status == "RETORNO_MEDICO" %}
+                                                <span class="badge bg-warning text-dark badge-retorno">
+                                                    Retorno ao Médico
+                                                </span>
+                                            {% elif consulta.acolhimento.status == "PROCEDIMENTOS" %}
+                                                <span class="badge bg-secondary">
+                                                    Em Procedimentos
+                                                </span>
+                                            {% elif consulta.acolhimento.status == "FINALIZADO" %}
+                                                <span class="badge bg-success">
+                                                    Finalizado
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">
+                                                    {{ consulta.acolhimento.get_status_display }}
+                                                </span>
+                                            {% endif %}
+                                        </td>
+
+                                        <td>
+                                            {{ consulta.data_consulta|date:"d/m/Y H:i" }}
+                                        </td>
+
+                                        <td>
+                                            <a href="{% url 'atender_paciente' consulta.acolhimento.id %}"
+                                               class="btn btn-outline-primary btn-sm">
+                                                Ver / Editar
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="8" class="text-center text-muted py-4">
+                                            Nenhum paciente atendido por você ainda.
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const botoesAbas = document.querySelectorAll('[data-bs-toggle="tab"]');
+    const abaSalva = localStorage.getItem("abaMedicoDashboardAtiva");
+
+    if (abaSalva) {
+        const botaoAba = document.querySelector(`[data-bs-target="${abaSalva}"]`);
+
+        if (botaoAba) {
+            const aba = new bootstrap.Tab(botaoAba);
+            aba.show();
+        }
+    }
+
+    botoesAbas.forEach(function (botao) {
+        botao.addEventListener("shown.bs.tab", function (evento) {
+            const destino = evento.target.getAttribute("data-bs-target");
+            localStorage.setItem("abaMedicoDashboardAtiva", destino);
+        });
+    });
+});
+</script>
+
+</body>
+</html>

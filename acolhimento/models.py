@@ -16,11 +16,15 @@ class Acolhimento(models.Model):
     ]
 
     STATUS_CHOICES = [
-        ('RECEPCAO', 'Aguardando Recepção'),
-        ('CLASSIFICACAO', 'Aguardando Classificação'),
-        ('CONSULTA', 'Aguardando Consulta'),
-        ('FINALIZADO', 'Finalizado'),
-    ]
+    ('RECEPCAO', 'Aguardando Recepção'),
+    ('CLASSIFICACAO', 'Aguardando Classificação'),
+    ('CONSULTA', 'Aguardando Consulta'),
+    ('PROCEDIMENTOS', 'Aguardando Procedimentos'),
+    ('RETORNO_MEDICO', 'Retorno ao Médico'),
+    ('OBSERVACAO', 'Em Observação'),
+    ('INTERNACAO', 'Internação'),
+    ('FINALIZADO', 'Finalizado'),
+]
 
     paciente = models.ForeignKey(
         Recepcao,

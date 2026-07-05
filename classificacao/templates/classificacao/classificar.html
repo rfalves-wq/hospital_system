@@ -1,391 +1,455 @@
 {% load static %}
+
 <!DOCTYPE html>
 <html lang="pt-br">
 
 <head>
-
-<meta charset="UTF-8">
-
-<title>Classificação de Risco</title>
-
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-
-</head>
-
-<body class="bg-light">
-
-<div class="container mt-4">
-
-<div class="card shadow">
-
-<div class="card-header bg-danger text-white">
-
-<h3 class="mb-0">
-Classificação de Risco
-</h3>
-
-</div>
-
-<div class="card-body">
-
-<div class="alert alert-info">
-
-<strong>Paciente:</strong>
-
-{{ acolhimento.nome_paciente }}
-<div class="card border-primary mb-4">
-
-    <div class="card-header bg-primary text-white">
-
-        <strong>Sinais Vitais do Acolhimento</strong>
-
-    </div>
-
-    <div class="card-body">
-
-        <div class="row">
-
-            <div class="col-md-4">
-                <strong>PA:</strong>
-                {{ acolhimento.pressao_arterial|default:"-" }}
-            </div>
-
-            <div class="col-md-4">
-                <strong>Temperatura:</strong>
-                {{ acolhimento.temperatura|default:"-" }} °C
-            </div>
-
-            <div class="col-md-4">
-                <strong>Pulso:</strong>
-                {{ acolhimento.pulso|default:"-" }} bpm
-            </div>
-
-        </div>
-
-        <div class="row mt-3">
-
-            <div class="col-md-4">
-                <strong>FR:</strong>
-                {{ acolhimento.frequencia_respiratoria|default:"-" }}
-            </div>
-
-            <div class="col-md-4">
-                <strong>Dor:</strong>
-                {{ acolhimento.dor|default:"-" }}/10
-            </div>
-
-            <div class="col-md-4">
-                <strong>Tipo:</strong>
-                {{ acolhimento.tipo_atendimento }}
-            </div>
-
-        </div>
-
-    </div>
-
-</div>
-<br>
-
-<strong>BAM:</strong>
-
-{{ acolhimento.numero_bam }}
-
-<br>
-
-<strong>CPF:</strong>
-
-{{ acolhimento.cpf }}
-
-</div>
-
-<form method="post">
-
-{% csrf_token %}
-
-<h5 class="text-primary">
-Queixa Principal
-</h5>
-
-<hr>
-
-<div class="mb-3">
-
-<label>Queixa Principal</label>
-
-{{ form.queixa_principal }}
-
-</div>
-
-
-
-<hr>
-
-<div class="mb-3">
-
-<h5 class="text-danger">
-
-Protocolo de Manchester
-
-</h5>
-
-<hr>
-
-<div class="row g-3">
-
-    <div class="col-md-4">
-
-        <label class="card border-danger shadow-sm p-3 h-100">
-
-            <input type="radio"
-                   name="cor"
-                   value="VERMELHO"
-                   class="form-check-input mb-2">
-
-            <h4 class="text-danger">
-
-                🔴 Vermelho
-
-            </h4>
-
-            Emergência
-
-            <br>
-
-            Atendimento imediato
-
-        </label>
-
-    </div>
-
-    <div class="col-md-4">
-
-        <label class="card border-warning shadow-sm p-3 h-100">
-
-            <input type="radio"
-                   name="cor"
-                   value="LARANJA"
-                   class="form-check-input mb-2">
-
-            <h4 style="color:orange;">
-
-                🟠 Laranja
-
-            </h4>
-
-            Muito Urgente
-
-            <br>
-
-            Até 10 minutos
-
-        </label>
-
-    </div>
-
-    <div class="col-md-4">
-
-        <label class="card border-warning shadow-sm p-3 h-100">
-
-            <input type="radio"
-                   name="cor"
-                   value="AMARELO"
-                   class="form-check-input mb-2">
-
-            <h4 class="text-warning">
-
-                🟡 Amarelo
-
-            </h4>
-
-            Urgente
-
-            <br>
-
-            Até 60 minutos
-
-        </label>
-
-    </div>
-
-    <div class="col-md-6">
-
-        <label class="card border-success shadow-sm p-3 h-100">
-
-            <input type="radio"
-                   name="cor"
-                   value="VERDE"
-                   class="form-check-input mb-2">
-
-            <h4 class="text-success">
-
-                🟢 Verde
-
-            </h4>
-
-            Pouco Urgente
-
-            <br>
-
-            Até 120 minutos
-
-        </label>
-
-    </div>
-
-    <div class="col-md-6">
-
-        <label class="card border-primary shadow-sm p-3 h-100">
-
-            <input type="radio"
-                   name="cor"
-                   value="AZUL"
-                   class="form-check-input mb-2">
-
-            <h4 class="text-primary">
-
-                🔵 Azul
-
-            </h4>
-
-            Não Urgente
-
-            <br>
-
-            Até 240 minutos
-
-        </label>
-
-    </div>
-
-</div>
-<div class="alert alert-secondary mt-4">
-
-    <strong>
-
-        Tempo máximo de espera:
-
-    </strong>
-
-    <span id="tempoEspera">
-
-        Selecione uma classificação.
-
-    </span>
-
-</div>
-</div>
-
-<h5 class="text-success mt-4">
-
-Avaliação Clínica
-
-</h5>
-
-<hr>
-
-<div class="row">
-
-<div class="col-md-3 mb-3">
-
-<label>Peso</label>
-
-{{ form.peso }}
-
-</div>
-
-<div class="col-md-3 mb-3">
-
-<label>Altura</label>
-
-{{ form.altura }}
-
-</div>
-
-<div class="col-md-3 mb-3">
-
-<label>Glicemia</label>
-
-{{ form.glicemia }}
-
-</div>
-
-<div class="col-md-3 mb-3">
-
-<label>Saturação</label>
-
-{{ form.saturacao }}
-
-</div>
-
-</div>
-
-<h5 class="text-secondary mt-4">
-
-Observações
-
-</h5>
-
-<hr>
-
-<div class="mb-3">
-
-{{ form.observacoes }}
-
-</div>
-
-<button class="btn btn-danger btn-lg">
-
-Salvar Classificação
-
-
-</button>
-
-</form>
-
-</div>
-
-</div>
-
-</div>
-<script>
-
-const radios = document.querySelectorAll('input[name="cor"]');
-
-const tempo = document.getElementById("tempoEspera");
-
-radios.forEach(radio => {
-
-    radio.addEventListener("change", function(){
-
-        switch(this.value){
-
-            case "VERMELHO":
-                tempo.innerHTML = "<strong class='text-danger'>Imediato</strong>";
-                break;
-
-            case "LARANJA":
-                tempo.innerHTML = "<strong style='color:orange'>10 minutos</strong>";
-                break;
-
-            case "AMARELO":
-                tempo.innerHTML = "<strong class='text-warning'>60 minutos</strong>";
-                break;
-
-            case "VERDE":
-                tempo.innerHTML = "<strong class='text-success'>120 minutos</strong>";
-                break;
-
-            case "AZUL":
-                tempo.innerHTML = "<strong class='text-primary'>240 minutos</strong>";
-                break;
-
+    <meta charset="UTF-8">
+    <title>Classificação de Risco</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            background: #f4f6f8;
+            color: #172033;
+            font-family: "Segoe UI", Arial, sans-serif;
         }
 
+        .page-card {
+            background: #fff;
+            border-radius: 14px;
+            box-shadow: 0 8px 24px rgba(15, 23, 42, .08);
+            overflow: hidden;
+        }
+
+        .page-header {
+            background: #0f4c81;
+            color: #fff;
+            padding: 24px 28px;
+            border-bottom: 5px solid #b4232f;
+        }
+
+        .page-header h3 {
+            font-weight: 800;
+            margin: 0;
+        }
+
+        .subtitle {
+            color: #dceaf6;
+            margin-top: 4px;
+        }
+
+        .section-box {
+            background: #fff;
+            border: 1px solid #dde4ec;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 22px;
+        }
+
+        .section-title {
+            color: #0f4c81;
+            font-weight: 800;
+            padding-bottom: 10px;
+            margin-bottom: 18px;
+            border-bottom: 1px solid #e7edf4;
+        }
+
+        .info-card {
+            background: #f9fbfd;
+            border: 1px solid #dbe7f4;
+            border-left: 5px solid #0f4c81;
+            border-radius: 12px;
+            padding: 16px;
+        }
+
+        .data-label {
+            color: #64748b;
+            font-size: .76rem;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+        .data-value {
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: #111827;
+        }
+
+        .vital-card {
+            border: 1px solid #dfe7ef;
+            border-radius: 12px;
+            background: #fbfdff;
+            padding: 14px;
+            height: 100%;
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            border: 1px solid #cbd5e1;
+            border-radius: 9px;
+            padding: 10px 12px;
+            min-height: 44px;
+        }
+
+        textarea {
+            min-height: 96px;
+            resize: vertical;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #0f4c81;
+            box-shadow: 0 0 0 4px rgba(15, 76, 129, .13);
+        }
+
+        .required-star {
+            color: #b4232f;
+            font-weight: 900;
+        }
+
+        .manchester-card {
+            cursor: pointer;
+            border-radius: 12px;
+            height: 100%;
+            transition: .15s ease;
+        }
+
+        .manchester-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 22px rgba(15, 23, 42, .10);
+        }
+
+        .manchester-card input {
+            width: auto;
+            min-height: auto;
+        }
+
+        .tempo-box {
+            border-left: 5px solid #0f4c81;
+        }
+
+        .errorlist {
+            color: #dc3545;
+            font-size: .875rem;
+            margin-top: 4px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container-fluid my-4">
+
+    <div class="page-card">
+
+        <div class="page-header d-flex justify-content-between align-items-center">
+            <div>
+                <h3>Classificação de Risco</h3>
+                <div class="subtitle">Protocolo de Manchester e avaliação clínica</div>
+            </div>
+
+            <button type="button" class="btn btn-light fw-bold" onclick="history.back()">
+                Voltar
+            </button>
+        </div>
+
+        <div class="p-4">
+
+            <div class="info-card mb-4">
+                <div class="row g-3">
+                    <div class="col-md-5">
+                        <div class="data-label">Paciente</div>
+                        <div class="data-value">
+                            {% if acolhimento.paciente %}
+                                {{ acolhimento.paciente.nome_completo }}
+                            {% else %}
+                                {{ acolhimento.nome_paciente }}
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="col-md-2">
+                        <div class="data-label">BAM</div>
+                        <div class="data-value">{{ acolhimento.numero_bam }}</div>
+                    </div>
+
+                    <div class="col-md-3">
+                        <div class="data-label">CPF</div>
+                        <div class="data-value">{{ acolhimento.cpf|default:"-" }}</div>
+                    </div>
+
+                    <div class="col-md-2">
+                        <div class="data-label">Idade</div>
+                        <div class="data-value">{{ acolhimento.idade }} anos</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-box">
+                <h5 class="section-title">Sinais Vitais do Acolhimento</h5>
+
+                <div class="row g-3">
+                    <div class="col-md-2"><div class="vital-card"><div class="data-label">PA</div><div class="data-value">{{ acolhimento.pressao_arterial|default:"-" }}</div></div></div>
+                    <div class="col-md-2"><div class="vital-card"><div class="data-label">Temperatura</div><div class="data-value">{{ acolhimento.temperatura|default:"-" }} °C</div></div></div>
+                    <div class="col-md-2"><div class="vital-card"><div class="data-label">Pulso</div><div class="data-value">{{ acolhimento.pulso|default:"-" }} bpm</div></div></div>
+                    <div class="col-md-2"><div class="vital-card"><div class="data-label">FR</div><div class="data-value">{{ acolhimento.frequencia_respiratoria|default:"-" }}</div></div></div>
+                    <div class="col-md-2"><div class="vital-card"><div class="data-label">Dor</div><div class="data-value">{{ acolhimento.dor|default:"-" }}/10</div></div></div>
+                    <div class="col-md-2"><div class="vital-card"><div class="data-label">Tipo</div><div class="data-value">{{ acolhimento.get_tipo_atendimento_display }}</div></div></div>
+                </div>
+            </div>
+
+            <form method="post">
+                {% csrf_token %}
+
+                <div class="section-box">
+                    <h5 class="section-title">Dados da Chegada</h5>
+
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <label class="fw-bold mb-1">Data da chegada <span class="required-star">*</span></label>
+                            <input type="date" name="data_chegada" id="id_data_chegada" value="{{ form.data_chegada.value|default_if_none:'' }}" required>
+                            {{ form.data_chegada.errors }}
+                        </div>
+
+                        <div class="col-md-3 mb-3">
+                            <label class="fw-bold mb-1">Hora da chegada <span class="required-star">*</span></label>
+                            <input type="time" name="hora_chegada" id="id_hora_chegada" value="{{ form.hora_chegada.value|default_if_none:'' }}" required>
+                            {{ form.hora_chegada.errors }}
+                        </div>
+
+                        <div class="col-md-3 mb-3">
+                            <label class="fw-bold mb-1">Forma da chegada <span class="required-star">*</span></label>
+                            <select name="forma_chegada" id="id_forma_chegada" required>
+                                <option value="">Selecione</option>
+                                <option value="ESPONTANEA">Espontânea</option>
+                                <option value="SAMU">SAMU</option>
+                                <option value="AMBULANCIA">Ambulância</option>
+                                <option value="BOMBEIROS">Bombeiros</option>
+                                <option value="TRANSFERENCIA">Transferência</option>
+                                <option value="OUTROS">Outros</option>
+                            </select>
+                            {{ form.forma_chegada.errors }}
+                        </div>
+
+                        <div class="col-md-3 mb-3">
+                            <label class="fw-bold mb-1">Usuário responsável <span class="required-star">*</span></label>
+                            <input type="text" name="usuario_responsavel" id="id_usuario_responsavel" value="{% if form.usuario_responsavel.value %}{{ form.usuario_responsavel.value }}{% elif request.user.is_authenticated %}{{ request.user.username }}{% endif %}" required>
+                            {{ form.usuario_responsavel.errors }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-box">
+                    <h5 class="section-title">Sintomas e Condições</h5>
+
+                    <div class="row">
+                        <div class="col-md-8 mb-3">
+                            <label class="fw-bold mb-1">Descrição do sintoma <span class="required-star">*</span></label>
+                            <textarea name="queixa_principal" id="id_queixa_principal" required>{{ form.queixa_principal.value|default_if_none:'' }}</textarea>
+                            {{ form.queixa_principal.errors }}
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <label class="fw-bold mb-1">Tempo de início do sintoma <span class="required-star">*</span></label>
+                            <input type="text" name="tempo_inicio_sintoma" id="id_tempo_inicio_sintoma" value="{{ form.tempo_inicio_sintoma.value|default_if_none:'' }}" placeholder="Ex: 2 horas, 3 dias" required>
+                            {{ form.tempo_inicio_sintoma.errors }}
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <label class="fw-bold mb-1">Escala de dor</label>
+                            <input type="number" name="escala_dor" id="id_escala_dor" min="0" max="10" value="{% firstof form.escala_dor.value acolhimento.dor '' %}">
+                            {{ form.escala_dor.errors }}
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <label class="fw-bold mb-1">Possível gravidez</label>
+                            <select name="possivel_gravidez" id="id_possivel_gravidez">
+                                <option value="">Selecione</option>
+                                <option value="NAO_SE_APLICA">Não se aplica</option>
+                                <option value="NAO">Não</option>
+                                <option value="SIM">Sim</option>
+                                <option value="IGNORADO">Ignorado</option>
+                            </select>
+                            {{ form.possivel_gravidez.errors }}
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <label class="fw-bold mb-1">Deficiência</label>
+                            <input type="text" name="deficiencia" id="id_deficiencia" value="{{ form.deficiencia.value|default_if_none:'' }}">
+                            {{ form.deficiencia.errors }}
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <label class="fw-bold mb-1">Doença preexistente</label>
+                            <textarea name="doenca_pre_existente" id="id_doenca_pre_existente">{{ form.doenca_pre_existente.value|default_if_none:'' }}</textarea>
+                            {{ form.doenca_pre_existente.errors }}
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <label class="fw-bold mb-1">Alergia</label>
+                            <textarea name="alergia" id="id_alergia">{{ form.alergia.value|default_if_none:'' }}</textarea>
+                            {{ form.alergia.errors }}
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <label class="fw-bold mb-1">Uso de medicamento</label>
+                            <textarea name="uso_medicamento" id="id_uso_medicamento">{{ form.uso_medicamento.value|default_if_none:'' }}</textarea>
+                            {{ form.uso_medicamento.errors }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-box">
+                    <h5 class="section-title">Protocolo de Manchester</h5>
+
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="card border-danger manchester-card p-3">
+                                <input type="radio" name="cor" value="VERMELHO" class="form-check-input mb-2" required>
+                                <h4 class="text-danger">Vermelho</h4>
+                                <strong>Emergência</strong><br>
+                                Atendimento imediato
+                            </label>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="card border-warning manchester-card p-3">
+                                <input type="radio" name="cor" value="LARANJA" class="form-check-input mb-2" required>
+                                <h4 style="color:#f97316;">Laranja</h4>
+                                <strong>Muito urgente</strong><br>
+                                Até 10 minutos
+                            </label>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="card border-warning manchester-card p-3">
+                                <input type="radio" name="cor" value="AMARELO" class="form-check-input mb-2" required>
+                                <h4 class="text-warning">Amarelo</h4>
+                                <strong>Urgente</strong><br>
+                                Até 60 minutos
+                            </label>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="card border-success manchester-card p-3">
+                                <input type="radio" name="cor" value="VERDE" class="form-check-input mb-2" required>
+                                <h4 class="text-success">Verde</h4>
+                                <strong>Pouco urgente</strong><br>
+                                Até 120 minutos
+                            </label>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="card border-primary manchester-card p-3">
+                                <input type="radio" name="cor" value="AZUL" class="form-check-input mb-2" required>
+                                <h4 class="text-primary">Azul</h4>
+                                <strong>Não urgente</strong><br>
+                                Até 240 minutos
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-secondary tempo-box mt-4">
+                        <strong>Tempo máximo de espera:</strong>
+                        <span id="tempoEspera">Selecione uma classificação.</span>
+                    </div>
+                </div>
+
+                <div class="section-box">
+                    <h5 class="section-title">Avaliação Clínica e Sinais Vitais</h5>
+
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <label class="fw-bold mb-1">Saturação de O2 <span class="required-star">*</span></label>
+                            <input type="number" name="saturacao" id="id_saturacao" min="0" max="100" value="{{ form.saturacao.value|default_if_none:'' }}" required>
+                            {{ form.saturacao.errors }}
+                        </div>
+
+                        <div class="col-md-3 mb-3">
+                            <label class="fw-bold mb-1">Glicemia capilar</label>
+                            <input type="number" name="glicemia" id="id_glicemia" value="{{ form.glicemia.value|default_if_none:'' }}">
+                            {{ form.glicemia.errors }}
+                        </div>
+
+                        <div class="col-md-3 mb-3">
+                            <label class="fw-bold mb-1">Peso</label>
+                            <input type="number" name="peso" id="id_peso" step="0.01" value="{{ form.peso.value|default_if_none:'' }}">
+                            {{ form.peso.errors }}
+                        </div>
+
+                        <div class="col-md-3 mb-3">
+                            <label class="fw-bold mb-1">Altura</label>
+                            <input type="number" name="altura" id="id_altura" step="0.01" value="{{ form.altura.value|default_if_none:'' }}">
+                            {{ form.altura.errors }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-box">
+                    <h5 class="section-title">Observações</h5>
+
+                    <textarea name="observacoes" id="id_observacoes">{{ form.observacoes.value|default_if_none:'' }}</textarea>
+                    {{ form.observacoes.errors }}
+                </div>
+
+                <div class="d-flex justify-content-end gap-2">
+                    <button type="button" class="btn btn-outline-secondary btn-lg" onclick="history.back()">
+                        Cancelar
+                    </button>
+
+                    <button type="submit" class="btn btn-danger btn-lg">
+                        Salvar Classificação
+                    </button>
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const dataChegada = document.getElementById("id_data_chegada");
+        const horaChegada = document.getElementById("id_hora_chegada");
+        const agora = new Date();
+
+        if (dataChegada && !dataChegada.value) {
+            const ano = agora.getFullYear();
+            const mes = String(agora.getMonth() + 1).padStart(2, "0");
+            const dia = String(agora.getDate()).padStart(2, "0");
+            dataChegada.value = `${ano}-${mes}-${dia}`;
+        }
+
+        if (horaChegada && !horaChegada.value) {
+            const hora = String(agora.getHours()).padStart(2, "0");
+            const minuto = String(agora.getMinutes()).padStart(2, "0");
+            horaChegada.value = `${hora}:${minuto}`;
+        }
+
+        const radios = document.querySelectorAll('input[name="cor"]');
+        const tempo = document.getElementById("tempoEspera");
+
+        radios.forEach(function (radio) {
+            radio.addEventListener("change", function () {
+                if (this.value === "VERMELHO") tempo.innerHTML = "<strong class='text-danger'>Imediato</strong>";
+                if (this.value === "LARANJA") tempo.innerHTML = "<strong style='color:#f97316;'>10 minutos</strong>";
+                if (this.value === "AMARELO") tempo.innerHTML = "<strong class='text-warning'>60 minutos</strong>";
+                if (this.value === "VERDE") tempo.innerHTML = "<strong class='text-success'>120 minutos</strong>";
+                if (this.value === "AZUL") tempo.innerHTML = "<strong class='text-primary'>240 minutos</strong>";
+            });
+        });
     });
-
-});
-
 </script>
-</body>
 
+</body>
 </html>

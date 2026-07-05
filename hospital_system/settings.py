@@ -28,6 +28,7 @@ INSTALLED_APPS = [
     'acolhimento',
     'recepcao',
     'classificacao',
+    "medico",
     
 ]
 
