@@ -75,6 +75,44 @@ class ConsultaMedica(models.Model):
 
     data_consulta = models.DateTimeField(auto_now_add=True)
 
+    resultado_exames_laboratoriais = models.TextField(
+    blank=True,
+    default=""
+)
+
+    resultado_exames_imagem = models.TextField(
+    blank=True,
+    default=""
+)
+
+    data_resultado_laboratorio = models.DateTimeField(
+    blank=True,
+    null=True
+)
+
+    data_resultado_imagem = models.DateTimeField(
+    blank=True,
+    null=True
+)
+    
+    solicita_exames_imagem = models.BooleanField(default=False)
+
+    exames_imagem = models.TextField(
+    blank=True,
+    default=""
+)
+
+    exames_imagem_realizados = models.BooleanField(default=False)
+
+    resultado_exames_imagem = models.TextField(
+    blank=True,
+    default=""
+)
+
+    data_resultado_imagem = models.DateTimeField(
+    blank=True,
+    null=True
+)
     class Meta:
         ordering = ["-data_consulta"]
         verbose_name = "Consulta Médica"

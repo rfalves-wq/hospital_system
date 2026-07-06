@@ -22,13 +22,27 @@ class ClassificacaoRisco(models.Model):
     ]
 
     FORMA_CHEGADA_CHOICES = [
-        ("ESPONTANEA", "Espontânea"),
-        ("SAMU", "SAMU"),
-        ("AMBULANCIA", "Ambulância"),
-        ("BOMBEIROS", "Bombeiros"),
-        ("TRANSFERENCIA", "Transferência"),
-        ("OUTROS", "Outros"),
-    ]
+    ("ESPONTANEA", "Espontânea"),
+    ("SAMU", "SAMU"),
+    ("AMBULANCIA", "Ambulância"),
+    ("BOMBEIROS", "Corpo de Bombeiros"),
+    ("TRANSFERENCIA", "Transferência"),
+
+    ("POLICIA_MILITAR", "Polícia Militar"),
+    ("POLICIA_CIVIL", "Polícia Civil"),
+    ("POLICIA_FEDERAL", "Polícia Federal"),
+    ("POLICIA_RODOVIARIA_FEDERAL", "Polícia Rodoviária Federal"),
+    ("POLICIA_PENAL", "Polícia Penal"),
+    ("POLICIA_CIENTIFICA", "Polícia Científica / Técnica"),
+    ("GUARDA_MUNICIPAL", "Guarda Municipal"),
+    ("FORCA_NACIONAL", "Força Nacional"),
+
+    ("EXERCITO", "Exército Brasileiro"),
+    ("MARINHA", "Marinha do Brasil"),
+    ("AERONAUTICA", "Força Aérea Brasileira"),
+
+    ("OUTROS", "Outros"),
+]
 
     GRAVIDEZ_CHOICES = [
         ("NAO_SE_APLICA", "Não se aplica"),

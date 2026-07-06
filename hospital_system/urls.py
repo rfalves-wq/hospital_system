@@ -17,4 +17,8 @@ urlpatterns = [
     path("classificacao/", include("classificacao.urls")),
 
     path("medico/", include("medico.urls")),
+    
+    path("laboratorio/", include("laboratorio.urls")),
+    
+    path("imagem/", include("imagem.urls")),
 ]

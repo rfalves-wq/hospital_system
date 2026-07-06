@@ -224,19 +224,40 @@
                             {{ form.hora_chegada.errors }}
                         </div>
 
-                        <div class="col-md-3 mb-3">
-                            <label class="fw-bold mb-1">Forma da chegada <span class="required-star">*</span></label>
-                            <select name="forma_chegada" id="id_forma_chegada" required>
-                                <option value="">Selecione</option>
-                                <option value="ESPONTANEA">Espontânea</option>
-                                <option value="SAMU">SAMU</option>
-                                <option value="AMBULANCIA">Ambulância</option>
-                                <option value="BOMBEIROS">Bombeiros</option>
-                                <option value="TRANSFERENCIA">Transferência</option>
-                                <option value="OUTROS">Outros</option>
-                            </select>
-                            {{ form.forma_chegada.errors }}
-                        </div>
+                      <div class="col-md-3 mb-3">
+    <label class="fw-bold mb-1">Forma da chegada <span class="required-star">*</span></label>
+
+    <select name="forma_chegada" id="id_forma_chegada" required>
+        <option value="">Selecione</option>
+
+        <option value="ESPONTANEA" {% if form.forma_chegada.value == "ESPONTANEA" %}selected{% endif %}>Espontânea</option>
+        <option value="SAMU" {% if form.forma_chegada.value == "SAMU" %}selected{% endif %}>SAMU</option>
+        <option value="AMBULANCIA" {% if form.forma_chegada.value == "AMBULANCIA" %}selected{% endif %}>Ambulância</option>
+        <option value="BOMBEIROS" {% if form.forma_chegada.value == "BOMBEIROS" %}selected{% endif %}>Corpo de Bombeiros</option>
+        <option value="TRANSFERENCIA" {% if form.forma_chegada.value == "TRANSFERENCIA" %}selected{% endif %}>Transferência</option>
+
+        <optgroup label="Polícias e Segurança Pública">
+            <option value="POLICIA_MILITAR" {% if form.forma_chegada.value == "POLICIA_MILITAR" %}selected{% endif %}>Polícia Militar</option>
+            <option value="POLICIA_CIVIL" {% if form.forma_chegada.value == "POLICIA_CIVIL" %}selected{% endif %}>Polícia Civil</option>
+            <option value="POLICIA_FEDERAL" {% if form.forma_chegada.value == "POLICIA_FEDERAL" %}selected{% endif %}>Polícia Federal</option>
+            <option value="POLICIA_RODOVIARIA_FEDERAL" {% if form.forma_chegada.value == "POLICIA_RODOVIARIA_FEDERAL" %}selected{% endif %}>Polícia Rodoviária Federal</option>
+            <option value="POLICIA_PENAL" {% if form.forma_chegada.value == "POLICIA_PENAL" %}selected{% endif %}>Polícia Penal</option>
+            <option value="POLICIA_CIENTIFICA" {% if form.forma_chegada.value == "POLICIA_CIENTIFICA" %}selected{% endif %}>Polícia Científica / Técnica</option>
+            <option value="GUARDA_MUNICIPAL" {% if form.forma_chegada.value == "GUARDA_MUNICIPAL" %}selected{% endif %}>Guarda Municipal</option>
+            <option value="FORCA_NACIONAL" {% if form.forma_chegada.value == "FORCA_NACIONAL" %}selected{% endif %}>Força Nacional</option>
+        </optgroup>
+
+        <optgroup label="Forças Armadas">
+            <option value="EXERCITO" {% if form.forma_chegada.value == "EXERCITO" %}selected{% endif %}>Exército Brasileiro</option>
+            <option value="MARINHA" {% if form.forma_chegada.value == "MARINHA" %}selected{% endif %}>Marinha do Brasil</option>
+            <option value="AERONAUTICA" {% if form.forma_chegada.value == "AERONAUTICA" %}selected{% endif %}>Força Aérea Brasileira</option>
+        </optgroup>
+
+        <option value="OUTROS" {% if form.forma_chegada.value == "OUTROS" %}selected{% endif %}>Outros</option>
+    </select>
+
+    {{ form.forma_chegada.errors }}
+</div>
 
                         <div class="col-md-3 mb-3">
                             <label class="fw-bold mb-1">Usuário responsável <span class="required-star">*</span></label>

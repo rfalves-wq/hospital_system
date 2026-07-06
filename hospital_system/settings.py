@@ -29,6 +29,8 @@ INSTALLED_APPS = [
     'recepcao',
     'classificacao',
     "medico",
+    "laboratorio",
+    "imagem",
     
 ]
 

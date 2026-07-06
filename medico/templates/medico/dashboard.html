@@ -424,10 +424,18 @@
                                         </td>
 
                                         <td>
-                                            <a href="{% url 'atender_paciente' consulta.acolhimento.id %}"
-                                               class="btn btn-outline-primary btn-sm">
-                                                Ver / Editar
-                                            </a>
+                                            {% if consulta.acolhimento.status == "FINALIZADO" %}
+                                                <button type="button"
+                                                        class="btn btn-outline-secondary btn-sm"
+                                                        disabled>
+                                                    Ver / Editar
+                                                </button>
+                                            {% else %}
+                                                <a href="{% url 'atender_paciente' consulta.acolhimento.id %}"
+                                                   class="btn btn-outline-primary btn-sm">
+                                                    Ver / Editar
+                                                </a>
+                                            {% endif %}
                                         </td>
                                     </tr>
                                 {% empty %}

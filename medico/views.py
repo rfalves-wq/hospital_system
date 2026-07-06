@@ -156,14 +156,15 @@ def atender_paciente(request, acolhimento_id):
         )
 
     return render(
-        request,
-        "medico/atender.html",
-        {
-            "form": form,
-            "acolhimento": acolhimento,
-            "classificacao": classificacao,
-        }
-    )
+    request,
+    "medico/atender.html",
+    {
+        "form": form,
+        "acolhimento": acolhimento,
+        "classificacao": classificacao,
+        "consulta": consulta,
+    }
+)
 
 
 def retornar_para_medico(request, acolhimento_id):
