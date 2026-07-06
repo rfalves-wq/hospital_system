@@ -91,6 +91,20 @@ class ConsultaMedica(models.Model):
         default=""
     )
 
+    medicamento_utilizado = models.TextField(blank=True, default="")
+    dose_medicacao = models.CharField(max_length=100, blank=True, default="")
+    via_medicacao = models.CharField(max_length=100, blank=True, default="")
+    horario_medicacao = models.CharField(max_length=100, blank=True, default="")
+    lote_medicacao = models.CharField(max_length=100, blank=True, default="")
+    quantidade_medicacao = models.CharField(max_length=100, blank=True, default="")
+    materiais_utilizados_medicacao = models.TextField(blank=True, default="")
+
+    medicacao_administrada = models.TextField(blank=True, default="")
+    observacoes_medicacao = models.TextField(blank=True, default="")
+    profissional_medicacao_nome = models.CharField(max_length=150, blank=True, default="")
+    profissional_medicacao_registro = models.CharField(max_length=50, blank=True, default="")
+    data_medicacao = models.DateTimeField(blank=True, null=True)
+
     resultado_exames_imagem = models.TextField(blank=True, default="")
     data_resultado_imagem = models.DateTimeField(blank=True, null=True)
 
@@ -98,65 +112,29 @@ class ConsultaMedica(models.Model):
     data_resultado_raiox = models.DateTimeField(blank=True, null=True)
     raiox_realizado = models.BooleanField(default=False)
 
-    tecnico_raiox_nome = models.CharField(
-        max_length=150,
-        blank=True,
-        default=""
-    )
-
-    tecnico_raiox_registro = models.CharField(
-        max_length=50,
-        blank=True,
-        default=""
-    )
+    tecnico_raiox_nome = models.CharField(max_length=150, blank=True, default="")
+    tecnico_raiox_registro = models.CharField(max_length=50, blank=True, default="")
 
     resultado_tomografia = models.TextField(blank=True, default="")
     data_resultado_tomografia = models.DateTimeField(blank=True, null=True)
     tomografia_realizada = models.BooleanField(default=False)
 
-    tecnico_tomografia_nome = models.CharField(
-        max_length=150,
-        blank=True,
-        default=""
-    )
-
-    tecnico_tomografia_registro = models.CharField(
-        max_length=50,
-        blank=True,
-        default=""
-    )
+    tecnico_tomografia_nome = models.CharField(max_length=150, blank=True, default="")
+    tecnico_tomografia_registro = models.CharField(max_length=50, blank=True, default="")
 
     resultado_mamografia = models.TextField(blank=True, default="")
     data_resultado_mamografia = models.DateTimeField(blank=True, null=True)
     mamografia_realizada = models.BooleanField(default=False)
 
-    tecnico_mamografia_nome = models.CharField(
-        max_length=150,
-        blank=True,
-        default=""
-    )
-
-    tecnico_mamografia_registro = models.CharField(
-        max_length=50,
-        blank=True,
-        default=""
-    )
+    tecnico_mamografia_nome = models.CharField(max_length=150, blank=True, default="")
+    tecnico_mamografia_registro = models.CharField(max_length=50, blank=True, default="")
 
     resultado_densitometria = models.TextField(blank=True, default="")
     data_resultado_densitometria = models.DateTimeField(blank=True, null=True)
     densitometria_realizada = models.BooleanField(default=False)
 
-    tecnico_densitometria_nome = models.CharField(
-        max_length=150,
-        blank=True,
-        default=""
-    )
-
-    tecnico_densitometria_registro = models.CharField(
-        max_length=50,
-        blank=True,
-        default=""
-    )
+    tecnico_densitometria_nome = models.CharField(max_length=150, blank=True, default="")
+    tecnico_densitometria_registro = models.CharField(max_length=50, blank=True, default="")
 
     class Meta:
         ordering = ["-data_consulta"]
@@ -205,6 +183,18 @@ class ConsultaMedica(models.Model):
             return False
 
         if "DENSITOMETRIA" in setores and not self.densitometria_realizada:
+            return False
+
+        return True
+
+    def todos_procedimentos_finalizados(self):
+        if self.solicita_medicacao and not self.medicacao_realizada:
+            return False
+
+        if self.solicita_exames_laboratoriais and not self.exames_laboratoriais_realizados:
+            return False
+
+        if self.solicita_exames_imagem and not self.todos_exames_imagem_finalizados():
             return False
 
         return True

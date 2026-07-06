@@ -20,7 +20,7 @@
                         <div class="card module-card acolhimento">
                             <span class="module-status status-active">Ativo</span>
                             <div class="card-body">
-                                <div class="module-icon">🩺</div>
+                                <div class="module-icon">AC</div>
                                 <h5>Acolhimento</h5>
                                 <small>Entrada do paciente</small>
                             </div>
@@ -33,7 +33,7 @@
                         <div class="card module-card recepcao">
                             <span class="module-status status-active">Ativo</span>
                             <div class="card-body">
-                                <div class="module-icon">🏥</div>
+                                <div class="module-icon">RC</div>
                                 <h5>Recepção</h5>
                                 <small>Cadastro e BAM</small>
                             </div>
@@ -46,7 +46,7 @@
                         <div class="card module-card classificacao">
                             <span class="module-status status-active">Ativo</span>
                             <div class="card-body">
-                                <div class="module-icon">🚦</div>
+                                <div class="module-icon">CR</div>
                                 <h5>Classificação de Risco</h5>
                                 <small>Manchester</small>
                             </div>
@@ -59,7 +59,7 @@
                         <div class="card module-card medico">
                             <span class="module-status status-active">Ativo</span>
                             <div class="card-body">
-                                <div class="module-icon">👨‍⚕️</div>
+                                <div class="module-icon">CM</div>
                                 <h5>Consulta Médica</h5>
                                 <small>Fila e retorno</small>
                             </div>
@@ -71,7 +71,7 @@
                     <div class="card module-card painel disabled">
                         <span class="module-status status-soon">Em breve</span>
                         <div class="card-body">
-                            <div class="module-icon">📢</div>
+                            <div class="module-icon">PN</div>
                             <h5>Painel de Chamados</h5>
                             <small>Chamadas públicas</small>
                         </div>
@@ -87,10 +87,23 @@
             <div class="row g-4">
 
                 <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
+                    <a href="{% url 'medicacao_dashboard' %}" class="text-decoration-none">
+                        <div class="card module-card enfermagem">
+                            <span class="module-status status-active">Ativo</span>
+                            <div class="card-body">
+                                <div class="module-icon">MD</div>
+                                <h5>Medicação</h5>
+                                <small>Administração e registro</small>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+
+                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
                     <div class="card module-card maternidade disabled">
                         <span class="module-status status-soon">Em breve</span>
                         <div class="card-body">
-                            <div class="module-icon">👶</div>
+                            <div class="module-icon">MT</div>
                             <h5>Maternidade</h5>
                             <small>Atendimento materno</small>
                         </div>
@@ -101,7 +114,7 @@
                     <div class="card module-card internacao disabled">
                         <span class="module-status status-soon">Em breve</span>
                         <div class="card-body">
-                            <div class="module-icon">🛏️</div>
+                            <div class="module-icon">IN</div>
                             <h5>Centro de Internações</h5>
                             <small>Leitos e evolução</small>
                         </div>
@@ -112,11 +125,45 @@
                     <div class="card module-card enfermagem disabled">
                         <span class="module-status status-soon">Em breve</span>
                         <div class="card-body">
-                            <div class="module-icon">💉</div>
+                            <div class="module-icon">EN</div>
                             <h5>Posto de Enfermagem</h5>
-                            <small>Cuidados e medicação</small>
+                            <small>Cuidados assistenciais</small>
                         </div>
                     </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="section-block">
+            <h4 class="section-title">Diagnóstico</h4>
+
+            <div class="row g-4">
+
+                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
+                    <a href="{% url 'laboratorio_dashboard' %}" class="text-decoration-none">
+                        <div class="card module-card laboratorio">
+                            <span class="module-status status-active">Ativo</span>
+                            <div class="card-body">
+                                <div class="module-icon">LB</div>
+                                <h5>Laboratório</h5>
+                                <small>Resultados laboratoriais</small>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+
+                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
+                    <a href="{% url 'imagem_dashboard' %}" class="text-decoration-none">
+                        <div class="card module-card imagem">
+                            <span class="module-status status-active">Ativo</span>
+                            <div class="card-body">
+                                <div class="module-icon">IM</div>
+                                <h5>Centro de Imagem</h5>
+                                <small>Raio-X, TC, mamografia</small>
+                            </div>
+                        </div>
+                    </a>
                 </div>
 
             </div>
@@ -131,7 +178,7 @@
                     <div class="card module-card pediatria disabled">
                         <span class="module-status status-soon">Em breve</span>
                         <div class="card-body">
-                            <div class="module-icon">👶</div>
+                            <div class="module-icon">PD</div>
                             <h5>Pediatria</h5>
                             <small>Infantil</small>
                         </div>
@@ -142,7 +189,7 @@
                     <div class="card module-card cardiologia disabled">
                         <span class="module-status status-soon">Em breve</span>
                         <div class="card-body">
-                            <div class="module-icon">🫀</div>
+                            <div class="module-icon">CD</div>
                             <h5>Cardiologia</h5>
                             <small>Coração</small>
                         </div>
@@ -153,7 +200,7 @@
                     <div class="card module-card ortopedia disabled">
                         <span class="module-status status-soon">Em breve</span>
                         <div class="card-body">
-                            <div class="module-icon">🦴</div>
+                            <div class="module-icon">OR</div>
                             <h5>Ortopedia</h5>
                             <small>Trauma e ossos</small>
                         </div>
@@ -164,7 +211,7 @@
                     <div class="card module-card neurologia disabled">
                         <span class="module-status status-soon">Em breve</span>
                         <div class="card-body">
-                            <div class="module-icon">🧠</div>
+                            <div class="module-icon">NR</div>
                             <h5>Neurologia</h5>
                             <small>Sistema nervoso</small>
                         </div>
@@ -175,7 +222,7 @@
                     <div class="card module-card oftalmologia disabled">
                         <span class="module-status status-soon">Em breve</span>
                         <div class="card-body">
-                            <div class="module-icon">👁️</div>
+                            <div class="module-icon">OF</div>
                             <h5>Oftalmologia</h5>
                             <small>Visão</small>
                         </div>
@@ -186,39 +233,9 @@
                     <div class="card module-card odontologia disabled">
                         <span class="module-status status-soon">Em breve</span>
                         <div class="card-body">
-                            <div class="module-icon">🦷</div>
+                            <div class="module-icon">OD</div>
                             <h5>Odontologia</h5>
                             <small>Saúde bucal</small>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-
-        <div class="section-block">
-            <h4 class="section-title">Diagnóstico</h4>
-
-            <div class="row g-4">
-
-                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
-                    <div class="card module-card laboratorio disabled">
-                        <span class="module-status status-soon">Em breve</span>
-                        <div class="card-body">
-                            <div class="module-icon">🧪</div>
-                            <h5>Laboratório</h5>
-                            <small>Exames laboratoriais</small>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
-                    <div class="card module-card imagem disabled">
-                        <span class="module-status status-soon">Em breve</span>
-                        <div class="card-body">
-                            <div class="module-icon">📷</div>
-                            <h5>Centro de Imagem</h5>
-                            <small>Raio-X, USG e TC</small>
                         </div>
                     </div>
                 </div>
@@ -235,7 +252,7 @@
                     <div class="card module-card emergencia disabled">
                         <span class="module-status status-soon">Em breve</span>
                         <div class="card-body">
-                            <div class="module-icon">🚨</div>
+                            <div class="module-icon">EM</div>
                             <h5>Emergência</h5>
                             <small>Atendimento crítico</small>
                         </div>
@@ -246,7 +263,7 @@
                     <div class="card module-card uti-adulto disabled">
                         <span class="module-status status-soon">Em breve</span>
                         <div class="card-body">
-                            <div class="module-icon">🧑‍⚕️</div>
+                            <div class="module-icon">UA</div>
                             <h5>UTI Adulto</h5>
                             <small>Cuidados intensivos</small>
                         </div>
@@ -257,7 +274,7 @@
                     <div class="card module-card uti-neonatal disabled">
                         <span class="module-status status-soon">Em breve</span>
                         <div class="card-body">
-                            <div class="module-icon">👶</div>
+                            <div class="module-icon">UN</div>
                             <h5>UTI Neonatal</h5>
                             <small>Recém-nascidos</small>
                         </div>
@@ -268,7 +285,7 @@
                     <div class="card module-card centro-cirurgico disabled">
                         <span class="module-status status-soon">Em breve</span>
                         <div class="card-body">
-                            <div class="module-icon">🏥</div>
+                            <div class="module-icon">CC</div>
                             <h5>Centro Cirúrgico</h5>
                             <small>Procedimentos</small>
                         </div>

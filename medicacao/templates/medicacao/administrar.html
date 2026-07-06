@@ -1,0 +1,285 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Administrar Medicação</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            background: #f4f7fb;
+            color: #172033;
+            font-family: "Segoe UI", Arial, sans-serif;
+        }
+
+        .page-card {
+            border: 0;
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 8px 28px rgba(15, 23, 42, .08);
+        }
+
+        .page-header {
+            background: #0f4c81;
+            color: #fff;
+            padding: 20px 24px;
+        }
+
+        .page-header h3 {
+            font-weight: 800;
+        }
+
+        .info-card {
+            background: #fff;
+            border: 1px solid #dce5ef;
+            border-left: 5px solid #0f4c81;
+            border-radius: 10px;
+            padding: 14px;
+            margin-bottom: 18px;
+        }
+
+        .info-label {
+            color: #64748b;
+            font-size: .75rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+        }
+
+        .info-value {
+            font-weight: 800;
+            color: #0f172a;
+        }
+
+        .section-box {
+            background: #fff;
+            border: 1px solid #dce5ef;
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        textarea[readonly] {
+            background: #f8fafc;
+        }
+
+        input,
+        textarea,
+        select {
+            width: 100%;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 9px 11px;
+        }
+
+        textarea {
+            resize: vertical;
+        }
+
+        input:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: #0f4c81;
+            box-shadow: 0 0 0 4px rgba(15, 76, 129, .13);
+        }
+
+        .acao-final {
+            position: sticky;
+            bottom: 0;
+            background: #eef3f8;
+            border-top: 1px solid #dce5ef;
+            padding: 14px 0 0;
+            z-index: 20;
+        }
+
+        @media (max-width: 768px) {
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start !important;
+                gap: 12px;
+            }
+
+            .page-header .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container-fluid mt-4 mb-4">
+
+    <div class="card page-card">
+
+        <div class="page-header d-flex justify-content-between align-items-center">
+            <div>
+                <h3 class="mb-0">Administrar Medicação</h3>
+                <small>Registro da medicação administrada ao paciente</small>
+            </div>
+
+            <a href="{% url 'medicacao_dashboard' %}" class="btn btn-light fw-bold">
+                Voltar
+            </a>
+        </div>
+
+        <div class="card-body">
+
+            <div class="info-card">
+                <div class="row g-3">
+                    <div class="col-md-5">
+                        <div class="info-label">Paciente</div>
+                        <div class="info-value">
+                            {% if consulta.acolhimento.paciente %}
+                                {{ consulta.acolhimento.paciente.nome_completo }}
+                            {% else %}
+                                {{ consulta.acolhimento.nome_paciente }}
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="col-md-2">
+                        <div class="info-label">BAM</div>
+                        <div class="info-value">{{ consulta.acolhimento.numero_bam }}</div>
+                    </div>
+
+                    <div class="col-md-3">
+                        <div class="info-label">CPF</div>
+                        <div class="info-value">{{ consulta.acolhimento.cpf|default:"-" }}</div>
+                    </div>
+
+                    <div class="col-md-2">
+                        <div class="info-label">Idade</div>
+                        <div class="info-value">{{ consulta.acolhimento.idade }} anos</div>
+                    </div>
+                </div>
+            </div>
+
+            <form method="post">
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {{ form.non_field_errors }}
+                    </div>
+                {% endif %}
+
+                <div class="section-box">
+                    <h5 class="text-primary fw-bold">Prescrição Médica</h5>
+
+                    <label class="form-label fw-bold">Prescrição feita pelo médico</label>
+
+                    <textarea class="form-control" rows="8" readonly>{{ consulta.prescricao|default:"Nenhuma prescrição informada." }}</textarea>
+                </div>
+
+                <div class="section-box">
+                    <h5 class="text-primary fw-bold">Registro da Administração</h5>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Medicamento utilizado</label>
+                        {{ form.medicamento_utilizado }}
+                        {{ form.medicamento_utilizado.errors }}
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">Dose</label>
+                            {{ form.dose_medicacao }}
+                            {{ form.dose_medicacao.errors }}
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">Via</label>
+                            {{ form.via_medicacao }}
+                            {{ form.via_medicacao.errors }}
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">Horário</label>
+                            {{ form.horario_medicacao }}
+                            {{ form.horario_medicacao.errors }}
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">Quantidade</label>
+                            {{ form.quantidade_medicacao }}
+                            {{ form.quantidade_medicacao.errors }}
+                        </div>
+                    </div>
+
+                    <div class="mt-3">
+                        <label class="form-label fw-bold">Lote</label>
+                        {{ form.lote_medicacao }}
+                        {{ form.lote_medicacao.errors }}
+                    </div>
+
+                    <div class="mt-3">
+                        <label class="form-label fw-bold">Materiais utilizados</label>
+                        {{ form.materiais_utilizados_medicacao }}
+                        {{ form.materiais_utilizados_medicacao.errors }}
+                    </div>
+
+                    <div class="mt-3">
+                        <label class="form-label fw-bold">Resumo da medicação administrada</label>
+                        {{ form.medicacao_administrada }}
+                        {{ form.medicacao_administrada.errors }}
+                    </div>
+
+                    <div class="mt-3">
+                        <label class="form-label fw-bold">Observações</label>
+                        {{ form.observacoes_medicacao }}
+                        {{ form.observacoes_medicacao.errors }}
+                    </div>
+
+                    {% if consulta.data_medicacao %}
+                        <div class="alert alert-info mt-3 mb-0">
+                            Medicação registrada em:
+                            <strong>{{ consulta.data_medicacao|date:"d/m/Y H:i" }}</strong>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="section-box">
+                    <h5 class="text-primary fw-bold">Profissional Responsável</h5>
+
+                    <div class="row g-3">
+                        <div class="col-md-8">
+                            <label class="form-label fw-bold">Nome do profissional</label>
+                            {{ form.profissional_medicacao_nome }}
+                            {{ form.profissional_medicacao_nome.errors }}
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Registro</label>
+                            {{ form.profissional_medicacao_registro }}
+                            {{ form.profissional_medicacao_registro.errors }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="acao-final d-flex justify-content-end gap-2">
+                    <a href="{% url 'medicacao_dashboard' %}" class="btn btn-outline-secondary btn-lg">
+                        Cancelar
+                    </a>
+
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        Salvar Medicação
+                    </button>
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+</body>
+</html>
