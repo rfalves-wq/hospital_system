@@ -13,6 +13,8 @@
     <style>
         body {
             background: #f4f7fb;
+            color: #172033;
+            font-family: "Segoe UI", Arial, sans-serif;
         }
 
         .page-card {
@@ -26,6 +28,10 @@
             background: #0f4c81;
             color: #fff;
             padding: 20px 24px;
+        }
+
+        .page-header h3 {
+            font-weight: 800;
         }
 
         .info-card {
@@ -42,6 +48,7 @@
             font-size: .75rem;
             font-weight: 900;
             text-transform: uppercase;
+            letter-spacing: .04em;
         }
 
         .info-value {
@@ -60,6 +67,59 @@
         textarea[readonly] {
             background: #f8fafc;
         }
+
+        input,
+        textarea,
+        select {
+            width: 100%;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 9px 11px;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        input:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: #0f4c81;
+            box-shadow: 0 0 0 4px rgba(15, 76, 129, .13);
+        }
+
+        .setor-badge {
+            display: inline-block;
+            padding: 7px 12px;
+            border-radius: 999px;
+            font-weight: 900;
+            background: #eaf4ff;
+            color: #0f4c81;
+            margin-top: 8px;
+        }
+
+        .acao-final {
+            position: sticky;
+            bottom: 0;
+            background: #eef3f8;
+            border-top: 1px solid #dce5ef;
+            padding: 14px 0 0;
+            z-index: 20;
+        }
+
+        @media (max-width: 768px) {
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start !important;
+                gap: 12px;
+            }
+
+            .page-header .btn {
+                width: 100%;
+            }
+        }
     </style>
 </head>
 
@@ -73,6 +133,8 @@
             <div>
                 <h3 class="mb-0">Lançar Resultado de Imagem</h3>
                 <small>Preenchimento do resultado / laudo do exame</small>
+                <br>
+                <span class="setor-badge">{{ setor_nome }}</span>
             </div>
 
             <a href="{% url 'imagem_dashboard' %}" class="btn btn-light fw-bold">
@@ -91,27 +153,27 @@
                     <div class="col-md-5">
                         <div class="info-label">Paciente</div>
                         <div class="info-value">
-                            {% if acolhimento.paciente %}
-                                {{ acolhimento.paciente.nome_completo }}
+                            {% if consulta.acolhimento.paciente %}
+                                {{ consulta.acolhimento.paciente.nome_completo }}
                             {% else %}
-                                {{ acolhimento.nome_paciente }}
+                                {{ consulta.acolhimento.nome_paciente }}
                             {% endif %}
                         </div>
                     </div>
 
                     <div class="col-md-2">
                         <div class="info-label">BAM</div>
-                        <div class="info-value">{{ acolhimento.numero_bam }}</div>
+                        <div class="info-value">{{ consulta.acolhimento.numero_bam }}</div>
                     </div>
 
                     <div class="col-md-3">
                         <div class="info-label">CPF</div>
-                        <div class="info-value">{{ acolhimento.cpf|default:"-" }}</div>
+                        <div class="info-value">{{ consulta.acolhimento.cpf|default:"-" }}</div>
                     </div>
 
                     <div class="col-md-2">
                         <div class="info-label">Idade</div>
-                        <div class="info-value">{{ acolhimento.idade }} anos</div>
+                        <div class="info-value">{{ consulta.acolhimento.idade }} anos</div>
                     </div>
                 </div>
             </div>
@@ -119,42 +181,141 @@
             <form method="post">
                 {% csrf_token %}
 
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {{ form.non_field_errors }}
+                    </div>
+                {% endif %}
+
                 <div class="section-box">
-                    <h5 class="text-primary fw-bold">Pedido Médico</h5>
+                    <h5 class="text-primary fw-bold">Pedido Médico - {{ setor_nome }}</h5>
 
-                    <label class="form-label fw-bold">Exames solicitados</label>
+                    <label class="form-label fw-bold">Exames solicitados para este setor</label>
 
-                    <textarea class="form-control" rows="8" readonly>{{ consulta.exames_imagem }}</textarea>
+                    <textarea class="form-control" rows="8" readonly>{{ pedido_setor|default:"Nenhum exame deste setor." }}</textarea>
                 </div>
 
                 <div class="section-box">
-                    <h5 class="text-primary fw-bold">Resultado / Laudo</h5>
+                    <h5 class="text-primary fw-bold">Resultado / Laudo - {{ setor_nome }}</h5>
 
-                    {% if form.non_field_errors %}
-                        <div class="alert alert-danger">
-                            {{ form.non_field_errors }}
-                        </div>
-                    {% endif %}
+                    {% if setor == "raiox" %}
+                        <label class="form-label fw-bold">Resultado / Laudo do Raio-X</label>
+                        {{ form.resultado_raiox }}
+                        {{ form.resultado_raiox.errors }}
 
-                    <label class="form-label fw-bold">Resultado / Laudo de imagem</label>
-                    {{ form.resultado_exames_imagem }}
-                    {{ form.resultado_exames_imagem.errors }}
+                        {% if consulta.data_resultado_raiox %}
+                            <div class="alert alert-info mt-3 mb-0">
+                                Resultado liberado em:
+                                <strong>{{ consulta.data_resultado_raiox|date:"d/m/Y H:i" }}</strong>
+                            </div>
+                        {% endif %}
 
-                    {% if consulta.data_resultado_imagem %}
-                        <div class="alert alert-info mt-3 mb-0">
-                            Resultado liberado em:
-                            <strong>{{ consulta.data_resultado_imagem|date:"d/m/Y H:i" }}</strong>
-                        </div>
+                    {% elif setor == "tomografia" %}
+                        <label class="form-label fw-bold">Resultado / Laudo da Tomografia</label>
+                        {{ form.resultado_tomografia }}
+                        {{ form.resultado_tomografia.errors }}
+
+                        {% if consulta.data_resultado_tomografia %}
+                            <div class="alert alert-info mt-3 mb-0">
+                                Resultado liberado em:
+                                <strong>{{ consulta.data_resultado_tomografia|date:"d/m/Y H:i" }}</strong>
+                            </div>
+                        {% endif %}
+
+                    {% elif setor == "mamografia" %}
+                        <label class="form-label fw-bold">Resultado / Laudo da Mamografia</label>
+                        {{ form.resultado_mamografia }}
+                        {{ form.resultado_mamografia.errors }}
+
+                        {% if consulta.data_resultado_mamografia %}
+                            <div class="alert alert-info mt-3 mb-0">
+                                Resultado liberado em:
+                                <strong>{{ consulta.data_resultado_mamografia|date:"d/m/Y H:i" }}</strong>
+                            </div>
+                        {% endif %}
+
+                    {% elif setor == "densitometria" %}
+                        <label class="form-label fw-bold">Resultado / Laudo da Densitometria</label>
+                        {{ form.resultado_densitometria }}
+                        {{ form.resultado_densitometria.errors }}
+
+                        {% if consulta.data_resultado_densitometria %}
+                            <div class="alert alert-info mt-3 mb-0">
+                                Resultado liberado em:
+                                <strong>{{ consulta.data_resultado_densitometria|date:"d/m/Y H:i" }}</strong>
+                            </div>
+                        {% endif %}
                     {% endif %}
                 </div>
 
-                <div class="d-flex justify-content-end gap-2">
+                <div class="section-box">
+                    <h5 class="text-primary fw-bold">Técnico Responsável - {{ setor_nome }}</h5>
+
+                    <div class="row g-3">
+
+                        {% if setor == "raiox" %}
+                            <div class="col-md-8">
+                                <label class="form-label fw-bold">Nome do técnico</label>
+                                {{ form.tecnico_raiox_nome }}
+                                {{ form.tecnico_raiox_nome.errors }}
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Registro do técnico</label>
+                                {{ form.tecnico_raiox_registro }}
+                                {{ form.tecnico_raiox_registro.errors }}
+                            </div>
+
+                        {% elif setor == "tomografia" %}
+                            <div class="col-md-8">
+                                <label class="form-label fw-bold">Nome do técnico</label>
+                                {{ form.tecnico_tomografia_nome }}
+                                {{ form.tecnico_tomografia_nome.errors }}
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Registro do técnico</label>
+                                {{ form.tecnico_tomografia_registro }}
+                                {{ form.tecnico_tomografia_registro.errors }}
+                            </div>
+
+                        {% elif setor == "mamografia" %}
+                            <div class="col-md-8">
+                                <label class="form-label fw-bold">Nome do técnico</label>
+                                {{ form.tecnico_mamografia_nome }}
+                                {{ form.tecnico_mamografia_nome.errors }}
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Registro do técnico</label>
+                                {{ form.tecnico_mamografia_registro }}
+                                {{ form.tecnico_mamografia_registro.errors }}
+                            </div>
+
+                        {% elif setor == "densitometria" %}
+                            <div class="col-md-8">
+                                <label class="form-label fw-bold">Nome do técnico</label>
+                                {{ form.tecnico_densitometria_nome }}
+                                {{ form.tecnico_densitometria_nome.errors }}
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Registro do técnico</label>
+                                {{ form.tecnico_densitometria_registro }}
+                                {{ form.tecnico_densitometria_registro.errors }}
+                            </div>
+                        {% endif %}
+
+                    </div>
+                </div>
+
+                <div class="acao-final d-flex justify-content-end gap-2">
                     <a href="{% url 'imagem_dashboard' %}" class="btn btn-outline-secondary btn-lg">
                         Cancelar
                     </a>
 
                     <button type="submit" class="btn btn-primary btn-lg">
-                        Salvar Resultado
+                        Salvar Resultado de {{ setor_nome }}
                     </button>
                 </div>
 

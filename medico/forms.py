@@ -8,9 +8,21 @@ class ConsultaMedicaForm(forms.ModelForm):
     class Meta:
         model = ConsultaMedica
 
-        exclude = [
-            "acolhimento",
-            "data_consulta",
+        fields = [
+            "medico_responsavel",
+            "cid",
+            "queixa_principal",
+            "historia_doenca_atual",
+            "exame_fisico",
+            "hipotese_diagnostica",
+            "conduta",
+            "solicita_medicacao",
+            "solicita_exames_laboratoriais",
+            "solicita_exames_imagem",
+            "exames_laboratoriais",
+            "exames_imagem",
+            "prescricao",
+            "orientacoes",
         ]
 
         widgets = {
@@ -67,13 +79,13 @@ class ConsultaMedicaForm(forms.ModelForm):
             "exames_laboratoriais": forms.Textarea(attrs={
                 "class": "form-control",
                 "rows": 5,
-                "placeholder": "Ex: Hemograma, glicemia, ureia, creatinina, urina tipo 1, PCR...",
+                "placeholder": "Exames laboratoriais solicitados",
             }),
 
             "exames_imagem": forms.Textarea(attrs={
                 "class": "form-control",
                 "rows": 5,
-                "placeholder": "Ex: Raio-X, ultrassom, tomografia, ressonância...",
+                "placeholder": "Exames de imagem solicitados",
             }),
 
             "prescricao": forms.Textarea(attrs={

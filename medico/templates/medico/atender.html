@@ -13,12 +13,9 @@
     <style>
         :root {
             --azul: #0f4c81;
-            --azul-2: #1769a6;
             --azul-claro: #eaf4ff;
             --vermelho: #dc3545;
             --verde: #198754;
-            --roxo: #7c3aed;
-            --rosa: #d63384;
             --cinza-bg: #f4f7fb;
             --borda: #dce5ef;
             --texto: #172033;
@@ -31,96 +28,67 @@
             font-family: "Segoe UI", Arial, sans-serif;
         }
 
-        .container-fluid.my-4 {
-            margin-top: 10px !important;
-            margin-bottom: 10px !important;
+        input,
+        select,
+        textarea {
+            width: 100%;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 9px 11px;
+            background: #fff;
+            color: var(--texto);
+        }
+
+        textarea {
+            min-height: 92px;
+            resize: vertical;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: var(--azul);
+            box-shadow: 0 0 0 4px rgba(15, 76, 129, .13);
         }
 
         .page-card {
             border: 0;
-            border-radius: 12px;
+            border-radius: 14px;
             overflow: hidden;
-            box-shadow: 0 6px 20px rgba(15, 23, 42, .08);
+            box-shadow: 0 8px 28px rgba(15, 23, 42, .08);
         }
 
         .page-header {
-            background: linear-gradient(135deg, var(--azul), var(--azul-2));
+            background: linear-gradient(135deg, #0f4c81, #1769a6);
             color: #fff;
-            padding: 14px 20px;
+            padding: 18px 22px;
         }
 
         .page-header h3 {
             margin: 0;
-            font-size: 1.35rem;
             font-weight: 800;
-        }
-
-        .page-header small {
-            color: #e7f2ff;
-            font-size: .82rem;
-            font-weight: 500;
-        }
-
-        .card-body {
-            padding: 12px;
         }
 
         .paciente-bar {
             background: #fff;
             border: 1px solid var(--borda);
             border-left: 5px solid var(--azul);
-            border-radius: 10px;
-            padding: 10px 12px;
-            margin-bottom: 12px;
-        }
-
-        .info-grid {
-            display: grid;
-            grid-template-columns: repeat(4, minmax(0, 1fr));
-            gap: 8px;
-        }
-
-        .info-item {
-            background: #f8fafc;
-            border: 1px solid #e5edf5;
-            border-radius: 8px;
-            padding: 8px 10px;
-            min-height: 54px;
-        }
-
-        .info-item.full {
-            grid-column: 1 / -1;
-        }
-
-        .info-label {
-            color: var(--muted);
-            font-size: .65rem;
-            font-weight: 900;
-            text-transform: uppercase;
-            letter-spacing: .04em;
-            margin-bottom: 3px;
-        }
-
-        .info-value {
-            color: #0f172a;
-            font-size: .86rem;
-            font-weight: 800;
-            word-break: break-word;
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 16px;
         }
 
         .nav-tabs {
             border-bottom: 1px solid var(--borda);
             gap: 4px;
-            flex-wrap: wrap;
-            margin-bottom: 10px !important;
         }
 
         .nav-tabs .nav-link {
             color: #334155;
-            font-size: .86rem;
-            font-weight: 800;
-            border-radius: 8px 8px 0 0;
-            padding: 8px 12px;
+            font-weight: 700;
+            border-radius: 10px 10px 0 0;
+            padding: 10px 14px;
         }
 
         .nav-tabs .nav-link.active {
@@ -132,14 +100,13 @@
         .section-card {
             background: #fff;
             border: 1px solid var(--borda);
-            border-radius: 10px;
-            margin-bottom: 12px;
+            border-radius: 12px;
+            margin-bottom: 16px;
             overflow: hidden;
         }
 
         .section-head {
-            padding: 9px 13px;
-            font-size: .9rem;
+            padding: 12px 15px;
             font-weight: 800;
             color: #fff;
         }
@@ -157,7 +124,40 @@
         }
 
         .section-body {
-            padding: 12px;
+            padding: 15px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .info-item {
+            background: #f8fafc;
+            border: 1px solid #e5edf5;
+            border-radius: 10px;
+            padding: 11px;
+            min-height: 68px;
+        }
+
+        .info-item.full {
+            grid-column: 1 / -1;
+        }
+
+        .info-label {
+            color: var(--muted);
+            font-size: .72rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+            margin-bottom: 4px;
+        }
+
+        .info-value {
+            color: #0f172a;
+            font-weight: 800;
+            word-break: break-word;
         }
 
         .classificacao-destaque {
@@ -167,9 +167,8 @@
 
         .badge-classificacao {
             display: inline-block;
-            padding: 6px 10px;
+            padding: 7px 12px;
             border-radius: 999px;
-            font-size: .82rem;
             font-weight: 800;
         }
 
@@ -198,28 +197,29 @@
             color: #1e40af;
         }
 
-        textarea {
-            min-height: 96px;
-            resize: vertical;
-        }
-
         .cid-resultados {
             max-height: 260px;
             overflow-y: auto;
         }
 
-        .form-check-input {
+        .form-check-input,
+        .form-check input[type="checkbox"] {
             width: 1.1em;
             height: 1.1em;
+            min-height: auto;
+            padding: 0;
         }
 
         .exam-help {
             color: var(--muted);
-            font-size: 12px;
-            margin-bottom: 8px;
+            font-size: 13px;
+            margin-bottom: 10px;
         }
 
-        .exam-toolbar {
+        .exam-tools {
+            display: grid;
+            grid-template-columns: 1fr 180px 180px;
+            gap: 8px;
             background: #f8fafc;
             border: 1px solid #e5edf5;
             border-radius: 10px;
@@ -227,163 +227,116 @@
             margin-bottom: 10px;
         }
 
-        .exam-toolbar .form-control,
-        .exam-toolbar .btn,
-        .exam-counter {
-            min-height: 34px;
-            padding: 6px 10px;
-            font-size: .82rem;
-        }
-
-        .exam-counter {
+        .exam-count {
             background: #eaf4ff;
-            border: 1px solid #cfe7ff;
-            color: var(--azul);
+            border: 1px solid #bfdbfe;
             border-radius: 8px;
-            font-weight: 800;
-            height: 100%;
+            color: var(--azul);
+            font-weight: 900;
             display: flex;
             align-items: center;
             justify-content: center;
+            padding: 8px;
         }
 
         .exam-list.simple-list {
             display: grid;
             grid-template-columns: repeat(4, minmax(0, 1fr));
-            gap: 7px;
-            margin-bottom: 12px;
+            gap: 8px;
+            margin-bottom: 14px;
         }
 
-        .exam-list.grouped-list {
-            background: #f8fafc;
-            border: 1px solid var(--borda);
-            border-radius: 10px;
-            padding: 10px;
-            margin-bottom: 12px;
-        }
-
-        .exam-sector-toggle,
-        .exam-category-toggle {
+        .exam-sector-toggle {
             width: 100%;
-            border: 0;
-            font-size: .84rem;
+            border: 1px solid transparent;
             font-weight: 900;
-            padding: 8px 10px;
-            border-radius: 8px;
-            margin-top: 6px;
-            margin-bottom: 6px;
+            padding: 10px 12px;
+            border-radius: 9px;
+            margin-top: 8px;
+            margin-bottom: 7px;
             text-align: left;
+            text-transform: uppercase;
             display: flex;
             align-items: center;
             justify-content: space-between;
         }
 
-        .exam-sector-toggle {
-            text-transform: uppercase;
-            min-height: 38px;
-            border: 1px solid transparent;
-        }
-
         .exam-sector-toggle.raiox {
-            background: #dbeafe;
-            border: 1px solid #9cc7f5;
-            border-left: 6px solid var(--azul);
+            background: #eaf4ff;
+            border-left: 5px solid var(--azul);
             color: var(--azul);
         }
 
         .exam-sector-toggle.tomografia {
-            background: #dcfce7;
-            border: 1px solid #a7f3d0;
-            border-left: 6px solid var(--verde);
+            background: #ecfdf5;
+            border-left: 5px solid var(--verde);
             color: #166534;
         }
 
         .exam-sector-toggle.mamografia {
-            background: #fce7f3;
-            border: 1px solid #fbcfe8;
-            border-left: 6px solid var(--rosa);
+            background: #fdf2f8;
+            border-left: 5px solid #d63384;
             color: #9d174d;
         }
 
         .exam-sector-toggle.densitometria {
-            background: #ede9fe;
-            border: 1px solid #ddd6fe;
-            border-left: 6px solid var(--roxo);
+            background: #f3e8ff;
+            border-left: 5px solid #7c3aed;
             color: #5b21b6;
         }
 
-        .exam-sector-toggle:hover,
-        .exam-category-toggle:hover {
-            filter: brightness(.98);
-        }
-
-        .exam-sector-toggle:focus,
-        .exam-category-toggle:focus {
-            outline: none;
-            box-shadow: none;
-        }
-
-        .toggle-symbol {
-            font-size: 18px;
-            line-height: 1;
-        }
-
-        .exam-master-body {
-            margin: 0 0 10px 18px;
-            padding: 8px 0 8px 14px;
-            border-left: 3px solid #cbd5e1;
-            background: #fff;
-            border-radius: 0 10px 10px 0;
-        }
-
-        .exam-submenu {
-            margin-bottom: 7px;
+        .exam-sector-toggle.open {
+            border-color: #94a3b8;
         }
 
         .exam-category-toggle {
-            width: 420px;
-            max-width: 100%;
-            min-height: 34px;
-            background: #fff;
-            border: 1px solid var(--borda);
-            border-left: 5px solid #94a3b8;
-            color: #243247;
-            font-size: .82rem;
-            text-transform: none;
-            margin: 4px 0;
-            padding: 7px 10px;
-        }
-
-        .exam-category-toggle:hover {
-            background: #f1f5f9;
-            border-left-color: var(--azul);
-        }
-
-        .exam-category-body {
-            display: grid;
-            grid-template-columns: repeat(4, minmax(0, 1fr));
-            gap: 7px;
-            margin: 6px 0 10px 14px;
-            padding: 8px;
+            width: calc(100% - 18px);
+            margin-left: 18px;
+            border: 0;
             background: #f8fafc;
-            border: 1px solid #e5edf5;
-            border-radius: 10px;
-            max-height: 230px;
-            overflow-y: auto;
+            border-left: 4px solid #94a3b8;
+            color: #334155;
+            font-weight: 850;
+            padding: 8px 10px;
+            border-radius: 8px;
+            margin-bottom: 6px;
+            text-align: left;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .exam-master-body,
+        .exam-category-body {
+            margin-bottom: 8px;
         }
 
         .exam-master-body.is-hidden,
-        .exam-category-body.is-hidden {
-            display: none;
+        .exam-category-body.is-hidden,
+        .is-filter-hidden {
+            display: none !important;
+        }
+
+        .exam-category-body {
+            margin-left: 18px;
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 8px;
+            padding: 0 0 8px;
+        }
+
+        .toggle-symbol {
+            font-size: 19px;
+            line-height: 1;
         }
 
         .exam-option,
         .exam-with-views {
             border: 1px solid var(--borda);
-            border-radius: 8px;
-            padding: 7px 9px;
-            background: #fff;
-            font-size: .82rem;
+            border-radius: 9px;
+            padding: 9px 10px;
+            background: #f8fafc;
             font-weight: 700;
             color: var(--texto);
             transition: .15s;
@@ -400,6 +353,8 @@
         }
 
         .exam-option input {
+            width: auto;
+            min-height: auto;
             margin-right: 7px;
         }
 
@@ -411,20 +366,15 @@
         }
 
         .exam-title {
-            margin-bottom: 6px;
-            font-size: .84rem;
             font-weight: 900;
             color: var(--texto);
-        }
-
-        .exam-with-views.selected .exam-title {
-            color: #14532d;
+            margin-bottom: 7px;
         }
 
         .exam-views {
             display: flex;
             flex-wrap: wrap;
-            gap: 5px;
+            gap: 6px;
         }
 
         .exam-views label {
@@ -434,8 +384,8 @@
             background: #fff;
             border: 1px solid #dce5ef;
             border-radius: 999px;
-            padding: 3px 7px;
-            font-size: 11px;
+            padding: 5px 8px;
+            font-size: 12px;
             font-weight: 800;
             color: #334155;
             cursor: pointer;
@@ -449,46 +399,50 @@
 
         .exam-views input {
             width: auto;
-        }
-
-        #id_exames_laboratoriais,
-        #id_exames_imagem {
-            min-height: 58px;
-            height: 64px;
-            font-size: 12px;
+            min-height: auto;
         }
 
         .resultado-box {
             background: #f8fafc;
             border: 1px solid var(--borda);
-            border-radius: 10px;
-            padding: 12px;
+            border-radius: 12px;
+            padding: 14px;
             height: 100%;
         }
 
         .resultado-box h6 {
             font-weight: 900;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
         }
 
-        .resultado-box textarea {
-            min-height: 90px;
-            font-size: 13px;
+        .resultado-laudo {
+            min-height: 140px;
             background: #fff;
-        }
-
-        .resultado-box .resultado-laudo {
-            min-height: 120px;
         }
 
         .resultado-pendente {
             background: #fff7ed;
             border: 1px solid #fed7aa;
-            border-radius: 8px;
-            padding: 8px 10px;
             color: #9a3412;
+            border-radius: 9px;
+            padding: 12px;
             font-weight: 800;
-            font-size: .85rem;
+        }
+
+        .tecnico-lista {
+            background: #fff;
+            border: 1px solid #dce5ef;
+            border-radius: 9px;
+            padding: 10px;
+        }
+
+        .tecnico-linha {
+            border-bottom: 1px solid #eef2f7;
+            padding: 6px 0;
+        }
+
+        .tecnico-linha:last-child {
+            border-bottom: 0;
         }
 
         .acao-final {
@@ -496,30 +450,23 @@
             bottom: 0;
             background: #eef3f8;
             border-top: 1px solid var(--borda);
-            padding: 10px 0 0;
-            margin-top: 10px !important;
+            padding: 14px 0 0;
             z-index: 20;
-        }
-
-        .acao-final .btn {
-            padding: 7px 14px;
-            font-size: .95rem;
         }
 
         @media (max-width: 1200px) {
             .exam-list.simple-list,
             .exam-category-body {
-                grid-template-columns: repeat(3, minmax(0, 1fr));
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .exam-tools {
+                grid-template-columns: 1fr;
             }
         }
 
         @media (max-width: 992px) {
             .info-grid {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-            }
-
-            .exam-list.simple-list,
-            .exam-category-body {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
             }
         }
@@ -528,7 +475,7 @@
             .page-header {
                 flex-direction: column;
                 align-items: flex-start !important;
-                gap: 10px;
+                gap: 12px;
             }
 
             .page-header .btn {
@@ -541,13 +488,10 @@
                 grid-template-columns: 1fr;
             }
 
-            .exam-master-body {
-                margin-left: 6px;
-                padding-left: 8px;
-            }
-
+            .exam-category-toggle,
             .exam-category-body {
-                margin-left: 4px;
+                margin-left: 0;
+                width: 100%;
             }
         }
     </style>
@@ -555,7 +499,7 @@
 
 <body>
 
-<div class="container-fluid my-4">
+<div class="container-fluid my-3">
 
     <div class="card page-card">
 
@@ -612,6 +556,7 @@
                 {% csrf_token %}
 
                 <ul class="nav nav-tabs mb-3" id="abasConsulta" role="tablist">
+
                     <li class="nav-item" role="presentation">
                         <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#resumo" type="button">
                             Resumo
@@ -665,6 +610,7 @@
                             Orientações
                         </button>
                     </li>
+
                 </ul>
 
                 <div class="tab-content">
@@ -678,6 +624,7 @@
 
                             <div class="section-body">
                                 <div class="info-grid">
+
                                     <div class="info-item">
                                         <div class="info-label">Pressão arterial</div>
                                         <div class="info-value">{{ acolhimento.pressao_arterial|default:"-" }}</div>
@@ -723,6 +670,7 @@
                                         <div class="info-label">Hora</div>
                                         <div class="info-value">{{ acolhimento.data_acolhimento|time:"H:i" }}</div>
                                     </div>
+
                                 </div>
                             </div>
                         </div>
@@ -735,6 +683,7 @@
                             <div class="section-body">
                                 {% if classificacao %}
                                     <div class="info-grid">
+
                                         <div class="info-item classificacao-destaque">
                                             <div class="info-label">Classificação</div>
                                             <div class="info-value">
@@ -779,6 +728,7 @@
                                             <div class="info-label">Queixa da classificação</div>
                                             <div class="info-value">{{ classificacao.queixa_principal|default:"-" }}</div>
                                         </div>
+
                                     </div>
                                 {% else %}
                                     <div class="alert alert-warning mb-0">
@@ -800,6 +750,7 @@
 
                                 <div class="section-body">
                                     <div class="info-grid">
+
                                         <div class="info-item">
                                             <div class="info-label">Data da chegada</div>
                                             <div class="info-value">{{ classificacao.data_chegada|date:"d/m/Y"|default:"-" }}</div>
@@ -890,6 +841,7 @@
                                             <div class="info-label">Altura</div>
                                             <div class="info-value">{{ classificacao.altura|default:"-" }}</div>
                                         </div>
+
                                     </div>
                                 </div>
                             </div>
@@ -909,6 +861,7 @@
                             </div>
 
                             <div class="section-body">
+
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
                                         <label class="form-label fw-bold">Médico responsável</label>
@@ -961,6 +914,7 @@
                                     {{ form.hipotese_diagnostica }}
                                     {{ form.hipotese_diagnostica.errors }}
                                 </div>
+
                             </div>
                         </div>
 
@@ -974,6 +928,7 @@
                             </div>
 
                             <div class="section-body">
+
                                 <div class="mb-3">
                                     <label class="form-label fw-bold">Conduta principal</label>
                                     {{ form.conduta }}
@@ -981,6 +936,7 @@
                                 </div>
 
                                 <div class="row">
+
                                     <div class="col-md-4 mb-3">
                                         <div class="form-check">
                                             {{ form.solicita_medicacao }}
@@ -1010,17 +966,20 @@
                                         </div>
                                         {{ form.solicita_exames_imagem.errors }}
                                     </div>
+
                                 </div>
 
                                 <div class="alert alert-warning mb-0">
                                     Se marcar medicação, laboratório ou imagem, o paciente fica em procedimentos e depois retorna ao médico para liberação.
                                 </div>
+
                             </div>
                         </div>
 
                     </div>
 
                     <div class="tab-pane fade" id="laboratorio">
+
                         <div class="section-card">
                             <div class="section-head verde">
                                 Exames Laboratoriais
@@ -1032,34 +991,29 @@
                                 </label>
 
                                 <div class="exam-help">
-                                    Marque os exames disponíveis no hospital.
+                                    Marque os exames disponíveis no hospital. O campo abaixo será preenchido automaticamente.
                                 </div>
 
-                                <div class="exam-toolbar">
-                                    <div class="row g-2">
-                                        <div class="col-md-7">
-                                            <input
-                                                type="text"
-                                                id="filtro-exames-laboratorio"
-                                                class="form-control"
-                                                placeholder="Buscar exame laboratorial...">
-                                        </div>
+                                <div class="exam-tools">
+                                    <input type="text" class="form-control exam-search" data-list-id="listaLaboratorio" placeholder="Buscar exame laboratorial...">
 
-                                        <div class="col-md-3">
-                                            <button type="button" class="btn btn-outline-secondary w-100" id="limpar-exames-laboratorio">
-                                                Limpar
-                                            </button>
-                                        </div>
+                                    <button type="button" class="btn btn-outline-secondary" data-clear-list="listaLaboratorio">
+                                        Limpar
+                                    </button>
 
-                                        <div class="col-md-2">
-                                            <div class="exam-counter">
-                                                Sel.: <span id="contador-exames-laboratorio" class="ms-1">0</span>
-                                            </div>
-                                        </div>
+                                    <div class="exam-count" id="contadorLaboratorio">
+                                        Selecionados: 0
                                     </div>
                                 </div>
 
-                                <div class="exam-list simple-list" data-mode="simple" data-target="id_exames_laboratoriais" data-check="id_solicita_exames_laboratoriais"></div>
+                                <div
+                                    id="listaLaboratorio"
+                                    class="exam-list simple-list"
+                                    data-mode="simple"
+                                    data-target="id_exames_laboratoriais"
+                                    data-check="id_solicita_exames_laboratoriais"
+                                    data-counter="contadorLaboratorio">
+                                </div>
 
                                 <label class="form-label fw-bold">
                                     Exames laboratoriais solicitados
@@ -1069,9 +1023,11 @@
                                 {{ form.exames_laboratoriais.errors }}
                             </div>
                         </div>
+
                     </div>
 
                     <div class="tab-pane fade" id="imagem">
+
                         <div class="section-card">
                             <div class="section-head verde">
                                 Exames de Imagem
@@ -1083,46 +1039,49 @@
                                 </label>
 
                                 <div class="exam-help">
-                                    Clique em Raio-X, Tomografia, Mamografia ou Densitometria para abrir os submenus.
+                                    Clique no setor para abrir ou recolher. O campo abaixo será separado por setor automaticamente.
                                 </div>
 
-                                <div class="exam-toolbar">
-                                    <div class="row g-2">
-                                        <div class="col-md-7">
-                                            <input
-                                                type="text"
-                                                id="filtro-exames-imagem"
-                                                class="form-control"
-                                                placeholder="Buscar exame de imagem...">
-                                        </div>
+                                <div class="exam-tools">
+                                    <input type="text" class="form-control exam-search" data-list-id="listaImagem" placeholder="Buscar exame de imagem...">
 
-                                        <div class="col-md-3">
-                                            <button type="button" class="btn btn-outline-secondary w-100" id="limpar-exames-imagem">
-                                                Limpar
-                                            </button>
-                                        </div>
+                                    <button type="button" class="btn btn-outline-secondary" data-clear-list="listaImagem">
+                                        Limpar
+                                    </button>
 
-                                        <div class="col-md-2">
-                                            <div class="exam-counter">
-                                                Sel.: <span id="contador-exames-imagem" class="ms-1">0</span>
-                                            </div>
-                                        </div>
+                                    <div class="exam-count" id="contadorImagem">
+                                        Selecionados: 0
                                     </div>
                                 </div>
 
-                                <div class="exam-list grouped-list" data-mode="sector" data-target="id_exames_imagem" data-check="id_solicita_exames_imagem"></div>
+                                <div
+                                    id="listaImagem"
+                                    class="exam-list grouped-list"
+                                    data-mode="sector"
+                                    data-target="id_exames_imagem"
+                                    data-check="id_solicita_exames_imagem"
+                                    data-counter="contadorImagem">
+                                </div>
 
                                 <label class="form-label fw-bold">
                                     Exames de imagem solicitados
                                 </label>
 
-                                {{ form.exames_imagem }}
+                                <textarea
+                                    name="exames_imagem"
+                                    id="id_exames_imagem"
+                                    class="form-control"
+                                    rows="5"
+                                    placeholder="Os exames de imagem selecionados aparecerão aqui automaticamente.">{% if form.exames_imagem.value %}{{ form.exames_imagem.value }}{% elif consulta and consulta.exames_imagem %}{{ consulta.exames_imagem }}{% elif form.instance.exames_imagem %}{{ form.instance.exames_imagem }}{% endif %}</textarea>
+
                                 {{ form.exames_imagem.errors }}
                             </div>
                         </div>
+
                     </div>
 
                     <div class="tab-pane fade" id="resultados">
+
                         <div class="section-card">
                             <div class="section-head verde">
                                 Resultados dos Exames
@@ -1131,14 +1090,21 @@
                             <div class="section-body">
 
                                 <div class="row g-3">
+
                                     <div class="col-md-6">
                                         <div class="resultado-box">
+
                                             <h6 class="text-success">Laboratório</h6>
 
-                                            <label class="form-label fw-bold">Pedido enviado ao laboratório</label>
+                                            <label class="form-label fw-bold">
+                                                Pedido enviado ao laboratório
+                                            </label>
+
                                             <textarea class="form-control mb-2" readonly>{% if consulta %}{{ consulta.exames_laboratoriais }}{% else %}{{ form.instance.exames_laboratoriais }}{% endif %}</textarea>
 
-                                            <label class="form-label fw-bold">Resultado lançado pelo laboratório</label>
+                                            <label class="form-label fw-bold">
+                                                Resultado lançado pelo laboratório
+                                            </label>
 
                                             {% if consulta and consulta.resultado_exames_laboratoriais %}
                                                 <textarea class="form-control resultado-laudo mb-2" readonly>{{ consulta.resultado_exames_laboratoriais }}</textarea>
@@ -1151,25 +1117,56 @@
                                             {% endif %}
 
                                             {% if consulta and consulta.data_resultado_laboratorio %}
-                                                <small class="text-muted">
+                                                <small class="text-muted d-block">
                                                     Liberado em {{ consulta.data_resultado_laboratorio|date:"d/m/Y H:i" }}
                                                 </small>
                                             {% elif form.instance.data_resultado_laboratorio %}
-                                                <small class="text-muted">
+                                                <small class="text-muted d-block">
                                                     Liberado em {{ form.instance.data_resultado_laboratorio|date:"d/m/Y H:i" }}
                                                 </small>
                                             {% endif %}
+
+                                            {% if consulta and consulta.tecnico_laboratorio_nome %}
+                                                <div class="mt-2 tecnico-lista">
+                                                    <div class="tecnico-linha">
+                                                        <strong>Técnico do laboratório:</strong>
+                                                        {{ consulta.tecnico_laboratorio_nome }}
+
+                                                        {% if consulta.tecnico_laboratorio_registro %}
+                                                            - Registro: {{ consulta.tecnico_laboratorio_registro }}
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            {% elif form.instance.tecnico_laboratorio_nome %}
+                                                <div class="mt-2 tecnico-lista">
+                                                    <div class="tecnico-linha">
+                                                        <strong>Técnico do laboratório:</strong>
+                                                        {{ form.instance.tecnico_laboratorio_nome }}
+
+                                                        {% if form.instance.tecnico_laboratorio_registro %}
+                                                            - Registro: {{ form.instance.tecnico_laboratorio_registro }}
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            {% endif %}
+
                                         </div>
                                     </div>
 
                                     <div class="col-md-6">
                                         <div class="resultado-box">
+
                                             <h6 class="text-primary">Imagem</h6>
 
-                                            <label class="form-label fw-bold">Pedido enviado ao setor de imagem</label>
+                                            <label class="form-label fw-bold">
+                                                Pedido enviado ao setor de imagem
+                                            </label>
+
                                             <textarea class="form-control mb-2" readonly>{% if consulta %}{{ consulta.exames_imagem }}{% else %}{{ form.instance.exames_imagem }}{% endif %}</textarea>
 
-                                            <label class="form-label fw-bold">Resultado / Laudo de imagem</label>
+                                            <label class="form-label fw-bold">
+                                                Resultado / Laudo de imagem
+                                            </label>
 
                                             {% if consulta and consulta.resultado_exames_imagem %}
                                                 <textarea class="form-control resultado-laudo mb-2" readonly>{{ consulta.resultado_exames_imagem }}</textarea>
@@ -1182,23 +1179,87 @@
                                             {% endif %}
 
                                             {% if consulta and consulta.data_resultado_imagem %}
-                                                <small class="text-muted">
+                                                <small class="text-muted d-block">
                                                     Liberado em {{ consulta.data_resultado_imagem|date:"d/m/Y H:i" }}
                                                 </small>
                                             {% elif form.instance.data_resultado_imagem %}
-                                                <small class="text-muted">
+                                                <small class="text-muted d-block">
                                                     Liberado em {{ form.instance.data_resultado_imagem|date:"d/m/Y H:i" }}
                                                 </small>
                                             {% endif %}
+
+                                            <div class="mt-3">
+                                                <h6 class="fw-bold text-primary mb-2">
+                                                    Técnicos responsáveis por setor
+                                                </h6>
+
+                                                <div class="tecnico-lista">
+
+                                                    {% if consulta and consulta.tecnico_raiox_nome %}
+                                                        <div class="tecnico-linha">
+                                                            <strong>Raio-X:</strong>
+                                                            {{ consulta.tecnico_raiox_nome }}
+
+                                                            {% if consulta.tecnico_raiox_registro %}
+                                                                - Registro: {{ consulta.tecnico_raiox_registro }}
+                                                            {% endif %}
+                                                        </div>
+                                                    {% endif %}
+
+                                                    {% if consulta and consulta.tecnico_tomografia_nome %}
+                                                        <div class="tecnico-linha">
+                                                            <strong>Tomografia:</strong>
+                                                            {{ consulta.tecnico_tomografia_nome }}
+
+                                                            {% if consulta.tecnico_tomografia_registro %}
+                                                                - Registro: {{ consulta.tecnico_tomografia_registro }}
+                                                            {% endif %}
+                                                        </div>
+                                                    {% endif %}
+
+                                                    {% if consulta and consulta.tecnico_mamografia_nome %}
+                                                        <div class="tecnico-linha">
+                                                            <strong>Mamografia:</strong>
+                                                            {{ consulta.tecnico_mamografia_nome }}
+
+                                                            {% if consulta.tecnico_mamografia_registro %}
+                                                                - Registro: {{ consulta.tecnico_mamografia_registro }}
+                                                            {% endif %}
+                                                        </div>
+                                                    {% endif %}
+
+                                                    {% if consulta and consulta.tecnico_densitometria_nome %}
+                                                        <div class="tecnico-linha">
+                                                            <strong>Densitometria:</strong>
+                                                            {{ consulta.tecnico_densitometria_nome }}
+
+                                                            {% if consulta.tecnico_densitometria_registro %}
+                                                                - Registro: {{ consulta.tecnico_densitometria_registro }}
+                                                            {% endif %}
+                                                        </div>
+                                                    {% endif %}
+
+                                                    {% if consulta and not consulta.tecnico_raiox_nome and not consulta.tecnico_tomografia_nome and not consulta.tecnico_mamografia_nome and not consulta.tecnico_densitometria_nome %}
+                                                        <div class="text-muted">
+                                                            Nenhum técnico informado.
+                                                        </div>
+                                                    {% endif %}
+
+                                                </div>
+                                            </div>
+
                                         </div>
                                     </div>
+
                                 </div>
 
                             </div>
                         </div>
+
                     </div>
 
                     <div class="tab-pane fade" id="prescricao">
+
                         <div class="section-card">
                             <div class="section-head azul">
                                 Prescrição
@@ -1210,9 +1271,11 @@
                                 {{ form.prescricao.errors }}
                             </div>
                         </div>
+
                     </div>
 
                     <div class="tab-pane fade" id="orientacoes">
+
                         <div class="section-card">
                             <div class="section-head azul">
                                 Orientações
@@ -1224,6 +1287,7 @@
                                 {{ form.orientacoes.errors }}
                             </div>
                         </div>
+
                     </div>
 
                 </div>
@@ -1300,13 +1364,15 @@ document.addEventListener("DOMContentLoaded", function () {
                 {
                     nome: "Abdomen",
                     exames: [
-                        { nome: "ABDOMEN", incidencias: ["AP", "PA", "LAT", "ORTOSTASE AP", "ORTOSTASE PA", "SUPINO AP", "SUPINO PA"] }
+                        { nome: "ABDOMEN", incidencias: ["AP", "PA", "LAT"] },
+                        { nome: "ABDOMEN ORTOSTASE", incidencias: ["ORTOSTASE AP", "ORTOSTASE PA", "SUPINO AP", "SUPINO PA"] }
                     ]
                 },
                 {
                     nome: "Coluna",
                     exames: [
-                        { nome: "COLUNA CERVICAL", incidencias: ["AP", "LAT", "OBL", "FLEXÃO", "EXTENSÃO"] },
+                        { nome: "COLUNA CERVICAL", incidencias: ["AP", "LAT", "OBL"] },
+                        { nome: "COLUNA CERVICAL FLEXÃO / EXTENSÃO", incidencias: ["FLEXÃO", "EXTENSÃO"] },
                         { nome: "COLUNA TORÁCICA", incidencias: ["AP", "LAT", "OBL"] },
                         { nome: "COLUNA LOMBAR", incidencias: ["AP", "LAT", "OBL"] },
                         { nome: "SACRO", incidencias: ["AP", "LAT"] },
@@ -1339,7 +1405,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     nome: "Extremidade Inferior",
                     exames: [
                         { nome: "PELVE", incidencias: ["AP", "OBL", "LAT"] },
-                        { nome: "QUADRIL", incidencias: ["AP", "LAT", "PERNA DE RA", "ROT. INTERNA", "ROT. EXTERNA"] },
+                        { nome: "QUADRIL", incidencias: ["AP", "LAT", "PERNA DE RÃ", "ROT. INTERNA", "ROT. EXTERNA"] },
                         { nome: "FÊMUR D", incidencias: ["AP", "OBL", "LAT"] },
                         { nome: "FÊMUR E", incidencias: ["AP", "OBL", "LAT"] },
                         { nome: "JOELHO D", incidencias: ["AP", "OBL", "LAT", "AXIAL"] },
@@ -1473,33 +1539,8 @@ document.addEventListener("DOMContentLoaded", function () {
             .replace(/(^-|-$)/g, "");
     }
 
-    function contarLinhasSelecionadas(valor) {
-        return valor
-            .split("\n")
-            .filter(function (linha) {
-                const texto = linha.trim();
-                return texto && !texto.startsWith("---");
-            })
-            .length;
-    }
-
-    function atualizarContadores() {
-        const campoLaboratorio = document.getElementById("id_exames_laboratoriais");
-        const campoImagem = document.getElementById("id_exames_imagem");
-        const contadorLaboratorio = document.getElementById("contador-exames-laboratorio");
-        const contadorImagem = document.getElementById("contador-exames-imagem");
-
-        if (campoLaboratorio && contadorLaboratorio) {
-            contadorLaboratorio.textContent = contarLinhasSelecionadas(campoLaboratorio.value);
-        }
-
-        if (campoImagem && contadorImagem) {
-            contadorImagem.textContent = contarLinhasSelecionadas(campoImagem.value);
-        }
-    }
-
     function renderizarLaboratorio() {
-        const lista = document.querySelector('[data-target="id_exames_laboratoriais"]');
+        const lista = document.getElementById("listaLaboratorio");
 
         if (!lista) return;
 
@@ -1512,7 +1553,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function renderizarImagem() {
-        const lista = document.querySelector('[data-target="id_exames_imagem"]');
+        const lista = document.getElementById("listaImagem");
 
         if (!lista) return;
 
@@ -1531,9 +1572,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
             setor.grupos.forEach(function (grupo) {
                 const grupoId = `${setorId}-${criarId(grupo.nome)}`;
-
-                const blocoGrupo = document.createElement("div");
-                blocoGrupo.className = "exam-submenu";
 
                 const botaoGrupo = document.createElement("button");
                 botaoGrupo.type = "button";
@@ -1567,14 +1605,12 @@ document.addEventListener("DOMContentLoaded", function () {
                         label.className = "exam-option";
                         label.setAttribute("data-sector", setor.setor);
                         label.innerHTML = `<input type="checkbox" value="${exame.nome}"> ${exame.nome}`;
-
                         corpoGrupo.appendChild(label);
                     }
                 });
 
-                blocoGrupo.appendChild(botaoGrupo);
-                blocoGrupo.appendChild(corpoGrupo);
-                corpoSetor.appendChild(blocoGrupo);
+                corpoSetor.appendChild(botaoGrupo);
+                corpoSetor.appendChild(corpoGrupo);
             });
 
             lista.appendChild(botaoSetor);
@@ -1582,51 +1618,56 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    renderizarLaboratorio();
-    renderizarImagem();
+    function configurarAbas() {
+        const botoesAbas = document.querySelectorAll('[data-bs-toggle="tab"]');
+        const abaSalva = localStorage.getItem("abaConsultaMedicaAtiva");
 
-    const botoesAbas = document.querySelectorAll('[data-bs-toggle="tab"]');
-    const abaSalva = localStorage.getItem("abaConsultaMedicaAtiva");
+        if (abaSalva) {
+            const botaoAba = document.querySelector(`[data-bs-target="${abaSalva}"]`);
 
-    if (abaSalva) {
-        const botaoAba = document.querySelector(`[data-bs-target="${abaSalva}"]`);
-
-        if (botaoAba) {
-            const aba = new bootstrap.Tab(botaoAba);
-            aba.show();
+            if (botaoAba) {
+                const aba = new bootstrap.Tab(botaoAba);
+                aba.show();
+            }
         }
+
+        botoesAbas.forEach(function (botao) {
+            botao.addEventListener("shown.bs.tab", function (evento) {
+                const destino = evento.target.getAttribute("data-bs-target");
+                localStorage.setItem("abaConsultaMedicaAtiva", destino);
+            });
+        });
     }
 
-    botoesAbas.forEach(function (botao) {
-        botao.addEventListener("shown.bs.tab", function (evento) {
-            const destino = evento.target.getAttribute("data-bs-target");
-            localStorage.setItem("abaConsultaMedicaAtiva", destino);
+    function configurarAcordeonExames() {
+        document.addEventListener("click", function (evento) {
+            const botao = evento.target.closest(".exam-sector-toggle, .exam-category-toggle");
+
+            if (!botao) return;
+
+            const alvo = document.querySelector(botao.getAttribute("data-target"));
+            const simbolo = botao.querySelector(".toggle-symbol");
+
+            if (!alvo) return;
+
+            alvo.classList.toggle("is-hidden");
+            botao.classList.toggle("open", !alvo.classList.contains("is-hidden"));
+
+            if (simbolo) {
+                simbolo.textContent = alvo.classList.contains("is-hidden") ? "+" : "-";
+            }
         });
-    });
+    }
 
-    document.addEventListener("click", function (evento) {
-        const botao = evento.target.closest(".exam-sector-toggle, .exam-category-toggle");
+    function configurarBuscaCid() {
+        const buscaCid = document.getElementById("busca_cid");
+        const cidInput = document.getElementById("id_cid");
+        const resultadoCid = document.getElementById("resultado-cid");
 
-        if (!botao) return;
+        let timerCid = null;
 
-        const alvo = document.querySelector(botao.getAttribute("data-target"));
-        const simbolo = botao.querySelector(".toggle-symbol");
+        if (!buscaCid || !cidInput || !resultadoCid) return;
 
-        if (!alvo) return;
-
-        alvo.classList.toggle("is-hidden");
-
-        if (simbolo) {
-            simbolo.textContent = alvo.classList.contains("is-hidden") ? "+" : "-";
-        }
-    });
-
-    const buscaCid = document.getElementById("busca_cid");
-    const cidInput = document.getElementById("id_cid");
-    const resultadoCid = document.getElementById("resultado-cid");
-    let timerCid = null;
-
-    if (buscaCid && cidInput && resultadoCid) {
         if (cidInput.value) {
             buscaCid.value = cidInput.value;
         }
@@ -1687,274 +1728,226 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    const listasExames = document.querySelectorAll(".exam-list");
+    function configurarListasExames() {
+        const listasExames = document.querySelectorAll(".exam-list");
 
-    listasExames.forEach(function (lista) {
-        const modo = lista.getAttribute("data-mode");
-        const targetId = lista.getAttribute("data-target");
-        const checkPrincipalId = lista.getAttribute("data-check");
-        const campoTexto = document.getElementById(targetId);
-        const checkPrincipal = document.getElementById(checkPrincipalId);
+        listasExames.forEach(function (lista) {
+            const modo = lista.getAttribute("data-mode");
+            const targetId = lista.getAttribute("data-target");
+            const checkPrincipalId = lista.getAttribute("data-check");
+            const counterId = lista.getAttribute("data-counter");
 
-        if (!campoTexto) return;
+            const campoTexto = document.getElementById(targetId);
+            const checkPrincipal = document.getElementById(checkPrincipalId);
+            const contador = document.getElementById(counterId);
 
-        const checksSimples = lista.querySelectorAll('.exam-option input[type="checkbox"]');
-        const examesComIncidencias = lista.querySelectorAll(".exam-with-views");
+            if (!campoTexto) return;
 
-        function atualizarCampoSimples() {
-            const selecionados = [];
+            const checksSimples = lista.querySelectorAll('.exam-option input[type="checkbox"]');
+            const examesComIncidencias = lista.querySelectorAll(".exam-with-views");
 
-            checksSimples.forEach(function (check) {
-                const label = check.closest(".exam-option");
-
-                if (label) {
-                    label.classList.toggle("selected", check.checked);
+            function atualizarContador(total) {
+                if (contador) {
+                    contador.textContent = `Selecionados: ${total}`;
                 }
-
-                if (check.checked) {
-                    selecionados.push(check.value);
-                }
-            });
-
-            campoTexto.value = selecionados.join("\n");
-
-            if (checkPrincipal) {
-                checkPrincipal.checked = selecionados.length > 0;
             }
 
-            atualizarContadores();
-        }
+            function atualizarCampoSimples() {
+                const selecionados = [];
 
-        function atualizarCampoPorSetor() {
-            const setores = {};
+                checksSimples.forEach(function (check) {
+                    const label = check.closest(".exam-option");
+
+                    if (label) {
+                        label.classList.toggle("selected", check.checked);
+                    }
+
+                    if (check.checked) {
+                        selecionados.push(check.value);
+                    }
+                });
+
+                campoTexto.value = selecionados.join("\n");
+
+                if (checkPrincipal) {
+                    checkPrincipal.checked = selecionados.length > 0;
+                }
+
+                atualizarContador(selecionados.length);
+            }
+
+            function atualizarCampoPorSetor() {
+                const setores = {};
+                let totalSelecionados = 0;
+
+                checksSimples.forEach(function (check) {
+                    const label = check.closest(".exam-option");
+                    const setor = label ? label.getAttribute("data-sector") : "IMAGEM";
+
+                    if (label) {
+                        label.classList.toggle("selected", check.checked);
+                    }
+
+                    if (check.checked) {
+                        if (!setores[setor]) {
+                            setores[setor] = [];
+                        }
+
+                        setores[setor].push(`${setor} - ${check.value}`);
+                        totalSelecionados += 1;
+                    }
+                });
+
+                examesComIncidencias.forEach(function (grupo) {
+                    const setor = grupo.getAttribute("data-sector") || "IMAGEM";
+                    const nomeExame = grupo.getAttribute("data-exam");
+                    const incidenciasSelecionadas = [];
+
+                    grupo.querySelectorAll(".exam-view").forEach(function (incidencia) {
+                        if (incidencia.checked) {
+                            incidenciasSelecionadas.push(incidencia.value);
+                        }
+                    });
+
+                    grupo.classList.toggle("selected", incidenciasSelecionadas.length > 0);
+
+                    if (incidenciasSelecionadas.length > 0) {
+                        if (!setores[setor]) {
+                            setores[setor] = [];
+                        }
+
+                        setores[setor].push(`${setor} - ${nomeExame} - ${incidenciasSelecionadas.join(" / ")}`);
+                        totalSelecionados += 1;
+                    }
+                });
+
+                const textoFinal = [];
+
+                ["RAIO-X", "TOMOGRAFIA", "MAMOGRAFIA", "DENSITOMETRIA"].forEach(function (setor) {
+                    if (setores[setor] && setores[setor].length > 0) {
+                        textoFinal.push(`--- ${setor} ---`);
+                        textoFinal.push(setores[setor].join("\n"));
+                    }
+                });
+
+                campoTexto.value = textoFinal.join("\n");
+
+                if (checkPrincipal) {
+                    checkPrincipal.checked = campoTexto.value.trim().length > 0;
+                }
+
+                atualizarContador(totalSelecionados);
+            }
+
+            function atualizarCampo() {
+                if (modo === "sector") {
+                    atualizarCampoPorSetor();
+                } else {
+                    atualizarCampoSimples();
+                }
+            }
 
             checksSimples.forEach(function (check) {
                 const label = check.closest(".exam-option");
-                const setor = label ? label.getAttribute("data-sector") : "IMAGEM";
+                const setor = label ? label.getAttribute("data-sector") : "";
+
+                if (modo === "sector") {
+                    const linhaEsperada = setor ? `${setor} - ${check.value}` : check.value;
+
+                    if (campoTexto.value.includes(linhaEsperada)) {
+                        check.checked = true;
+                    }
+                } else if (campoTexto.value.includes(check.value)) {
+                    check.checked = true;
+                }
 
                 if (label) {
                     label.classList.toggle("selected", check.checked);
                 }
 
-                if (check.checked) {
-                    if (!setores[setor]) {
-                        setores[setor] = [];
-                    }
-
-                    setores[setor].push(`${setor} - ${check.value}`);
-                }
+                check.addEventListener("change", atualizarCampo);
             });
 
             examesComIncidencias.forEach(function (grupo) {
                 const setor = grupo.getAttribute("data-sector") || "IMAGEM";
                 const nomeExame = grupo.getAttribute("data-exam");
-                const incidenciasSelecionadas = [];
+                const prefixoLinha = `${setor} - ${nomeExame} -`;
 
                 grupo.querySelectorAll(".exam-view").forEach(function (incidencia) {
-                    if (incidencia.checked) {
-                        incidenciasSelecionadas.push(incidencia.value);
+                    const linhas = campoTexto.value.split(/\r?\n/);
+                    const existe = linhas.some(function (linha) {
+                        return linha.startsWith(prefixoLinha) && linha.includes(incidencia.value);
+                    });
+
+                    if (existe) {
+                        incidencia.checked = true;
                     }
+
+                    incidencia.addEventListener("change", atualizarCampo);
                 });
 
-                grupo.classList.toggle("selected", incidenciasSelecionadas.length > 0);
-
-                if (incidenciasSelecionadas.length > 0) {
-                    if (!setores[setor]) {
-                        setores[setor] = [];
-                    }
-
-                    setores[setor].push(`${setor} - ${nomeExame} - ${incidenciasSelecionadas.join(" / ")}`);
-                }
+                grupo.classList.toggle("selected", Boolean(grupo.querySelector(".exam-view:checked")));
             });
 
-            const textoFinal = [];
-
-            ["RAIO-X", "TOMOGRAFIA", "MAMOGRAFIA", "DENSITOMETRIA"].forEach(function (setor) {
-                if (setores[setor] && setores[setor].length > 0) {
-                    textoFinal.push(`--- ${setor} ---`);
-                    textoFinal.push(setores[setor].join("\n"));
-                }
-            });
-
-            campoTexto.value = textoFinal.join("\n");
-
-            if (checkPrincipal) {
-                checkPrincipal.checked = campoTexto.value.trim().length > 0;
-            }
-
-            atualizarContadores();
-        }
-
-        function atualizarCampo() {
-            if (modo === "sector") {
-                atualizarCampoPorSetor();
-            } else {
-                atualizarCampoSimples();
-            }
-        }
-
-        checksSimples.forEach(function (check) {
-            if (campoTexto.value.includes(check.value)) {
-                check.checked = true;
-            }
-
-            const label = check.closest(".exam-option");
-
-            if (label) {
-                label.classList.toggle("selected", check.checked);
-            }
-
-            check.addEventListener("change", atualizarCampo);
+            atualizarCampo();
         });
+    }
 
-        examesComIncidencias.forEach(function (grupo) {
-            const nomeExame = grupo.getAttribute("data-exam");
+    function configurarBuscaExames() {
+        document.querySelectorAll(".exam-search").forEach(function (input) {
+            input.addEventListener("input", function () {
+                const lista = document.getElementById(this.getAttribute("data-list-id"));
+                const termo = this.value.trim().toLowerCase();
 
-            grupo.querySelectorAll(".exam-view").forEach(function (incidencia) {
-                if (campoTexto.value.includes(nomeExame) && campoTexto.value.includes(incidencia.value)) {
-                    incidencia.checked = true;
-                }
+                if (!lista) return;
 
-                incidencia.addEventListener("change", atualizarCampo);
-            });
-
-            const algumMarcado = grupo.querySelector(".exam-view:checked");
-            grupo.classList.toggle("selected", Boolean(algumMarcado));
-        });
-    });
-
-    function aplicarFiltroExames(inputId, containerSelector) {
-        const input = document.getElementById(inputId);
-        const container = document.querySelector(containerSelector);
-
-        if (!input || !container) return;
-
-        input.addEventListener("input", function () {
-            const termo = this.value.trim().toLowerCase();
-            const itens = container.querySelectorAll(".exam-option, .exam-with-views");
-            const corpos = container.querySelectorAll(".exam-master-body, .exam-category-body");
-            const botoes = container.querySelectorAll(".exam-sector-toggle, .exam-category-toggle");
-
-            if (!termo) {
-                itens.forEach(function (item) {
-                    item.style.display = "";
-                    item.removeAttribute("data-filtro-ok");
+                lista.querySelectorAll(".exam-option, .exam-with-views").forEach(function (item) {
+                    const texto = item.textContent.toLowerCase();
+                    item.classList.toggle("is-filter-hidden", termo.length > 0 && !texto.includes(termo));
                 });
 
-                botoes.forEach(function (botao) {
-                    botao.style.display = "";
+                if (termo.length > 0) {
+                    lista.querySelectorAll(".exam-master-body, .exam-category-body").forEach(function (body) {
+                        body.classList.remove("is-hidden");
+                    });
 
-                    const simbolo = botao.querySelector(".toggle-symbol");
+                    lista.querySelectorAll(".exam-sector-toggle, .exam-category-toggle").forEach(function (botao) {
+                        const simbolo = botao.querySelector(".toggle-symbol");
+                        botao.classList.add("open");
 
-                    if (simbolo) {
-                        simbolo.textContent = "+";
-                    }
-                });
-
-                corpos.forEach(function (corpo) {
-                    corpo.style.display = "";
-                    corpo.classList.add("is-hidden");
-                });
-
-                return;
-            }
-
-            itens.forEach(function (item) {
-                const encontrou = item.textContent.toLowerCase().includes(termo);
-
-                item.style.display = encontrou ? "" : "none";
-                item.setAttribute("data-filtro-ok", encontrou ? "1" : "0");
-            });
-
-            container.querySelectorAll(".exam-category-toggle").forEach(function (botao) {
-                const alvo = document.querySelector(botao.getAttribute("data-target"));
-                const temResultado = alvo && alvo.querySelector('[data-filtro-ok="1"]');
-
-                botao.style.display = temResultado ? "" : "none";
-
-                if (alvo) {
-                    alvo.style.display = temResultado ? "" : "none";
-                    alvo.classList.toggle("is-hidden", !temResultado);
-                }
-
-                const simbolo = botao.querySelector(".toggle-symbol");
-
-                if (simbolo) {
-                    simbolo.textContent = temResultado ? "-" : "+";
-                }
-            });
-
-            container.querySelectorAll(".exam-sector-toggle").forEach(function (botao) {
-                const alvo = document.querySelector(botao.getAttribute("data-target"));
-                const temResultado = alvo && alvo.querySelector('[data-filtro-ok="1"]');
-
-                botao.style.display = temResultado ? "" : "none";
-
-                if (alvo) {
-                    alvo.style.display = temResultado ? "" : "none";
-                    alvo.classList.toggle("is-hidden", !temResultado);
-                }
-
-                const simbolo = botao.querySelector(".toggle-symbol");
-
-                if (simbolo) {
-                    simbolo.textContent = temResultado ? "-" : "+";
+                        if (simbolo) {
+                            simbolo.textContent = "-";
+                        }
+                    });
                 }
             });
         });
     }
 
-    aplicarFiltroExames("filtro-exames-laboratorio", "#laboratorio");
-    aplicarFiltroExames("filtro-exames-imagem", "#imagem");
+    function configurarLimparExames() {
+        document.querySelectorAll("[data-clear-list]").forEach(function (botao) {
+            botao.addEventListener("click", function () {
+                const lista = document.getElementById(this.getAttribute("data-clear-list"));
 
-    const limparLaboratorio = document.getElementById("limpar-exames-laboratorio");
-    const limparImagem = document.getElementById("limpar-exames-imagem");
+                if (!lista) return;
 
-    if (limparLaboratorio) {
-        limparLaboratorio.addEventListener("click", function () {
-            document.querySelectorAll("#laboratorio input[type='checkbox']").forEach(function (check) {
-                check.checked = false;
+                lista.querySelectorAll('input[type="checkbox"]').forEach(function (check) {
+                    check.checked = false;
+                    check.dispatchEvent(new Event("change"));
+                });
             });
-
-            document.querySelectorAll("#laboratorio .selected").forEach(function (item) {
-                item.classList.remove("selected");
-            });
-
-            const campo = document.getElementById("id_exames_laboratoriais");
-            const checkPrincipal = document.getElementById("id_solicita_exames_laboratoriais");
-            const filtro = document.getElementById("filtro-exames-laboratorio");
-
-            if (campo) campo.value = "";
-            if (checkPrincipal) checkPrincipal.checked = false;
-            if (filtro) filtro.value = "";
-
-            atualizarContadores();
         });
     }
 
-    if (limparImagem) {
-        limparImagem.addEventListener("click", function () {
-            document.querySelectorAll("#imagem input[type='checkbox']").forEach(function (check) {
-                check.checked = false;
-            });
+    renderizarLaboratorio();
+    renderizarImagem();
 
-            document.querySelectorAll("#imagem .selected").forEach(function (item) {
-                item.classList.remove("selected");
-            });
-
-            const campo = document.getElementById("id_exames_imagem");
-            const checkPrincipal = document.getElementById("id_solicita_exames_imagem");
-            const filtro = document.getElementById("filtro-exames-imagem");
-
-            if (campo) campo.value = "";
-            if (checkPrincipal) checkPrincipal.checked = false;
-            if (filtro) filtro.value = "";
-
-            atualizarContadores();
-        });
-    }
-
-    atualizarContadores();
+    configurarAbas();
+    configurarAcordeonExames();
+    configurarBuscaCid();
+    configurarListasExames();
+    configurarBuscaExames();
+    configurarLimparExames();
 });
 </script>
 
