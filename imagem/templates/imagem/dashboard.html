@@ -80,6 +80,20 @@
             white-space: pre-wrap;
             font-size: .9rem;
         }
+
+        .indicacao-texto {
+            max-width: 360px;
+            white-space: pre-wrap;
+            font-size: .9rem;
+        }
+
+        @media (max-width: 768px) {
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start !important;
+                gap: 12px;
+            }
+        }
     </style>
 </head>
 
@@ -110,7 +124,7 @@
 
             {% if messages %}
                 {% for message in messages %}
-                    <div class="alert alert-success">
+                    <div class="alert {% if message.tags == 'success' %}alert-success{% elif message.tags == 'error' %}alert-danger{% elif message.tags == 'warning' %}alert-warning{% else %}alert-info{% endif %}">
                         {{ message }}
                     </div>
                 {% endfor %}
@@ -160,6 +174,7 @@
                                     <th>Idade</th>
                                     <th>Setor</th>
                                     <th>Pedido</th>
+                                    <th>Indicação</th>
                                     <th>Data da Consulta</th>
                                     <th>Ação</th>
                                 </tr>
@@ -202,7 +217,17 @@
 
                                             <td>
                                                 <div class="pedido-texto">
-                                                    {{ consulta.exames_imagem|default:"-" }}
+                                                    {{ setor.pedido|default:"-"|linebreaksbr }}
+                                                </div>
+                                            </td>
+
+                                            <td>
+                                                <div class="indicacao-texto">
+                                                    {% if setor.indicacao %}
+                                                        {{ setor.indicacao|linebreaksbr }}
+                                                    {% else %}
+                                                        <span class="text-muted">Sem indicação informada</span>
+                                                    {% endif %}
                                                 </div>
                                             </td>
 
@@ -221,7 +246,7 @@
                                     {% endwith %}
                                 {% empty %}
                                     <tr>
-                                        <td colspan="7" class="text-center text-muted py-4">
+                                        <td colspan="8" class="text-center text-muted py-4">
                                             Nenhum exame de imagem pendente.
                                         </td>
                                     </tr>
@@ -244,6 +269,8 @@
                                     <th>BAM</th>
                                     <th>Paciente</th>
                                     <th>Setor</th>
+                                    <th>Pedido</th>
+                                    <th>Indicação</th>
                                     <th>Técnico</th>
                                     <th>Registro</th>
                                     <th>Data Resultado</th>
@@ -283,6 +310,22 @@
                                             </td>
 
                                             <td>
+                                                <div class="pedido-texto">
+                                                    {{ setor.pedido|default:"-"|linebreaksbr }}
+                                                </div>
+                                            </td>
+
+                                            <td>
+                                                <div class="indicacao-texto">
+                                                    {% if setor.indicacao %}
+                                                        {{ setor.indicacao|linebreaksbr }}
+                                                    {% else %}
+                                                        <span class="text-muted">Sem indicação informada</span>
+                                                    {% endif %}
+                                                </div>
+                                            </td>
+
+                                            <td>
                                                 {{ setor.tecnico_nome|default:"-" }}
                                             </td>
 
@@ -307,7 +350,7 @@
                                     {% endwith %}
                                 {% empty %}
                                     <tr>
-                                        <td colspan="7" class="text-center text-muted py-4">
+                                        <td colspan="9" class="text-center text-muted py-4">
                                             Nenhum exame de imagem realizado.
                                         </td>
                                     </tr>
@@ -323,11 +366,7 @@
             </div>
 
         </div>
-<td>
-    <div class="pedido-texto">
-        {{ setor.pedido|default:"-" }}
-    </div>
-</td>
+
     </div>
 
 </div>

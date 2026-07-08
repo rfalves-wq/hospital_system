@@ -202,12 +202,42 @@
             overflow-y: auto;
         }
 
+        .cid-agressao {
+            border-color: #dc3545 !important;
+            background: #fff5f5 !important;
+            color: #842029 !important;
+            font-weight: 800;
+        }
+
+        .cid-agressao-alerta {
+            background: #fee2e2;
+            border: 1px solid #fecaca;
+            color: #991b1b;
+            border-radius: 8px;
+            padding: 9px 11px;
+            font-weight: 800;
+        }
+
         .form-check-input,
         .form-check input[type="checkbox"] {
             width: 1.1em;
             height: 1.1em;
             min-height: auto;
             padding: 0;
+        }
+
+        .errorlist {
+            color: #dc3545;
+            font-size: .875rem;
+            font-weight: 700;
+            margin: 5px 0 0;
+            padding-left: 18px;
+        }
+
+        .erro-campo-link {
+            color: #842029;
+            font-weight: 700;
+            text-decoration: underline;
         }
 
         .exam-help {
@@ -402,6 +432,18 @@
             min-height: auto;
         }
 
+        .indicacao-imagem-box {
+            background: #f8fafc;
+            border: 1px solid var(--borda);
+            border-radius: 10px;
+            padding: 12px;
+            height: 100%;
+        }
+
+        .indicacao-imagem-box textarea {
+            min-height: 110px;
+        }
+
         .resultado-box {
             background: #f8fafc;
             border: 1px solid var(--borda);
@@ -516,9 +558,35 @@
 
         <div class="card-body">
 
-            {% if form.non_field_errors %}
-                <div class="alert alert-danger">
-                    {{ form.non_field_errors }}
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert {% if message.tags == 'success' %}alert-success{% elif message.tags == 'error' %}alert-danger{% elif message.tags == 'warning' %}alert-warning{% else %}alert-info{% endif %} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            {% if form.errors %}
+                <div class="alert alert-danger" id="formErrorSummary">
+                    <strong>Não foi possível salvar a conduta.</strong><br>
+                    Confira os campos obrigatórios. Pode ter erro em outra aba.
+
+                    <ul class="mb-0 mt-2">
+                        {% for field in form %}
+                            {% if field.errors %}
+                                <li>
+                                    <a href="#" class="erro-campo-link" data-field-id="{{ field.id_for_label }}">
+                                        {{ field.label }}: {{ field.errors|striptags }}
+                                    </a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if form.non_field_errors %}
+                            <li>{{ form.non_field_errors|striptags }}</li>
+                        {% endif %}
+                    </ul>
                 </div>
             {% endif %}
 
@@ -552,7 +620,7 @@
                 </div>
             </div>
 
-            <form method="post">
+            <form method="post" id="formConsultaMedica" novalidate>
                 {% csrf_token %}
 
                 <ul class="nav nav-tabs mb-3" id="abasConsulta" role="tablist">
@@ -888,6 +956,10 @@
                                         <label class="form-label fw-bold mt-2">CID selecionado</label>
                                         {{ form.cid }}
                                         {{ form.cid.errors }}
+
+                                        <div id="alerta-cid-agressao" class="cid-agressao-alerta d-none mt-2">
+                                            CID de agressão identificado. Paciente sinalizado em vermelho.
+                                        </div>
                                     </div>
                                 </div>
 
@@ -996,11 +1068,9 @@
 
                                 <div class="exam-tools">
                                     <input type="text" class="form-control exam-search" data-list-id="listaLaboratorio" placeholder="Buscar exame laboratorial...">
-
                                     <button type="button" class="btn btn-outline-secondary" data-clear-list="listaLaboratorio">
                                         Limpar
                                     </button>
-
                                     <div class="exam-count" id="contadorLaboratorio">
                                         Selecionados: 0
                                     </div>
@@ -1044,11 +1114,9 @@
 
                                 <div class="exam-tools">
                                     <input type="text" class="form-control exam-search" data-list-id="listaImagem" placeholder="Buscar exame de imagem...">
-
                                     <button type="button" class="btn btn-outline-secondary" data-clear-list="listaImagem">
                                         Limpar
                                     </button>
-
                                     <div class="exam-count" id="contadorImagem">
                                         Selecionados: 0
                                     </div>
@@ -1063,17 +1131,60 @@
                                     data-counter="contadorImagem">
                                 </div>
 
+                                <div class="row g-3 mb-3 mt-1">
+
+                                    <div class="col-md-4">
+                                        <div class="indicacao-imagem-box">
+                                            <label class="form-label fw-bold">
+                                                Indicação clínica para Raio-X
+                                            </label>
+
+                                            {{ form.indicacao_raiox }}
+                                            {{ form.indicacao_raiox.errors }}
+
+                                            <small class="text-muted d-block mt-1">
+                                                Ex: trauma, queda, dor torácica, suspeita de fratura.
+                                            </small>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <div class="indicacao-imagem-box">
+                                            <label class="form-label fw-bold">
+                                                Indicação clínica para Tomografia
+                                            </label>
+
+                                            {{ form.indicacao_tomografia }}
+                                            {{ form.indicacao_tomografia.errors }}
+
+                                            <small class="text-muted d-block mt-1">
+                                                Ex: trauma craniano, AVC, dor abdominal, dispneia.
+                                            </small>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <div class="indicacao-imagem-box">
+                                            <label class="form-label fw-bold">
+                                                Indicação clínica para outros exames
+                                            </label>
+
+                                            {{ form.indicacao_outros_imagem }}
+                                            {{ form.indicacao_outros_imagem.errors }}
+
+                                            <small class="text-muted d-block mt-1">
+                                                Mamografia, densitometria ou outros exames de imagem.
+                                            </small>
+                                        </div>
+                                    </div>
+
+                                </div>
+
                                 <label class="form-label fw-bold">
                                     Exames de imagem solicitados
                                 </label>
 
-                                <textarea
-                                    name="exames_imagem"
-                                    id="id_exames_imagem"
-                                    class="form-control"
-                                    rows="5"
-                                    placeholder="Os exames de imagem selecionados aparecerão aqui automaticamente.">{% if form.exames_imagem.value %}{{ form.exames_imagem.value }}{% elif consulta and consulta.exames_imagem %}{{ consulta.exames_imagem }}{% elif form.instance.exames_imagem %}{{ form.instance.exames_imagem }}{% endif %}</textarea>
-
+                                {{ form.exames_imagem }}
                                 {{ form.exames_imagem.errors }}
                             </div>
                         </div>
@@ -1127,26 +1238,28 @@
                                             {% endif %}
 
                                             {% if consulta and consulta.tecnico_laboratorio_nome %}
-                                                <div class="mt-2 tecnico-lista">
-                                                    <div class="tecnico-linha">
-                                                        <strong>Técnico do laboratório:</strong>
-                                                        {{ consulta.tecnico_laboratorio_nome }}
+                                                <div class="mt-2">
+                                                    <small class="text-muted">
+                                                        Técnico:
+                                                        <strong>{{ consulta.tecnico_laboratorio_nome }}</strong>
 
                                                         {% if consulta.tecnico_laboratorio_registro %}
-                                                            - Registro: {{ consulta.tecnico_laboratorio_registro }}
+                                                            | Registro:
+                                                            <strong>{{ consulta.tecnico_laboratorio_registro }}</strong>
                                                         {% endif %}
-                                                    </div>
+                                                    </small>
                                                 </div>
                                             {% elif form.instance.tecnico_laboratorio_nome %}
-                                                <div class="mt-2 tecnico-lista">
-                                                    <div class="tecnico-linha">
-                                                        <strong>Técnico do laboratório:</strong>
-                                                        {{ form.instance.tecnico_laboratorio_nome }}
+                                                <div class="mt-2">
+                                                    <small class="text-muted">
+                                                        Técnico:
+                                                        <strong>{{ form.instance.tecnico_laboratorio_nome }}</strong>
 
                                                         {% if form.instance.tecnico_laboratorio_registro %}
-                                                            - Registro: {{ form.instance.tecnico_laboratorio_registro }}
+                                                            | Registro:
+                                                            <strong>{{ form.instance.tecnico_laboratorio_registro }}</strong>
                                                         {% endif %}
-                                                    </div>
+                                                    </small>
                                                 </div>
                                             {% endif %}
 
@@ -1165,7 +1278,7 @@
                                             <textarea class="form-control mb-2" readonly>{% if consulta %}{{ consulta.exames_imagem }}{% else %}{{ form.instance.exames_imagem }}{% endif %}</textarea>
 
                                             <label class="form-label fw-bold">
-                                                Resultado / Laudo de imagem
+                                                Resultado / Laudo geral de imagem
                                             </label>
 
                                             {% if consulta and consulta.resultado_exames_imagem %}
@@ -1174,78 +1287,104 @@
                                                 <textarea class="form-control resultado-laudo mb-2" readonly>{{ form.instance.resultado_exames_imagem }}</textarea>
                                             {% else %}
                                                 <div class="resultado-pendente mb-2">
-                                                    Resultado ainda não lançado.
+                                                    Resultado geral ainda não lançado.
                                                 </div>
                                             {% endif %}
 
-                                            {% if consulta and consulta.data_resultado_imagem %}
-                                                <small class="text-muted d-block">
-                                                    Liberado em {{ consulta.data_resultado_imagem|date:"d/m/Y H:i" }}
-                                                </small>
-                                            {% elif form.instance.data_resultado_imagem %}
-                                                <small class="text-muted d-block">
-                                                    Liberado em {{ form.instance.data_resultado_imagem|date:"d/m/Y H:i" }}
-                                                </small>
-                                            {% endif %}
+                                            <div class="tecnico-lista mt-2">
+                                                <strong class="d-block mb-2">Técnicos por setor</strong>
 
-                                            <div class="mt-3">
-                                                <h6 class="fw-bold text-primary mb-2">
-                                                    Técnicos responsáveis por setor
-                                                </h6>
-
-                                                <div class="tecnico-lista">
-
-                                                    {% if consulta and consulta.tecnico_raiox_nome %}
-                                                        <div class="tecnico-linha">
+                                                {% if consulta and consulta.tecnico_raiox_nome %}
+                                                    <div class="tecnico-linha">
+                                                        <small>
                                                             <strong>Raio-X:</strong>
                                                             {{ consulta.tecnico_raiox_nome }}
-
                                                             {% if consulta.tecnico_raiox_registro %}
-                                                                - Registro: {{ consulta.tecnico_raiox_registro }}
+                                                                | Registro: {{ consulta.tecnico_raiox_registro }}
                                                             {% endif %}
-                                                        </div>
-                                                    {% endif %}
+                                                        </small>
+                                                    </div>
+                                                {% elif form.instance.tecnico_raiox_nome %}
+                                                    <div class="tecnico-linha">
+                                                        <small>
+                                                            <strong>Raio-X:</strong>
+                                                            {{ form.instance.tecnico_raiox_nome }}
+                                                            {% if form.instance.tecnico_raiox_registro %}
+                                                                | Registro: {{ form.instance.tecnico_raiox_registro }}
+                                                            {% endif %}
+                                                        </small>
+                                                    </div>
+                                                {% endif %}
 
-                                                    {% if consulta and consulta.tecnico_tomografia_nome %}
-                                                        <div class="tecnico-linha">
+                                                {% if consulta and consulta.tecnico_tomografia_nome %}
+                                                    <div class="tecnico-linha">
+                                                        <small>
                                                             <strong>Tomografia:</strong>
                                                             {{ consulta.tecnico_tomografia_nome }}
-
                                                             {% if consulta.tecnico_tomografia_registro %}
-                                                                - Registro: {{ consulta.tecnico_tomografia_registro }}
+                                                                | Registro: {{ consulta.tecnico_tomografia_registro }}
                                                             {% endif %}
-                                                        </div>
-                                                    {% endif %}
+                                                        </small>
+                                                    </div>
+                                                {% elif form.instance.tecnico_tomografia_nome %}
+                                                    <div class="tecnico-linha">
+                                                        <small>
+                                                            <strong>Tomografia:</strong>
+                                                            {{ form.instance.tecnico_tomografia_nome }}
+                                                            {% if form.instance.tecnico_tomografia_registro %}
+                                                                | Registro: {{ form.instance.tecnico_tomografia_registro }}
+                                                            {% endif %}
+                                                        </small>
+                                                    </div>
+                                                {% endif %}
 
-                                                    {% if consulta and consulta.tecnico_mamografia_nome %}
-                                                        <div class="tecnico-linha">
+                                                {% if consulta and consulta.tecnico_mamografia_nome %}
+                                                    <div class="tecnico-linha">
+                                                        <small>
                                                             <strong>Mamografia:</strong>
                                                             {{ consulta.tecnico_mamografia_nome }}
-
                                                             {% if consulta.tecnico_mamografia_registro %}
-                                                                - Registro: {{ consulta.tecnico_mamografia_registro }}
+                                                                | Registro: {{ consulta.tecnico_mamografia_registro }}
                                                             {% endif %}
-                                                        </div>
-                                                    {% endif %}
+                                                        </small>
+                                                    </div>
+                                                {% elif form.instance.tecnico_mamografia_nome %}
+                                                    <div class="tecnico-linha">
+                                                        <small>
+                                                            <strong>Mamografia:</strong>
+                                                            {{ form.instance.tecnico_mamografia_nome }}
+                                                            {% if form.instance.tecnico_mamografia_registro %}
+                                                                | Registro: {{ form.instance.tecnico_mamografia_registro }}
+                                                            {% endif %}
+                                                        </small>
+                                                    </div>
+                                                {% endif %}
 
-                                                    {% if consulta and consulta.tecnico_densitometria_nome %}
-                                                        <div class="tecnico-linha">
+                                                {% if consulta and consulta.tecnico_densitometria_nome %}
+                                                    <div class="tecnico-linha">
+                                                        <small>
                                                             <strong>Densitometria:</strong>
                                                             {{ consulta.tecnico_densitometria_nome }}
-
                                                             {% if consulta.tecnico_densitometria_registro %}
-                                                                - Registro: {{ consulta.tecnico_densitometria_registro }}
+                                                                | Registro: {{ consulta.tecnico_densitometria_registro }}
                                                             {% endif %}
-                                                        </div>
-                                                    {% endif %}
+                                                        </small>
+                                                    </div>
+                                                {% elif form.instance.tecnico_densitometria_nome %}
+                                                    <div class="tecnico-linha">
+                                                        <small>
+                                                            <strong>Densitometria:</strong>
+                                                            {{ form.instance.tecnico_densitometria_nome }}
+                                                            {% if form.instance.tecnico_densitometria_registro %}
+                                                                | Registro: {{ form.instance.tecnico_densitometria_registro }}
+                                                            {% endif %}
+                                                        </small>
+                                                    </div>
+                                                {% endif %}
 
-                                                    {% if consulta and not consulta.tecnico_raiox_nome and not consulta.tecnico_tomografia_nome and not consulta.tecnico_mamografia_nome and not consulta.tecnico_densitometria_nome %}
-                                                        <div class="text-muted">
-                                                            Nenhum técnico informado.
-                                                        </div>
-                                                    {% endif %}
-
-                                                </div>
+                                                {% if not consulta.tecnico_raiox_nome and not consulta.tecnico_tomografia_nome and not consulta.tecnico_mamografia_nome and not consulta.tecnico_densitometria_nome and not form.instance.tecnico_raiox_nome and not form.instance.tecnico_tomografia_nome and not form.instance.tecnico_mamografia_nome and not form.instance.tecnico_densitometria_nome %}
+                                                    <small class="text-muted">Nenhum técnico registrado ainda.</small>
+                                                {% endif %}
                                             </div>
 
                                         </div>
@@ -1297,8 +1436,12 @@
                         Cancelar
                     </a>
 
-                    <button type="submit" class="btn btn-primary btn-lg">
-                        Salvar Conduta
+                    <button type="submit" class="btn btn-primary btn-lg" id="btnSalvarConduta">
+                        <span class="btn-text">Salvar Conduta</span>
+                        <span class="btn-loading d-none">
+                            <span class="spinner-border spinner-border-sm me-2"></span>
+                            Salvando...
+                        </span>
                     </button>
                 </div>
 
@@ -1530,6 +1673,59 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     ];
 
+    function normalizarTexto(texto) {
+        return String(texto || "")
+            .toLowerCase()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "");
+    }
+
+    function codigoCidEhAgressao(codigo) {
+        const limpo = String(codigo || "")
+            .toUpperCase()
+            .replace(/[^A-Z0-9]/g, "");
+
+        const partes = limpo.match(/^([A-Z])(\d{2})/);
+
+        if (!partes) {
+            return false;
+        }
+
+        const letra = partes[1];
+        const numero = parseInt(partes[2], 10);
+
+        return (
+            (letra === "X" && numero >= 85 && numero <= 99) ||
+            (letra === "Y" && numero >= 0 && numero <= 9)
+        );
+    }
+
+    function cidEhAgressao(codigo, descricao) {
+        const texto = normalizarTexto(`${codigo} ${descricao}`);
+
+        return codigoCidEhAgressao(codigo) || texto.includes("agress");
+    }
+
+    function atualizarAlertaCidAgressao(codigo, descricao) {
+        const buscaCid = document.getElementById("busca_cid");
+        const cidInput = document.getElementById("id_cid");
+        const alerta = document.getElementById("alerta-cid-agressao");
+
+        const ehAgressao = cidEhAgressao(codigo, descricao);
+
+        if (buscaCid) {
+            buscaCid.classList.toggle("cid-agressao", ehAgressao);
+        }
+
+        if (cidInput) {
+            cidInput.classList.toggle("cid-agressao", ehAgressao);
+        }
+
+        if (alerta) {
+            alerta.classList.toggle("d-none", !ehAgressao);
+        }
+    }
+
     function criarId(texto) {
         return texto
             .toLowerCase()
@@ -1670,16 +1866,25 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (cidInput.value) {
             buscaCid.value = cidInput.value;
+            atualizarAlertaCidAgressao(cidInput.value, buscaCid.value);
         }
 
         buscaCid.addEventListener("input", function () {
             const termo = this.value.trim();
+
+            atualizarAlertaCidAgressao(termo, termo);
 
             clearTimeout(timerCid);
 
             if (termo.length < 2) {
                 resultadoCid.innerHTML = "";
                 resultadoCid.style.display = "none";
+
+                if (termo.length === 0) {
+                    cidInput.value = "";
+                    atualizarAlertaCidAgressao("", "");
+                }
+
                 return;
             }
 
@@ -1701,16 +1906,27 @@ document.addEventListener("DOMContentLoaded", function () {
 
                         data.forEach(function (cid) {
                             const item = document.createElement("button");
+                            const agressao = cidEhAgressao(cid.codigo, cid.descricao);
 
                             item.type = "button";
                             item.className = "list-group-item list-group-item-action";
-                            item.innerHTML = `<strong>${cid.codigo}</strong> - ${cid.descricao}`;
+
+                            if (agressao) {
+                                item.classList.add("list-group-item-danger");
+                            }
+
+                            item.innerHTML = `
+                                <strong>${cid.codigo}</strong> - ${cid.descricao}
+                                ${agressao ? "<span class='badge bg-danger ms-2'>Agressão</span>" : ""}
+                            `;
 
                             item.addEventListener("click", function () {
                                 cidInput.value = cid.codigo;
                                 buscaCid.value = `${cid.codigo} - ${cid.descricao}`;
                                 resultadoCid.innerHTML = "";
                                 resultadoCid.style.display = "none";
+
+                                atualizarAlertaCidAgressao(cid.codigo, cid.descricao);
                             });
 
                             resultadoCid.appendChild(item);
@@ -1939,6 +2155,77 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
+    function configurarFeedbackFormulario() {
+        const formConsulta = document.getElementById("formConsultaMedica");
+        const btnSalvar = document.getElementById("btnSalvarConduta");
+
+        function abrirAbaDoCampo(campoId) {
+            const campo = document.getElementById(campoId);
+
+            if (!campo) return;
+
+            const painel = campo.closest(".tab-pane");
+
+            if (painel && painel.id) {
+                const botaoAba = document.querySelector(`[data-bs-target="#${painel.id}"]`);
+
+                if (botaoAba) {
+                    const aba = new bootstrap.Tab(botaoAba);
+                    aba.show();
+                    localStorage.setItem("abaConsultaMedicaAtiva", `#${painel.id}`);
+                }
+            }
+
+            setTimeout(function () {
+                campo.scrollIntoView({ behavior: "smooth", block: "center" });
+                campo.focus({ preventScroll: true });
+            }, 250);
+        }
+
+        document.querySelectorAll(".erro-campo-link").forEach(function (link) {
+            link.addEventListener("click", function (evento) {
+                evento.preventDefault();
+                abrirAbaDoCampo(this.getAttribute("data-field-id"));
+            });
+        });
+
+        const primeiroErro = document.querySelector(".tab-pane .errorlist");
+
+        if (primeiroErro) {
+            const painel = primeiroErro.closest(".tab-pane");
+
+            if (painel && painel.id) {
+                const botaoAba = document.querySelector(`[data-bs-target="#${painel.id}"]`);
+
+                if (botaoAba) {
+                    const aba = new bootstrap.Tab(botaoAba);
+                    aba.show();
+                    localStorage.setItem("abaConsultaMedicaAtiva", `#${painel.id}`);
+                }
+            }
+
+            const resumo = document.getElementById("formErrorSummary");
+
+            if (resumo) {
+                resumo.scrollIntoView({ behavior: "smooth", block: "start" });
+            }
+        }
+
+        if (formConsulta && btnSalvar) {
+            formConsulta.addEventListener("submit", function () {
+                btnSalvar.disabled = true;
+
+                const texto = btnSalvar.querySelector(".btn-text");
+                const loading = btnSalvar.querySelector(".btn-loading");
+
+                if (texto && loading) {
+                    texto.classList.add("d-none");
+                    loading.classList.remove("d-none");
+                }
+            });
+        }
+    }
+
     renderizarLaboratorio();
     renderizarImagem();
 
@@ -1948,6 +2235,7 @@ document.addEventListener("DOMContentLoaded", function () {
     configurarListasExames();
     configurarBuscaExames();
     configurarLimparExames();
+    configurarFeedbackFormulario();
 });
 </script>
 

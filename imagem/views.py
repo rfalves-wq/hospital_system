@@ -10,39 +10,43 @@ from .forms import ResultadoImagemForm
 SETORES_IMAGEM = {
     "raiox": {
         "nome": "Raio-X",
+        "marcador": "RAIO-X",
+        "realizado": "raiox_realizado",
         "resultado": "resultado_raiox",
         "data": "data_resultado_raiox",
-        "realizado": "raiox_realizado",
         "tecnico_nome": "tecnico_raiox_nome",
         "tecnico_registro": "tecnico_raiox_registro",
-        "marcador": "RAIO-X",
+        "indicacao": "indicacao_raiox",
     },
     "tomografia": {
         "nome": "Tomografia",
+        "marcador": "TOMOGRAFIA",
+        "realizado": "tomografia_realizada",
         "resultado": "resultado_tomografia",
         "data": "data_resultado_tomografia",
-        "realizado": "tomografia_realizada",
         "tecnico_nome": "tecnico_tomografia_nome",
         "tecnico_registro": "tecnico_tomografia_registro",
-        "marcador": "TOMOGRAFIA",
+        "indicacao": "indicacao_tomografia",
     },
     "mamografia": {
         "nome": "Mamografia",
+        "marcador": "MAMOGRAFIA",
+        "realizado": "mamografia_realizada",
         "resultado": "resultado_mamografia",
         "data": "data_resultado_mamografia",
-        "realizado": "mamografia_realizada",
         "tecnico_nome": "tecnico_mamografia_nome",
         "tecnico_registro": "tecnico_mamografia_registro",
-        "marcador": "MAMOGRAFIA",
+        "indicacao": "indicacao_outros_imagem",
     },
     "densitometria": {
         "nome": "Densitometria",
+        "marcador": "DENSITOMETRIA",
+        "realizado": "densitometria_realizada",
         "resultado": "resultado_densitometria",
         "data": "data_resultado_densitometria",
-        "realizado": "densitometria_realizada",
         "tecnico_nome": "tecnico_densitometria_nome",
         "tecnico_registro": "tecnico_densitometria_registro",
-        "marcador": "DENSITOMETRIA",
+        "indicacao": "indicacao_outros_imagem",
     },
 }
 
@@ -152,17 +156,17 @@ def procedimentos_finalizados(consulta):
 def montar_setores_da_consulta(consulta):
     setores = []
 
-    for setor_key, setor in SETORES_IMAGEM.items():
-        if setor_foi_solicitado(consulta, setor_key):
+    for chave, config in SETORES_IMAGEM.items():
+        if setor_foi_solicitado(consulta, chave):
             setores.append({
-                "key": setor_key,
-                "nome": setor["nome"],
-                "realizado": getattr(consulta, setor["realizado"]),
-                "resultado": getattr(consulta, setor["resultado"]),
-                "data": getattr(consulta, setor["data"]),
-                "tecnico_nome": getattr(consulta, setor["tecnico_nome"]),
-                "tecnico_registro": getattr(consulta, setor["tecnico_registro"]),
-                "pedido": pedido_do_setor(consulta, setor_key),
+                "key": chave,
+                "nome": config["nome"],
+                "pedido": pedido_do_setor(consulta, chave),
+                "indicacao": getattr(consulta, config["indicacao"], "") or "",
+                "realizado": getattr(consulta, config["realizado"], False),
+                "data": getattr(consulta, config["data"], None),
+                "tecnico_nome": getattr(consulta, config["tecnico_nome"], "") or "",
+                "tecnico_registro": getattr(consulta, config["tecnico_registro"], "") or "",
             })
 
     return setores
@@ -225,6 +229,8 @@ def lancar_resultado_imagem(request, consulta_id, setor):
         return redirect("imagem_dashboard")
 
     setor_config = SETORES_IMAGEM[setor]
+    indicacao_setor = getattr(consulta, setor_config["indicacao"], "") or ""
+    pedido_setor = pedido_do_setor(consulta, setor)
 
     if request.method == "POST":
         form = ResultadoImagemForm(
@@ -263,7 +269,6 @@ def lancar_resultado_imagem(request, consulta_id, setor):
             )
 
             return redirect("imagem_dashboard")
-
     else:
         form = ResultadoImagemForm(
             setor=setor,
@@ -280,6 +285,7 @@ def lancar_resultado_imagem(request, consulta_id, setor):
             "setor": setor,
             "setor_nome": setor_config["nome"],
             "setor_config": setor_config,
-            "pedido_setor": pedido_do_setor(consulta, setor),
+            "pedido_setor": pedido_setor,
+            "indicacao_setor": indicacao_setor,
         }
     )

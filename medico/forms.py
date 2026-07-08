@@ -23,6 +23,9 @@ class ConsultaMedicaForm(forms.ModelForm):
             "exames_imagem",
             "prescricao",
             "orientacoes",
+            "indicacao_raiox",
+"indicacao_tomografia",
+"indicacao_outros_imagem",
         ]
 
         widgets = {
@@ -99,4 +102,21 @@ class ConsultaMedicaForm(forms.ModelForm):
                 "rows": 4,
                 "placeholder": "Orientações ao paciente",
             }),
+            "indicacao_raiox": forms.Textarea(attrs={
+    "class": "form-control",
+    "rows": 3,
+    "placeholder": "Descreva a indicação clínica para o Raio-X. Ex: trauma, dor torácica, queda, suspeita de fratura...",
+}),
+
+"indicacao_tomografia": forms.Textarea(attrs={
+    "class": "form-control",
+    "rows": 3,
+    "placeholder": "Descreva a indicação clínica para a Tomografia. Ex: trauma craniano, AVC, dor abdominal, dispneia...",
+}),
+
+"indicacao_outros_imagem": forms.Textarea(attrs={
+    "class": "form-control",
+    "rows": 3,
+    "placeholder": "Descreva a indicação clínica para mamografia, densitometria ou outros exames de imagem.",
+}),
         }

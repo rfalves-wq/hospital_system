@@ -79,6 +79,23 @@ class ConsultaMedica(models.Model):
     resultado_exames_laboratoriais = models.TextField(blank=True, default="")
     data_resultado_laboratorio = models.DateTimeField(blank=True, null=True)
 
+    indicacao_raiox = models.TextField(
+    blank=True,
+    null=True,
+    verbose_name="Indicação clínica do Raio-X"
+)
+
+    indicacao_tomografia = models.TextField(
+    blank=True,
+    null=True,
+    verbose_name="Indicação clínica da Tomografia"
+)
+
+    indicacao_outros_imagem = models.TextField(
+    blank=True,
+    null=True,
+    verbose_name="Indicação clínica de outros exames de imagem"
+)
     tecnico_laboratorio_nome = models.CharField(
         max_length=150,
         blank=True,
