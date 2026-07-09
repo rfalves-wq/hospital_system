@@ -1,0 +1,565 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Estoque da Farmacia</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --azul: #0f4c81;
+            --azul-2: #1769a6;
+            --verde: #198754;
+            --vermelho: #dc3545;
+            --amarelo: #ffc107;
+            --cinza-bg: #f4f7fb;
+            --borda: #dce5ef;
+            --texto: #172033;
+            --muted: #64748b;
+        }
+
+        body {
+            background: var(--cinza-bg);
+            color: var(--texto);
+            font-family: "Segoe UI", Arial, sans-serif;
+        }
+
+        .page-card {
+            border: 0;
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 8px 28px rgba(15, 23, 42, .08);
+        }
+
+        .page-header {
+            background: linear-gradient(135deg, var(--azul), var(--azul-2));
+            color: #fff;
+            padding: 20px 24px;
+        }
+
+        .page-header h3 {
+            margin: 0;
+            font-weight: 900;
+        }
+
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .metric-card {
+            background: #fff;
+            border: 1px solid var(--borda);
+            border-left: 5px solid var(--azul);
+            border-radius: 12px;
+            padding: 13px 14px;
+        }
+
+        .metric-card.warning {
+            border-left-color: var(--amarelo);
+        }
+
+        .metric-card.danger {
+            border-left-color: var(--vermelho);
+        }
+
+        .metric-label {
+            color: var(--muted);
+            font-size: .75rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+        }
+
+        .metric-value {
+            font-size: 1.45rem;
+            font-weight: 900;
+            color: #0f172a;
+            line-height: 1.1;
+        }
+
+        .filter-box,
+        .section-box {
+            background: #fff;
+            border: 1px solid var(--borda);
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 16px;
+        }
+
+        .filter-grid {
+            display: grid;
+            grid-template-columns: minmax(260px, 1.6fr) minmax(190px, .9fr) minmax(170px, .8fr) minmax(140px, .7fr) 130px 110px;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .section-title-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .section-title-row h5 {
+            margin: 0;
+            font-weight: 900;
+        }
+
+        .result-pill {
+            background: #eaf4ff;
+            border: 1px solid #bfdbfe;
+            color: var(--azul);
+            border-radius: 999px;
+            padding: 6px 10px;
+            font-size: .82rem;
+            font-weight: 900;
+            white-space: nowrap;
+        }
+
+        .table-scroll {
+            max-height: 540px;
+            overflow: auto;
+            border: 1px solid #e5edf5;
+            border-radius: 10px;
+        }
+
+        .table {
+            margin-bottom: 0;
+        }
+
+        .table td,
+        .table th {
+            vertical-align: middle;
+        }
+
+        .table th {
+            white-space: nowrap;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+
+        .table-primary th {
+            background: #cfe3ff !important;
+        }
+
+        .medicamento-nome {
+            font-weight: 900;
+            color: #0f172a;
+            line-height: 1.2;
+        }
+
+        .medicamento-meta {
+            color: var(--muted);
+            font-size: .78rem;
+            font-weight: 700;
+            line-height: 1.25;
+        }
+
+        .categoria-chip {
+            display: inline-block;
+            max-width: 260px;
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            border-radius: 999px;
+            color: #334155;
+            padding: 5px 9px;
+            font-size: .76rem;
+            font-weight: 900;
+            white-space: normal;
+            line-height: 1.2;
+        }
+
+        .estoque-numero {
+            font-weight: 900;
+            color: #0f172a;
+        }
+
+        .estoque-unidade {
+            color: var(--muted);
+            font-size: .78rem;
+            font-weight: 700;
+            display: block;
+            max-width: 130px;
+            overflow-wrap: anywhere;
+        }
+
+        .badge-status {
+            border-radius: 999px;
+            padding: 7px 10px;
+            font-weight: 900;
+            font-size: .76rem;
+        }
+
+        .action-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            min-width: 220px;
+        }
+
+        .action-group .btn {
+            font-weight: 800;
+            padding: 5px 8px;
+        }
+
+        .pagination-wrap {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+
+        .movimentacoes-table td,
+        .movimentacoes-table th {
+            font-size: .9rem;
+        }
+
+        @media (max-width: 1400px) {
+            .filter-grid {
+                grid-template-columns: minmax(240px, 1fr) 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .metric-grid,
+            .filter-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .table-scroll {
+                max-height: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start !important;
+                gap: 12px;
+            }
+
+            .page-header .btn,
+            .filter-grid .btn {
+                width: 100%;
+            }
+
+            .section-title-row {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container-fluid my-3">
+    <div class="card page-card">
+        <div class="page-header d-flex justify-content-between align-items-center">
+            <div>
+                <h3>Estoque da Farmacia</h3>
+                <small>Entrada, saida, ajuste e consulta de medicamentos disponiveis</small>
+            </div>
+
+            <div class="d-flex flex-wrap gap-2">
+                <a href="{% url 'farmacia_medicamento_novo' %}" class="btn btn-light fw-bold">
+                    Novo Medicamento
+                </a>
+
+                <a href="{% url 'farmacia_dashboard' %}" class="btn btn-outline-light fw-bold">
+                    Fila da Farmacia
+                </a>
+            </div>
+        </div>
+
+        <div class="card-body">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert {% if message.tags == 'success' %}alert-success{% elif message.tags == 'error' %}alert-danger{% elif message.tags == 'warning' %}alert-warning{% else %}alert-info{% endif %} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <div class="metric-grid">
+                <div class="metric-card">
+                    <div class="metric-label">Medicamentos ativos</div>
+                    <div class="metric-value">{{ total_medicamentos }}</div>
+                </div>
+
+                <div class="metric-card warning">
+                    <div class="metric-label">Estoque baixo</div>
+                    <div class="metric-value">{{ total_estoque_baixo }}</div>
+                </div>
+
+                <div class="metric-card danger">
+                    <div class="metric-label">Zerados</div>
+                    <div class="metric-value">{{ total_zerados }}</div>
+                </div>
+            </div>
+
+            <form method="get" class="filter-box">
+                <div class="filter-grid">
+                    <input
+                        type="text"
+                        name="q"
+                        value="{{ busca }}"
+                        class="form-control"
+                        placeholder="Buscar medicamento, principio ativo, apresentacao ou localizacao">
+
+                    <select name="categoria" class="form-select">
+                        <option value="">Todas as categorias</option>
+                        {% for codigo, nome in categorias %}
+                            <option value="{{ codigo }}" {% if categoria == codigo %}selected{% endif %}>
+                                {{ nome }}
+                            </option>
+                        {% endfor %}
+                    </select>
+
+                    <select name="metodo_aplicacao" class="form-select">
+                        <option value="">Todos os metodos</option>
+                        {% for codigo, nome in metodos_aplicacao %}
+                            <option value="{{ codigo }}" {% if metodo_aplicacao == codigo %}selected{% endif %}>
+                                {{ nome }}
+                            </option>
+                        {% endfor %}
+                    </select>
+
+                    <select name="status" class="form-select">
+                        <option value="">Todos</option>
+                        <option value="ativos" {% if status == "ativos" %}selected{% endif %}>Ativos</option>
+                        <option value="baixos" {% if status == "baixos" %}selected{% endif %}>Estoque baixo</option>
+                        <option value="zerados" {% if status == "zerados" %}selected{% endif %}>Zerados</option>
+                        <option value="inativos" {% if status == "inativos" %}selected{% endif %}>Inativos</option>
+                    </select>
+
+                    <button type="submit" class="btn btn-primary fw-bold">
+                        Filtrar
+                    </button>
+
+                    <a href="{% url 'farmacia_estoque' %}" class="btn btn-outline-secondary fw-bold">
+                        Limpar
+                    </a>
+                </div>
+            </form>
+
+            <div class="section-box">
+                <div class="section-title-row">
+                    <h5>Medicamentos</h5>
+
+                    <span class="result-pill">
+                        {{ total_filtrado }} resultado(s)
+                    </span>
+                </div>
+
+                <div class="table-scroll">
+                    <table class="table table-striped table-hover align-middle">
+                        <thead class="table-primary">
+                            <tr>
+                                <th>Medicamento</th>
+                                <th>Categoria</th>
+                                <th>Metodo</th>
+                                <th>Principio ativo</th>
+                                <th>Estoque</th>
+                                <th>Minimo</th>
+                                <th>Localizacao</th>
+                                <th>Status</th>
+                                <th>Acoes</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for medicamento in medicamentos %}
+                                <tr>
+                                    <td>
+                                        <div class="medicamento-nome">{{ medicamento.nome }}</div>
+
+                                        {% if medicamento.concentracao or medicamento.apresentacao %}
+                                            <div class="medicamento-meta">
+                                                {% if medicamento.concentracao %}
+                                                    {{ medicamento.concentracao }}
+                                                {% endif %}
+
+                                                {% if medicamento.apresentacao %}
+                                                    {% if medicamento.concentracao %} | {% endif %}
+                                                    {{ medicamento.apresentacao }}
+                                                {% endif %}
+                                            </div>
+                                        {% endif %}
+                                    </td>
+
+                                    <td>
+                                        <span class="categoria-chip">
+                                            {{ medicamento.get_categoria_display }}
+                                        </span>
+                                    </td>
+
+                                    <td>{{ medicamento.get_metodo_aplicacao_display }}</td>
+                                    <td>{{ medicamento.principio_ativo|default:"-" }}</td>
+
+                                    <td>
+                                        <span class="estoque-numero">{{ medicamento.estoque_atual }}</span>
+                                        <span class="estoque-unidade">{{ medicamento.unidade_medida }}</span>
+                                    </td>
+
+                                    <td>{{ medicamento.estoque_minimo }}</td>
+                                    <td>{{ medicamento.localizacao|default:"-" }}</td>
+
+                                    <td>
+                                        {% if not medicamento.ativo %}
+                                            <span class="badge bg-secondary badge-status">Inativo</span>
+                                        {% elif medicamento.estoque_atual <= 0 %}
+                                            <span class="badge bg-danger badge-status">Zerado</span>
+                                        {% elif medicamento.estoque_baixo %}
+                                            <span class="badge bg-warning text-dark badge-status">Baixo</span>
+                                        {% else %}
+                                            <span class="badge bg-success badge-status">Disponivel</span>
+                                        {% endif %}
+                                    </td>
+
+                                    <td>
+                                        <div class="action-group">
+                                            <a href="{% url 'farmacia_movimentar_estoque' medicamento.id 'entrada' %}" class="btn btn-success btn-sm">
+                                                Entrada
+                                            </a>
+                                            <a href="{% url 'farmacia_movimentar_estoque' medicamento.id 'saida' %}" class="btn btn-danger btn-sm">
+                                                Saida
+                                            </a>
+                                            <a href="{% url 'farmacia_movimentar_estoque' medicamento.id 'ajuste' %}" class="btn btn-warning btn-sm">
+                                                Ajuste
+                                            </a>
+                                            <a href="{% url 'farmacia_medicamento_editar' medicamento.id %}" class="btn btn-outline-primary btn-sm">
+                                                Editar
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="9" class="text-center text-muted fw-bold py-4">
+                                        Nenhum medicamento encontrado para os filtros informados.
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                {% if page_obj.paginator.num_pages > 1 %}
+                    <div class="pagination-wrap">
+                        <div class="text-muted fw-bold small">
+                            Pagina {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+                        </div>
+
+                        <nav aria-label="Paginacao do estoque">
+                            <ul class="pagination pagination-sm mb-0">
+                                {% if page_obj.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?{% if filtros_querystring %}{{ filtros_querystring }}&{% endif %}page={{ page_obj.previous_page_number }}">
+                                            Anterior
+                                        </a>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item disabled">
+                                        <span class="page-link">Anterior</span>
+                                    </li>
+                                {% endif %}
+
+                                {% for numero in page_obj.paginator.page_range %}
+                                    {% if numero == page_obj.number %}
+                                        <li class="page-item active">
+                                            <span class="page-link">{{ numero }}</span>
+                                        </li>
+                                    {% elif numero >= page_obj.number|add:"-2" and numero <= page_obj.number|add:"2" %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?{% if filtros_querystring %}{{ filtros_querystring }}&{% endif %}page={{ numero }}">
+                                                {{ numero }}
+                                            </a>
+                                        </li>
+                                    {% endif %}
+                                {% endfor %}
+
+                                {% if page_obj.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?{% if filtros_querystring %}{{ filtros_querystring }}&{% endif %}page={{ page_obj.next_page_number }}">
+                                            Proxima
+                                        </a>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item disabled">
+                                        <span class="page-link">Proxima</span>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="section-box">
+                <div class="section-title-row">
+                    <h5>Ultimas movimentacoes</h5>
+                    <span class="result-pill">20 mais recentes</span>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover align-middle movimentacoes-table">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Data</th>
+                                <th>Tipo</th>
+                                <th>Medicamento</th>
+                                <th>Quantidade</th>
+                                <th>Saldo</th>
+                                <th>Profissional</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for mov in ultimas_movimentacoes %}
+                                <tr>
+                                    <td>{{ mov.criado_em|date:"d/m/Y H:i" }}</td>
+                                    <td>{{ mov.get_tipo_display }}</td>
+                                    <td>{{ mov.medicamento.descricao_completa }}</td>
+                                    <td>{{ mov.quantidade }}</td>
+                                    <td>{{ mov.saldo_anterior }} -> {{ mov.saldo_atual }}</td>
+                                    <td>
+                                        {{ mov.profissional_nome }}
+                                        {% if mov.profissional_registro %}
+                                            <br>
+                                            <small class="text-muted">{{ mov.profissional_registro }}</small>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted fw-bold py-4">
+                                        Nenhuma movimentacao registrada.
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>

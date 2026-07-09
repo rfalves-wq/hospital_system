@@ -10,6 +10,7 @@ class ConsultaMedicaForm(forms.ModelForm):
 
         fields = [
             "medico_responsavel",
+            "crm_medico",
             "cid",
             "queixa_principal",
             "historia_doenca_atual",
@@ -21,17 +22,22 @@ class ConsultaMedicaForm(forms.ModelForm):
             "solicita_exames_imagem",
             "exames_laboratoriais",
             "exames_imagem",
+            "indicacao_raiox",
+            "indicacao_tomografia",
+            "indicacao_outros_imagem",
             "prescricao",
             "orientacoes",
-            "indicacao_raiox",
-"indicacao_tomografia",
-"indicacao_outros_imagem",
         ]
 
         widgets = {
             "medico_responsavel": forms.TextInput(attrs={
                 "class": "form-control",
                 "placeholder": "Nome do médico responsável",
+            }),
+
+            "crm_medico": forms.TextInput(attrs={
+                "class": "form-control",
+                "placeholder": "CRM do médico",
             }),
 
             "cid": forms.TextInput(attrs={
@@ -91,6 +97,24 @@ class ConsultaMedicaForm(forms.ModelForm):
                 "placeholder": "Exames de imagem solicitados",
             }),
 
+            "indicacao_raiox": forms.Textarea(attrs={
+                "class": "form-control",
+                "rows": 3,
+                "placeholder": "Descreva a indicação clínica para o Raio-X. Ex: trauma, dor torácica, queda, suspeita de fratura...",
+            }),
+
+            "indicacao_tomografia": forms.Textarea(attrs={
+                "class": "form-control",
+                "rows": 3,
+                "placeholder": "Descreva a indicação clínica para a Tomografia. Ex: trauma craniano, AVC, dor abdominal, dispneia...",
+            }),
+
+            "indicacao_outros_imagem": forms.Textarea(attrs={
+                "class": "form-control",
+                "rows": 3,
+                "placeholder": "Descreva a indicação clínica para mamografia, densitometria ou outros exames de imagem.",
+            }),
+
             "prescricao": forms.Textarea(attrs={
                 "class": "form-control",
                 "rows": 5,
@@ -102,21 +126,4 @@ class ConsultaMedicaForm(forms.ModelForm):
                 "rows": 4,
                 "placeholder": "Orientações ao paciente",
             }),
-            "indicacao_raiox": forms.Textarea(attrs={
-    "class": "form-control",
-    "rows": 3,
-    "placeholder": "Descreva a indicação clínica para o Raio-X. Ex: trauma, dor torácica, queda, suspeita de fratura...",
-}),
-
-"indicacao_tomografia": forms.Textarea(attrs={
-    "class": "form-control",
-    "rows": 3,
-    "placeholder": "Descreva a indicação clínica para a Tomografia. Ex: trauma craniano, AVC, dor abdominal, dispneia...",
-}),
-
-"indicacao_outros_imagem": forms.Textarea(attrs={
-    "class": "form-control",
-    "rows": 3,
-    "placeholder": "Descreva a indicação clínica para mamografia, densitometria ou outros exames de imagem.",
-}),
         }

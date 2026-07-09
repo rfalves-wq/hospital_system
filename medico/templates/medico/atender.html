@@ -1,4 +1,4 @@
-{% load static %}
+﻿{% load static %}
 
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -487,6 +487,94 @@
             border-bottom: 0;
         }
 
+        .estoque-farmacia-box {
+            background: #f8fafc;
+            border: 1px solid var(--borda);
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 14px;
+        }
+
+        .estoque-farmacia-topo {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 12px;
+            align-items: end;
+            margin-bottom: 10px;
+        }
+
+        .estoque-farmacia-controles {
+            display: grid;
+            grid-template-columns: minmax(240px, 1fr) 230px 210px;
+            gap: 8px;
+        }
+
+        .estoque-farmacia-status {
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 700;
+            margin-top: 8px;
+        }
+
+        .estoque-farmacia-status.alerta {
+            color: #9a3412;
+        }
+
+        .estoque-farmacia-lista {
+            display: none;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #e5edf5;
+            border-radius: 10px;
+            background: #fff;
+            margin-top: 10px;
+        }
+
+        .estoque-farmacia-lista.is-active {
+            display: block;
+        }
+
+        .estoque-farmacia-item {
+            display: grid;
+            grid-template-columns: 1fr auto auto;
+            gap: 10px;
+            align-items: center;
+            padding: 10px 12px;
+            border-bottom: 1px solid #eef2f7;
+        }
+
+        .estoque-farmacia-item:last-child {
+            border-bottom: 0;
+        }
+
+        .estoque-farmacia-nome {
+            font-weight: 900;
+            color: #0f172a;
+        }
+
+        .estoque-farmacia-detalhe {
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .estoque-farmacia-saldo {
+            min-width: 96px;
+            text-align: center;
+            background: #dcfce7;
+            color: #166534;
+            border-radius: 999px;
+            padding: 6px 10px;
+            font-weight: 900;
+            font-size: 12px;
+        }
+
+        .estoque-farmacia-vazio {
+            padding: 12px;
+            color: var(--muted);
+            font-weight: 800;
+        }
+
         .acao-final {
             position: sticky;
             bottom: 0;
@@ -503,6 +591,11 @@
             }
 
             .exam-tools {
+                grid-template-columns: 1fr;
+            }
+
+            .estoque-farmacia-topo,
+            .estoque-farmacia-controles {
                 grid-template-columns: 1fr;
             }
         }
@@ -534,6 +627,14 @@
             .exam-category-body {
                 margin-left: 0;
                 width: 100%;
+            }
+
+            .estoque-farmacia-item {
+                grid-template-columns: 1fr;
+            }
+
+            .estoque-farmacia-saldo {
+                width: max-content;
             }
         }
     </style>
@@ -589,7 +690,6 @@
                     </ul>
                 </div>
             {% endif %}
-
             <div class="paciente-bar">
                 <div class="info-grid">
                     <div class="info-item">
@@ -931,13 +1031,19 @@
                             <div class="section-body">
 
                                 <div class="row">
-                                    <div class="col-md-6 mb-3">
+                                    <div class="col-md-4 mb-3">
                                         <label class="form-label fw-bold">Médico responsável</label>
                                         {{ form.medico_responsavel }}
                                         {{ form.medico_responsavel.errors }}
                                     </div>
 
-                                    <div class="col-md-6 mb-3 position-relative">
+                                    <div class="col-md-3 mb-3">
+                                        <label class="form-label fw-bold">CRM</label>
+                                        {{ form.crm_medico }}
+                                        {{ form.crm_medico.errors }}
+                                    </div>
+
+                                    <div class="col-md-5 mb-3 position-relative">
                                         <label class="form-label fw-bold">Buscar CID</label>
 
                                         <input
@@ -1405,6 +1511,49 @@
                             </div>
 
                             <div class="section-body">
+                                <div class="estoque-farmacia-box">
+                                    <div class="estoque-farmacia-topo">
+                                        <div>
+                                            <strong>Medicamentos disponíveis na farmácia</strong>
+                                            <div class="text-muted small">
+                                                Pesquise pelo nome, princípio ativo, apresentação ou filtre por categoria e método.
+                                            </div>
+                                        </div>
+
+                                        <div class="text-muted small fw-bold">
+                                            Estoque ativo: {{ total_medicamentos_farmacia }} item(ns)
+                                        </div>
+                                    </div>
+
+                                    <div class="estoque-farmacia-controles">
+                                        <input
+                                            type="text"
+                                            id="buscaMedicamentoFarmacia"
+                                            class="form-control"
+                                            placeholder="Buscar medicamento disponível...">
+
+                                        <select id="categoriaMedicamentoFarmacia" class="form-select">
+                                            <option value="">Todas as categorias</option>
+                                            {% for valor, rotulo in categorias_farmacia %}
+                                                <option value="{{ valor }}">{{ rotulo }}</option>
+                                            {% endfor %}
+                                        </select>
+
+                                        <select id="metodoMedicamentoFarmacia" class="form-select">
+                                            <option value="">Todos os métodos</option>
+                                            {% for valor, rotulo in metodos_aplicacao_farmacia %}
+                                                <option value="{{ valor }}">{{ rotulo }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+
+                                    <div id="statusMedicamentoFarmacia" class="estoque-farmacia-status">
+                                        Digite pelo menos 2 letras ou selecione um filtro para consultar o estoque.
+                                    </div>
+
+                                    <div class="estoque-farmacia-lista" id="listaMedicamentosFarmacia"></div>
+                                </div>
+
                                 <label class="form-label fw-bold">Prescrição médica</label>
                                 {{ form.prescricao }}
                                 {{ form.prescricao.errors }}
@@ -2155,6 +2304,193 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
+    function configurarMedicamentosFarmacia() {
+        const busca = document.getElementById("buscaMedicamentoFarmacia");
+        const categoria = document.getElementById("categoriaMedicamentoFarmacia");
+        const metodo = document.getElementById("metodoMedicamentoFarmacia");
+        const lista = document.getElementById("listaMedicamentosFarmacia");
+        const status = document.getElementById("statusMedicamentoFarmacia");
+        const campoPrescricao = document.getElementById("id_prescricao");
+
+        if (!lista) {
+            return;
+        }
+
+        let timerMedicamento = null;
+        let numeroBusca = 0;
+
+        function definirStatus(texto, alerta) {
+            if (!status) {
+                return;
+            }
+
+            status.textContent = texto;
+            status.classList.toggle("alerta", Boolean(alerta));
+        }
+
+        function limparLista() {
+            lista.innerHTML = "";
+            lista.classList.remove("is-active");
+        }
+
+        function montarDetalhe(medicamento) {
+            const detalhes = [];
+
+            if (medicamento.categoria) {
+                detalhes.push(`Categoria: ${medicamento.categoria}`);
+            }
+
+            if (medicamento.metodo) {
+                detalhes.push(`Metodo: ${medicamento.metodo}`);
+            }
+
+            if (medicamento.principio_ativo) {
+                detalhes.push(`Principio ativo: ${medicamento.principio_ativo}`);
+            }
+
+            if (medicamento.localizacao) {
+                detalhes.push(`Local: ${medicamento.localizacao}`);
+            }
+
+            return detalhes.join(" | ");
+        }
+
+        function adicionarNaPrescricao(medicamento) {
+            if (!campoPrescricao || !medicamento) {
+                return;
+            }
+
+            const textoAtual = campoPrescricao.value.trim();
+            const novaLinha = medicamento + " - ";
+
+            campoPrescricao.value = textoAtual
+                ? textoAtual + "\n" + novaLinha
+                : novaLinha;
+
+            campoPrescricao.focus();
+        }
+
+        function renderizarMedicamentos(dados) {
+            limparLista();
+
+            const resultados = dados.resultados || [];
+            const total = dados.total || 0;
+
+            if (resultados.length === 0) {
+                lista.classList.add("is-active");
+
+                const vazio = document.createElement("div");
+                vazio.className = "estoque-farmacia-vazio";
+                vazio.textContent = "Nenhum medicamento encontrado com esses filtros.";
+                lista.appendChild(vazio);
+
+                definirStatus("Nenhum medicamento encontrado.", true);
+                return;
+            }
+
+            resultados.forEach(function (medicamento) {
+                const item = document.createElement("div");
+                item.className = "estoque-farmacia-item";
+
+                const conteudo = document.createElement("div");
+
+                const nome = document.createElement("div");
+                nome.className = "estoque-farmacia-nome";
+                nome.textContent = medicamento.nome || "-";
+
+                const detalhe = document.createElement("div");
+                detalhe.className = "estoque-farmacia-detalhe";
+                detalhe.textContent = montarDetalhe(medicamento);
+
+                conteudo.appendChild(nome);
+                conteudo.appendChild(detalhe);
+
+                const saldo = document.createElement("div");
+                saldo.className = "estoque-farmacia-saldo";
+                saldo.textContent = `${medicamento.estoque} ${medicamento.unidade || ""}`.trim();
+
+                const botao = document.createElement("button");
+                botao.type = "button";
+                botao.className = "btn btn-outline-primary btn-sm fw-bold";
+                botao.textContent = "Usar";
+                botao.addEventListener("click", function () {
+                    adicionarNaPrescricao(medicamento.texto);
+                });
+
+                item.appendChild(conteudo);
+                item.appendChild(saldo);
+                item.appendChild(botao);
+
+                lista.appendChild(item);
+            });
+
+            lista.classList.add("is-active");
+
+            if (total > resultados.length) {
+                definirStatus(`Mostrando ${resultados.length} de ${total} medicamento(s). Refine a busca para encontrar mais rapido.`);
+            } else {
+                definirStatus(`${resultados.length} medicamento(s) encontrado(s).`);
+            }
+        }
+
+        function buscarMedicamentos() {
+            const termo = busca ? busca.value.trim() : "";
+            const categoriaValor = categoria ? categoria.value : "";
+            const metodoValor = metodo ? metodo.value : "";
+
+            clearTimeout(timerMedicamento);
+
+            timerMedicamento = setTimeout(function () {
+                if (termo.length < 2 && !categoriaValor && !metodoValor) {
+                    limparLista();
+                    definirStatus("Digite pelo menos 2 letras ou selecione um filtro para consultar o estoque.");
+                    return;
+                }
+
+                const parametros = new URLSearchParams({
+                    q: termo,
+                    categoria: categoriaValor,
+                    metodo: metodoValor,
+                });
+
+                const buscaAtual = ++numeroBusca;
+                definirStatus("Buscando medicamentos no estoque...");
+
+                fetch(`{% url 'buscar_medicamento_farmacia' %}?${parametros.toString()}`)
+                    .then(function (response) {
+                        if (!response.ok) {
+                            throw new Error("Erro ao consultar medicamentos.");
+                        }
+
+                        return response.json();
+                    })
+                    .then(function (dados) {
+                        if (buscaAtual !== numeroBusca) {
+                            return;
+                        }
+
+                        renderizarMedicamentos(dados);
+                    })
+                    .catch(function () {
+                        limparLista();
+                        definirStatus("Nao foi possivel consultar o estoque da farmacia agora.", true);
+                    });
+            }, 250);
+        }
+
+        if (busca) {
+            busca.addEventListener("input", buscarMedicamentos);
+        }
+
+        if (categoria) {
+            categoria.addEventListener("change", buscarMedicamentos);
+        }
+
+        if (metodo) {
+            metodo.addEventListener("change", buscarMedicamentos);
+        }
+    }
+
     function configurarFeedbackFormulario() {
         const formConsulta = document.getElementById("formConsultaMedica");
         const btnSalvar = document.getElementById("btnSalvarConduta");
@@ -2235,9 +2571,11 @@ document.addEventListener("DOMContentLoaded", function () {
     configurarListasExames();
     configurarBuscaExames();
     configurarLimparExames();
+    configurarMedicamentosFarmacia();
     configurarFeedbackFormulario();
 });
 </script>
 
 </body>
 </html>
+

@@ -17,6 +17,12 @@ urlpatterns = [
     ),
 
     path(
+        "buscar-medicamento-farmacia/",
+        views.buscar_medicamento_farmacia,
+        name="buscar_medicamento_farmacia"
+    ),
+
+    path(
         "atender/<int:acolhimento_id>/",
         views.atender_paciente,
         name="atender_paciente"

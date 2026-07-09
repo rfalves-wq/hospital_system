@@ -48,10 +48,16 @@ class ConsultaMedica(models.Model):
 
     medico_responsavel = models.CharField(max_length=150)
 
+    crm_medico = models.CharField(
+        max_length=30,
+        blank=True,
+        null=True,
+        verbose_name="CRM do médico"
+    )
+
     queixa_principal = models.TextField()
     historia_doenca_atual = models.TextField(blank=True, default="")
     exame_fisico = models.TextField(blank=True, default="")
-
     hipotese_diagnostica = models.TextField()
     cid = models.CharField(max_length=20, blank=True, default="")
 
@@ -76,36 +82,50 @@ class ConsultaMedica(models.Model):
 
     data_consulta = models.DateTimeField(auto_now_add=True)
 
-    resultado_exames_laboratoriais = models.TextField(blank=True, default="")
-    data_resultado_laboratorio = models.DateTimeField(blank=True, null=True)
+    farmacia_liberada = models.BooleanField(default=False)
 
-    indicacao_raiox = models.TextField(
-    blank=True,
-    null=True,
-    verbose_name="Indicação clínica do Raio-X"
-)
-
-    indicacao_tomografia = models.TextField(
-    blank=True,
-    null=True,
-    verbose_name="Indicação clínica da Tomografia"
-)
-
-    indicacao_outros_imagem = models.TextField(
-    blank=True,
-    null=True,
-    verbose_name="Indicação clínica de outros exames de imagem"
-)
-    tecnico_laboratorio_nome = models.CharField(
-        max_length=150,
+    data_liberacao_farmacia = models.DateTimeField(
         blank=True,
-        default=""
+        null=True
     )
 
-    tecnico_laboratorio_registro = models.CharField(
-        max_length=50,
+    medicamentos_dispensados = models.TextField(
         blank=True,
-        default=""
+        null=True
+    )
+
+    quantidade_farmacia = models.CharField(
+        max_length=120,
+        blank=True,
+        null=True
+    )
+
+    lote_farmacia = models.CharField(
+        max_length=120,
+        blank=True,
+        null=True
+    )
+
+    validade_farmacia = models.DateField(
+        blank=True,
+        null=True
+    )
+
+    observacao_farmacia = models.TextField(
+        blank=True,
+        null=True
+    )
+
+    profissional_farmacia_nome = models.CharField(
+        max_length=150,
+        blank=True,
+        null=True
+    )
+
+    profissional_farmacia_registro = models.CharField(
+        max_length=60,
+        blank=True,
+        null=True
     )
 
     medicamento_utilizado = models.TextField(blank=True, default="")
@@ -121,6 +141,39 @@ class ConsultaMedica(models.Model):
     profissional_medicacao_nome = models.CharField(max_length=150, blank=True, default="")
     profissional_medicacao_registro = models.CharField(max_length=50, blank=True, default="")
     data_medicacao = models.DateTimeField(blank=True, null=True)
+
+    resultado_exames_laboratoriais = models.TextField(blank=True, default="")
+    data_resultado_laboratorio = models.DateTimeField(blank=True, null=True)
+
+    tecnico_laboratorio_nome = models.CharField(
+        max_length=150,
+        blank=True,
+        default=""
+    )
+
+    tecnico_laboratorio_registro = models.CharField(
+        max_length=50,
+        blank=True,
+        default=""
+    )
+
+    indicacao_raiox = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name="Indicação clínica do Raio-X"
+    )
+
+    indicacao_tomografia = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name="Indicação clínica da Tomografia"
+    )
+
+    indicacao_outros_imagem = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name="Indicação clínica de outros exames de imagem"
+    )
 
     resultado_exames_imagem = models.TextField(blank=True, default="")
     data_resultado_imagem = models.DateTimeField(blank=True, null=True)
@@ -205,6 +258,9 @@ class ConsultaMedica(models.Model):
         return True
 
     def todos_procedimentos_finalizados(self):
+        if self.solicita_medicacao and not self.farmacia_liberada:
+            return False
+
         if self.solicita_medicacao and not self.medicacao_realizada:
             return False
 

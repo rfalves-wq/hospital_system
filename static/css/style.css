@@ -187,6 +187,14 @@ body {
     background: #0dcaf0;
 }
 
+.medicacao::before {
+    background: #198754;
+}
+
+.farmacia::before {
+    background: #0ea5e9;
+}
+
 .maternidade::before {
     background: #d63384;
 }

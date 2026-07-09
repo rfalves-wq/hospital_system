@@ -1,0 +1,181 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <title>{% if medicamento %}Editar Medicamento{% else %}Novo Medicamento{% endif %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            background: #f4f7fb;
+            color: #172033;
+            font-family: "Segoe UI", Arial, sans-serif;
+        }
+
+        .page-card {
+            border: 0;
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 8px 28px rgba(15, 23, 42, .08);
+        }
+
+        .page-header {
+            background: linear-gradient(135deg, #0f4c81, #1769a6);
+            color: #fff;
+            padding: 20px 24px;
+        }
+
+        .page-header h3 {
+            margin: 0;
+            font-weight: 800;
+        }
+
+        .section-box {
+            background: #fff;
+            border: 1px solid #dce5ef;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .errorlist {
+            color: #dc3545;
+            font-weight: 700;
+            font-size: .875rem;
+            margin: 5px 0 0;
+            padding-left: 18px;
+        }
+
+        .acao-final {
+            position: sticky;
+            bottom: 0;
+            background: #eef3f8;
+            border-top: 1px solid #dce5ef;
+            padding: 14px 0 0;
+            z-index: 20;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container-fluid my-4">
+    <div class="card page-card">
+        <div class="page-header d-flex justify-content-between align-items-center">
+            <div>
+                <h3>{% if medicamento %}Editar Medicamento{% else %}Novo Medicamento{% endif %}</h3>
+                <small>Cadastro do medicamento disponível na farmácia</small>
+            </div>
+
+            <a href="{% url 'farmacia_estoque' %}" class="btn btn-light fw-bold">
+                Voltar
+            </a>
+        </div>
+
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {{ form.non_field_errors }}
+                    </div>
+                {% endif %}
+
+                <div class="section-box">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Nome do medicamento</label>
+                            {{ form.nome }}
+                            {{ form.nome.errors }}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Categoria</label>
+                            {{ form.categoria }}
+                            {{ form.categoria.errors }}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Método de aplicação</label>
+                            {{ form.metodo_aplicacao }}
+                            {{ form.metodo_aplicacao.errors }}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Princípio ativo</label>
+                            {{ form.principio_ativo }}
+                            {{ form.principio_ativo.errors }}
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Apresentação</label>
+                            {{ form.apresentacao }}
+                            {{ form.apresentacao.errors }}
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Concentração</label>
+                            {{ form.concentracao }}
+                            {{ form.concentracao.errors }}
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Unidade de medida</label>
+                            {{ form.unidade_medida }}
+                            {{ form.unidade_medida.errors }}
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Estoque atual</label>
+                            {{ form.estoque_atual }}
+                            {{ form.estoque_atual.errors }}
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Estoque mínimo</label>
+                            {{ form.estoque_minimo }}
+                            {{ form.estoque_minimo.errors }}
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Localização</label>
+                            {{ form.localizacao }}
+                            {{ form.localizacao.errors }}
+                        </div>
+
+                        <div class="col-md-12">
+                            <div class="form-check">
+                                {{ form.ativo }}
+                                <label class="form-check-label fw-bold">
+                                    Medicamento ativo para prescrição e dispensação
+                                </label>
+                            </div>
+                            {{ form.ativo.errors }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="acao-final d-flex justify-content-end gap-2">
+                    <a href="{% url 'farmacia_estoque' %}" class="btn btn-outline-secondary btn-lg">
+                        Cancelar
+                    </a>
+
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        Salvar Medicamento
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>

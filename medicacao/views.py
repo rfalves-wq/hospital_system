@@ -1,6 +1,3 @@
-from django.shortcuts import render
-
-# Create your views here.
 from django.contrib import messages
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
@@ -35,6 +32,7 @@ def medicacao_dashboard(request):
         .select_related("acolhimento", "acolhimento__paciente")
         .filter(
             solicita_medicacao=True,
+            farmacia_liberada=True,
             medicacao_realizada=False,
         )
         .exclude(acolhimento__status="FINALIZADO")
@@ -71,6 +69,7 @@ def administrar_medicacao(request, consulta_id):
         ),
         id=consulta_id,
         solicita_medicacao=True,
+        farmacia_liberada=True,
     )
 
     if request.method == "POST":
