@@ -9,6 +9,9 @@ class AcolhimentoAdmin(admin.ModelAdmin):
         'nome_paciente',
         'cpf',
         'tipo_atendimento',
+        'hora_chegada',
+        'chamadas_classificacao',
+        'ausente_classificacao',
         'data_acolhimento'
     )
 

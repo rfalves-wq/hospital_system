@@ -4,8 +4,10 @@ from django.contrib import messages
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
 from django.db.models import Q
+from django.utils import timezone
 
 from .models import Acolhimento
+from .utils import resumo_passagens_json
 
 
 def tipo_atendimento(request):
@@ -65,11 +67,21 @@ def tipo_atendimento(request):
             )
 
         cpf = request.POST.get("cpf", "").strip()
+        hora_chegada_str = request.POST.get("hora_chegada", "").strip()
+
+        try:
+            hora_chegada = datetime.strptime(
+                hora_chegada_str,
+                "%H:%M"
+            ).time()
+        except (ValueError, TypeError):
+            hora_chegada = None
 
         paciente = Acolhimento.objects.create(
             nome_paciente=request.POST.get("nome_paciente"),
             cpf=cpf,
             data_nascimento=data_nascimento,
+            hora_chegada=hora_chegada,
             pressao_arterial=request.POST.get("pressao_arterial"),
             temperatura=temperatura,
             frequencia_respiratoria=request.POST.get("frequencia_respiratoria"),
@@ -156,6 +168,10 @@ def buscar_paciente(request):
                 else ""
             ),
             "idade": paciente.idade or "",
+            "passagens_hoje": resumo_passagens_json(
+                paciente,
+                timezone.now()
+            ),
         })
 
         if len(dados) >= 20:

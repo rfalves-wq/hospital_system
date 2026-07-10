@@ -7,6 +7,10 @@ from django.utils import timezone
 from recepcao.models import Recepcao
 
 
+def hora_atual():
+    return timezone.now().time()
+
+
 class Acolhimento(models.Model):
 
     TIPO_ATENDIMENTO = [
@@ -103,6 +107,35 @@ class Acolhimento(models.Model):
         default='RECEPCAO'
     )
 
+    hora_chegada = models.TimeField(
+        blank=True,
+        null=True,
+        default=hora_atual,
+        verbose_name='Hora da chegada'
+    )
+
+    chamadas_classificacao = models.PositiveSmallIntegerField(
+        default=0,
+        verbose_name='Chamadas na classificação'
+    )
+
+    data_ultima_chamada_classificacao = models.DateTimeField(
+        blank=True,
+        null=True,
+        verbose_name='Última chamada na classificação'
+    )
+
+    ausente_classificacao = models.BooleanField(
+        default=False,
+        verbose_name='Ausente na classificação'
+    )
+
+    data_ausente_classificacao = models.DateTimeField(
+        blank=True,
+        null=True,
+        verbose_name='Data da ausência na classificação'
+    )
+
     data_acolhimento = models.DateTimeField(
         auto_now_add=True
     )
@@ -145,6 +178,9 @@ class Acolhimento(models.Model):
                     sequencial = 1
 
                 self.numero_bam = f"{prefixo}{sequencial:04d}"
+
+        if not self.hora_chegada:
+            self.hora_chegada = hora_atual()
 
         super().save(*args, **kwargs)
 

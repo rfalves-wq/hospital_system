@@ -5,6 +5,7 @@ from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 
 from acolhimento.models import Acolhimento
+from acolhimento.utils import passagens_do_paciente_no_dia
 from farmacia.models import MedicamentoEstoque
 
 from .forms import ConsultaMedicaForm
@@ -229,6 +230,15 @@ def atender_paciente(request, acolhimento_id):
         estoque_atual__gt=0
     ).count()
 
+    periodo_inicio, periodo_fim, passagens_hospital_dia = passagens_do_paciente_no_dia(acolhimento)
+
+    total_passagens_hospital_dia = passagens_hospital_dia.count()
+    tem_passagem_anterior_hoje = (
+        passagens_hospital_dia
+        .exclude(id=acolhimento.id)
+        .exists()
+    )
+
     return render(
         request,
         "medico/atender.html",
@@ -240,6 +250,11 @@ def atender_paciente(request, acolhimento_id):
             "categorias_farmacia": MedicamentoEstoque.CATEGORIA_CHOICES,
             "metodos_aplicacao_farmacia": MedicamentoEstoque.METODO_APLICACAO_CHOICES,
             "total_medicamentos_farmacia": total_medicamentos_farmacia,
+            "periodo_passagens_inicio": periodo_inicio,
+            "periodo_passagens_fim": periodo_fim,
+            "passagens_hospital_dia": passagens_hospital_dia,
+            "total_passagens_hospital_dia": total_passagens_hospital_dia,
+            "tem_passagem_anterior_hoje": tem_passagem_anterior_hoje,
         }
     )
 

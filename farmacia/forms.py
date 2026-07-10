@@ -1,3 +1,6 @@
+import json
+from decimal import Decimal, InvalidOperation
+
 from django import forms
 
 from medico.models import ConsultaMedica
@@ -6,6 +9,12 @@ from .models import MedicamentoEstoque, MovimentacaoEstoque
 
 
 class FarmaciaForm(forms.ModelForm):
+    itens_estoque_json = forms.CharField(
+        required=False,
+        widget=forms.HiddenInput(attrs={
+            "id": "id_itens_estoque_json",
+        })
+    )
 
     class Meta:
         model = ConsultaMedica
@@ -59,7 +68,10 @@ class FarmaciaForm(forms.ModelForm):
             }),
         }
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, exigir_itens_estoque=False, **kwargs):
+        self.exigir_itens_estoque = exigir_itens_estoque
+        self.itens_estoque = []
+
         super().__init__(*args, **kwargs)
 
         self.fields["medicamentos_dispensados"].label = "Medicamentos dispensados"
@@ -78,6 +90,59 @@ class FarmaciaForm(forms.ModelForm):
         if self.instance and self.instance.pk:
             if self.instance.prescricao and not self.instance.medicamentos_dispensados:
                 self.initial["medicamentos_dispensados"] = self.instance.prescricao
+
+    def clean_itens_estoque_json(self):
+        valor = self.cleaned_data.get("itens_estoque_json", "").strip()
+
+        if not valor:
+            if self.exigir_itens_estoque:
+                raise forms.ValidationError(
+                    "Selecione pelo menos um medicamento do estoque para dar baixa."
+                )
+
+            self.itens_estoque = []
+            return valor
+
+        try:
+            dados = json.loads(valor)
+        except json.JSONDecodeError:
+            raise forms.ValidationError(
+                "Lista de medicamentos do estoque invalida."
+            )
+
+        if not isinstance(dados, list):
+            raise forms.ValidationError(
+                "Lista de medicamentos do estoque invalida."
+            )
+
+        itens = []
+
+        for item in dados:
+            try:
+                medicamento_id = int(item.get("medicamento_id"))
+                quantidade = Decimal(str(item.get("quantidade", "0")).replace(",", "."))
+            except (TypeError, ValueError, InvalidOperation):
+                raise forms.ValidationError(
+                    "Verifique as quantidades dos medicamentos selecionados."
+                )
+
+            if medicamento_id <= 0 or quantidade <= 0:
+                raise forms.ValidationError(
+                    "Todos os medicamentos selecionados precisam ter quantidade maior que zero."
+                )
+
+            itens.append({
+                "medicamento_id": medicamento_id,
+                "quantidade": quantidade,
+            })
+
+        if self.exigir_itens_estoque and not itens:
+            raise forms.ValidationError(
+                "Selecione pelo menos um medicamento do estoque para dar baixa."
+            )
+
+        self.itens_estoque = itens
+        return valor
 
 
 class MedicamentoEstoqueForm(forms.ModelForm):

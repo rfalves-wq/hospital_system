@@ -59,6 +59,69 @@
             white-space: nowrap;
         }
 
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 14px;
+            padding: 18px 20px;
+            background: #fff;
+            border-bottom: 1px solid #dbe3ec;
+        }
+
+        .section-header h4 {
+            margin: 0;
+            color: var(--azul);
+            font-weight: 900;
+            font-size: 1.1rem;
+        }
+
+        .section-header p {
+            margin: 3px 0 0;
+            color: #64748b;
+            font-size: .9rem;
+        }
+
+        .periodo-badge {
+            background: #eaf4ff;
+            border: 1px solid #bfdbfe;
+            color: var(--azul);
+            border-radius: 999px;
+            padding: 8px 12px;
+            font-size: .82rem;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        .tabs-wrap {
+            background: #fff;
+            border-bottom: 1px solid #dbe3ec;
+            padding: 14px 18px 0;
+        }
+
+        .class-tabs {
+            border-bottom: 0;
+            gap: 6px;
+        }
+
+        .class-tabs .nav-link {
+            color: #334155;
+            border: 1px solid #dbe3ec;
+            border-bottom: 0;
+            border-radius: 10px 10px 0 0;
+            font-weight: 900;
+            padding: 10px 14px;
+        }
+
+        .class-tabs .nav-link.active {
+            color: var(--azul);
+            background: #f8fbff;
+        }
+
+        .tab-pane {
+            background: #fff;
+        }
+
         .table {
             margin-bottom: 0;
         }
@@ -108,6 +171,17 @@
             background: #931b25;
         }
 
+        .acoes-classificacao {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            gap: 6px;
+        }
+
+        .acoes-classificacao form {
+            margin: 0;
+        }
+
         .empty-box {
             padding: 34px;
             text-align: center;
@@ -125,6 +199,16 @@
             .contador {
                 width: 100%;
                 text-align: center;
+            }
+
+            .section-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .periodo-badge {
+                width: 100%;
+                white-space: normal;
             }
 
             .table {
@@ -146,10 +230,87 @@
                 <p>Pacientes encaminhados pela recepção aguardando avaliação.</p>
             </div>
 
-            <div class="contador">
-                {{ acolhimentos|length }} aguardando
+            <div class="d-flex flex-wrap gap-2">
+                <div class="contador">
+                    {{ acolhimentos|length }} aguardando
+                </div>
+
+                <div class="contador">
+                    {{ total_ausentes_classificacao }} ausentes
+                </div>
+
+                <div class="contador">
+                    {{ total_classificados_hoje }} classificados hoje
+                </div>
             </div>
         </div>
+
+        {% if messages %}
+            <div class="px-3 pt-3">
+                {% for message in messages %}
+                    <div class="alert {% if message.tags == 'success' %}alert-success{% elif message.tags == 'warning' %}alert-warning{% elif message.tags == 'error' %}alert-danger{% else %}alert-info{% endif %} mb-2">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <div class="tabs-wrap">
+            <ul class="nav nav-tabs class-tabs" id="abasClassificacao" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button
+                        class="nav-link active"
+                        id="aba-fila-tab"
+                        data-bs-toggle="tab"
+                        data-bs-target="#aba-fila"
+                        type="button"
+                        role="tab"
+                        aria-controls="aba-fila"
+                        aria-selected="true">
+                        Aguardando
+                        <span class="badge text-bg-primary ms-1">{{ acolhimentos|length }}</span>
+                    </button>
+                </li>
+
+                <li class="nav-item" role="presentation">
+                    <button
+                        class="nav-link"
+                        id="aba-ausentes-tab"
+                        data-bs-toggle="tab"
+                        data-bs-target="#aba-ausentes"
+                        type="button"
+                        role="tab"
+                        aria-controls="aba-ausentes"
+                        aria-selected="false">
+                        Ausentes
+                        <span class="badge text-bg-warning ms-1">{{ total_ausentes_classificacao }}</span>
+                    </button>
+                </li>
+
+                <li class="nav-item" role="presentation">
+                    <button
+                        class="nav-link"
+                        id="aba-classificados-tab"
+                        data-bs-toggle="tab"
+                        data-bs-target="#aba-classificados"
+                        type="button"
+                        role="tab"
+                        aria-controls="aba-classificados"
+                        aria-selected="false">
+                        Classificados hoje
+                        <span class="badge text-bg-success ms-1">{{ total_classificados_hoje }}</span>
+                    </button>
+                </li>
+            </ul>
+        </div>
+
+        <div class="tab-content" id="conteudoAbasClassificacao">
+            <div
+                class="tab-pane fade show active"
+                id="aba-fila"
+                role="tabpanel"
+                aria-labelledby="aba-fila-tab"
+                tabindex="0">
 
         <div class="table-responsive">
 
@@ -162,6 +323,8 @@
                         <th>Idade</th>
                         <th>Tipo</th>
                         <th>Hora</th>
+                        <th>Passagens</th>
+                        <th>Chamadas</th>
                         <th class="text-end">Ação</th>
                     </tr>
                 </thead>
@@ -206,21 +369,68 @@
                         </td>
 
                         <td>
-                            {{ acolhimento.data_acolhimento|time:"H:i" }}
+                            {% if acolhimento.hora_chegada %}
+                                {{ acolhimento.hora_chegada|time:"H:i" }}
+                            {% else %}
+                                {{ acolhimento.data_acolhimento|time:"H:i" }}
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            {% if acolhimento.tem_passagem_anterior_hoje %}
+                                <span class="badge text-bg-warning">
+                                    {{ acolhimento.total_passagens_hospital_dia }} hoje
+                                </span>
+                            {% else %}
+                                <span class="badge text-bg-success">
+                                    {{ acolhimento.total_passagens_hospital_dia }} hoje
+                                </span>
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            <span class="badge {% if acolhimento.chamadas_classificacao >= 4 %}text-bg-warning{% else %}text-bg-secondary{% endif %}">
+                                {{ acolhimento.chamadas_classificacao }}/4
+                            </span>
+
+                            {% if acolhimento.data_ultima_chamada_classificacao %}
+                                <br>
+                                <small class="text-muted">
+                                    Última: {{ acolhimento.data_ultima_chamada_classificacao|date:"H:i" }}
+                                </small>
+                            {% endif %}
                         </td>
 
                         <td class="text-end">
-                            <a href="{% url 'classificar_paciente' acolhimento.id %}"
-                               class="btn btn-danger btn-sm btn-classificar">
-                                Classificar
-                            </a>
+                            <div class="acoes-classificacao">
+                                <form method="post" action="{% url 'chamar_paciente_classificacao' acolhimento.id %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-outline-primary btn-sm">
+                                        Chamar
+                                    </button>
+                                </form>
+
+                                {% if acolhimento.chamadas_classificacao >= 4 %}
+                                    <form method="post" action="{% url 'ausentar_paciente_classificacao' acolhimento.id %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-outline-warning btn-sm">
+                                            Ausentar
+                                        </button>
+                                    </form>
+                                {% endif %}
+
+                                <a href="{% url 'classificar_paciente' acolhimento.id %}"
+                                   class="btn btn-danger btn-sm btn-classificar">
+                                    Classificar
+                                </a>
+                            </div>
                         </td>
                     </tr>
 
                 {% empty %}
 
                     <tr>
-                        <td colspan="6">
+                        <td colspan="8">
                             <div class="empty-box">
                                 Nenhum paciente aguardando classificação.
                             </div>
@@ -235,9 +445,241 @@
 
         </div>
 
+            </div>
+
+            <div
+                class="tab-pane fade"
+                id="aba-ausentes"
+                role="tabpanel"
+                aria-labelledby="aba-ausentes-tab"
+                tabindex="0">
+
+                <div class="section-header">
+                    <div>
+                        <h4>Ausentes na classificação</h4>
+                        <p>Pacientes chamados 4 vezes que não compareceram e podem ser chamados novamente.</p>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr>
+                                <th>BAM</th>
+                                <th>Paciente</th>
+                                <th>Idade</th>
+                                <th>Chamadas</th>
+                                <th>Ausente em</th>
+                                <th>Última chamada</th>
+                                <th>Passagens</th>
+                                <th class="text-end">Ação</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for acolhimento in ausentes_classificacao %}
+                                <tr>
+                                    <td class="bam">
+                                        {{ acolhimento.numero_bam }}
+                                    </td>
+
+                                    <td>
+                                        <div class="paciente">
+                                            {% if acolhimento.paciente %}
+                                                {{ acolhimento.paciente.nome_completo }}
+                                            {% else %}
+                                                {{ acolhimento.nome_paciente }}
+                                            {% endif %}
+                                        </div>
+
+                                        <small class="text-muted">
+                                            CPF: {{ acolhimento.cpf|default:"-" }}
+                                        </small>
+                                    </td>
+
+                                    <td class="idade">
+                                        {{ acolhimento.idade }} anos
+                                    </td>
+
+                                    <td>
+                                        <span class="badge text-bg-warning">
+                                            {{ acolhimento.chamadas_classificacao }}/4
+                                        </span>
+                                    </td>
+
+                                    <td>
+                                        {% if acolhimento.data_ausente_classificacao %}
+                                            {{ acolhimento.data_ausente_classificacao|date:"H:i" }}
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+
+                                    <td>
+                                        {% if acolhimento.data_ultima_chamada_classificacao %}
+                                            {{ acolhimento.data_ultima_chamada_classificacao|date:"H:i" }}
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+
+                                    <td>
+                                        {% if acolhimento.tem_passagem_anterior_hoje %}
+                                            <span class="badge text-bg-warning">
+                                                {{ acolhimento.total_passagens_hospital_dia }} hoje
+                                            </span>
+                                        {% else %}
+                                            <span class="badge text-bg-success">
+                                                {{ acolhimento.total_passagens_hospital_dia }} hoje
+                                            </span>
+                                        {% endif %}
+                                    </td>
+
+                                    <td class="text-end">
+                                        <div class="acoes-classificacao">
+                                            <form method="post" action="{% url 'chamar_paciente_classificacao' acolhimento.id %}">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-outline-primary btn-sm">
+                                                    Chamar novamente
+                                                </button>
+                                            </form>
+
+                                            <a href="{% url 'classificar_paciente' acolhimento.id %}"
+                                               class="btn btn-danger btn-sm btn-classificar">
+                                                Classificar
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="8">
+                                        <div class="empty-box">
+                                            Nenhum paciente ausente na classificação.
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+
+            <div
+                class="tab-pane fade"
+                id="aba-classificados"
+                role="tabpanel"
+                aria-labelledby="aba-classificados-tab"
+                tabindex="0">
+
+        <div class="section-header">
+            <div>
+                <h4>Classificados hoje</h4>
+                <p>Pacientes que passaram pela classificação de risco no dia.</p>
+            </div>
+
+            <div class="periodo-badge">
+                {{ periodo_classificacao_inicio|date:"d/m/Y" }} 00:00:00 ate {{ periodo_classificacao_fim|date:"d/m/Y" }} 23:59:59
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>BAM</th>
+                        <th>Paciente</th>
+                        <th>Idade</th>
+                        <th>Classificação</th>
+                        <th>Queixa</th>
+                        <th>Responsável</th>
+                        <th>Hora da classificação</th>
+                        <th>Status atual</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for classificacao in classificados_hoje %}
+                        <tr>
+                            <td class="bam">
+                                {{ classificacao.acolhimento.numero_bam }}
+                            </td>
+
+                            <td>
+                                <div class="paciente">
+                                    {% if classificacao.acolhimento.paciente %}
+                                        {{ classificacao.acolhimento.paciente.nome_completo }}
+                                    {% else %}
+                                        {{ classificacao.acolhimento.nome_paciente }}
+                                    {% endif %}
+                                </div>
+
+                                <small class="text-muted">
+                                    CPF: {{ classificacao.acolhimento.cpf|default:"-" }}
+                                </small>
+                            </td>
+
+                            <td class="idade">
+                                {{ classificacao.acolhimento.idade }} anos
+                            </td>
+
+                            <td>
+                                {% if classificacao.cor == "VERMELHO" %}
+                                    <span class="badge text-bg-danger">Vermelho</span>
+                                {% elif classificacao.cor == "LARANJA" %}
+                                    <span class="badge text-bg-warning">Laranja</span>
+                                {% elif classificacao.cor == "AMARELO" %}
+                                    <span class="badge text-bg-warning">Amarelo</span>
+                                {% elif classificacao.cor == "VERDE" %}
+                                    <span class="badge text-bg-success">Verde</span>
+                                {% elif classificacao.cor == "AZUL" %}
+                                    <span class="badge text-bg-primary">Azul</span>
+                                {% else %}
+                                    <span class="badge text-bg-secondary">{{ classificacao.get_cor_display }}</span>
+                                {% endif %}
+                            </td>
+
+                            <td>
+                                {{ classificacao.queixa_principal|default:"-"|truncatechars:80 }}
+                            </td>
+
+                            <td>
+                                {{ classificacao.usuario_responsavel|default:"-" }}
+                            </td>
+
+                            <td>
+                                {{ classificacao.data_classificacao|date:"H:i" }}
+                            </td>
+
+                            <td>
+                                <span class="badge text-bg-secondary">
+                                    {{ classificacao.acolhimento.get_status_display }}
+                                </span>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="8">
+                                <div class="empty-box">
+                                    Nenhum paciente passou pela classificação hoje.
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+        </div>
+
     </div>
 
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 </body>
 </html>

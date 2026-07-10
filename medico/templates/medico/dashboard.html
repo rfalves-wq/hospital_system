@@ -282,7 +282,11 @@
                                         </td>
 
                                         <td>
-                                            {{ acolhimento.data_acolhimento|time:"H:i" }}
+                                            {% if acolhimento.hora_chegada %}
+                                                {{ acolhimento.hora_chegada|time:"H:i" }}
+                                            {% else %}
+                                                {{ acolhimento.data_acolhimento|time:"H:i" }}
+                                            {% endif %}
                                         </td>
 
                                         <td>

@@ -15,4 +15,16 @@ urlpatterns = [
         name="classificar_paciente"
     ),
 
+    path(
+        "chamar/<int:acolhimento_id>/",
+        views.chamar_paciente_classificacao,
+        name="chamar_paciente_classificacao"
+    ),
+
+    path(
+        "ausentar/<int:acolhimento_id>/",
+        views.ausentar_paciente_classificacao,
+        name="ausentar_paciente_classificacao"
+    ),
+
 ]

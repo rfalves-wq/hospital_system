@@ -61,9 +61,92 @@ document.addEventListener("DOMContentLoaded", function () {
     // =========================
     // BUSCA AUTOMÁTICA
     // =========================
+    const horaChegada = document.getElementById("hora_chegada");
+
+    if (horaChegada && !horaChegada.value) {
+        const agora = new Date();
+        const horas = String(agora.getHours()).padStart(2, "0");
+        const minutos = String(agora.getMinutes()).padStart(2, "0");
+
+        horaChegada.value = `${horas}:${minutos}`;
+    }
+
     const busca = document.getElementById("busca");
     const tabela = document.getElementById("resultado-busca");
     const tabelaPacientes = document.getElementById("tabela-pacientes");
+    const alertaPassagensDia = document.getElementById("alerta-passagens-dia");
+
+    function escaparHtml(valor) {
+        return String(valor || "")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+    function esconderPassagensDia() {
+        if (!alertaPassagensDia) {
+            return;
+        }
+
+        alertaPassagensDia.classList.add("is-hidden");
+        alertaPassagensDia.innerHTML = "";
+    }
+
+    function mostrarPassagensDia(passagens) {
+        if (!alertaPassagensDia) {
+            return;
+        }
+
+        if (!passagens || !passagens.total) {
+            esconderPassagensDia();
+            return;
+        }
+
+        const linhas = (passagens.passagens || []).map(function (passagem) {
+            return `
+                <tr>
+                    <td>${escaparHtml(passagem.bam)}</td>
+                    <td>${escaparHtml(passagem.data)}</td>
+                    <td>${escaparHtml(passagem.hora)}</td>
+                    <td>${escaparHtml(passagem.tipo)}</td>
+                    <td>${escaparHtml(passagem.status)}</td>
+                </tr>
+            `;
+        }).join("");
+
+        alertaPassagensDia.innerHTML = `
+            <div class="passagens-dia-topo">
+                <div>
+                    <strong>Paciente com passagem no hospital hoje</strong>
+                    <span>${escaparHtml(passagens.periodo_inicio)} ate ${escaparHtml(passagens.periodo_fim)}</span>
+                </div>
+                <span class="passagens-dia-total">${passagens.total} registro(s)</span>
+            </div>
+
+            <div class="passagens-dia-alerta">
+                Confira as passagens anteriores antes de abrir um novo acolhimento.
+            </div>
+
+            <div class="passagens-dia-scroll">
+                <table class="passagens-dia-tabela">
+                    <thead>
+                        <tr>
+                            <th>BAM</th>
+                            <th>Data</th>
+                            <th>Hora</th>
+                            <th>Tipo</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>${linhas}</tbody>
+                </table>
+            </div>
+        `;
+
+        alertaPassagensDia.classList.remove("is-hidden");
+    }
 
     if (tabelaPacientes) {
         tabelaPacientes.style.display = "none";
@@ -80,6 +163,8 @@ document.addEventListener("DOMContentLoaded", function () {
                     tabelaPacientes.style.display = "none";
                 }
 
+                esconderPassagensDia();
+
                 return;
             }
 
@@ -95,16 +180,26 @@ document.addEventListener("DOMContentLoaded", function () {
                     tabela.innerHTML = "";
 
                     data.forEach(function (paciente) {
+                        const passagens = paciente.passagens_hoje || {};
+                        const totalPassagens = passagens.total || 0;
+                        const passagensCodificadas = encodeURIComponent(JSON.stringify(passagens));
+
                         tabela.innerHTML += `
                             <tr
-                                data-nome="${paciente.nome}"
-                                data-cpf="${paciente.cpf}"
-                                data-data="${paciente.data_nascimento}"
-                                data-idade="${paciente.idade}">
-                                <td>${paciente.nome}</td>
-                                <td>${paciente.cpf}</td>
-                                <td>${paciente.data_nascimento}</td>
-                                <td>${paciente.idade}</td>
+                                data-nome="${escaparHtml(paciente.nome)}"
+                                data-cpf="${escaparHtml(paciente.cpf)}"
+                                data-data="${escaparHtml(paciente.data_nascimento)}"
+                                data-idade="${escaparHtml(paciente.idade)}"
+                                data-passagens="${passagensCodificadas}">
+                                <td>${escaparHtml(paciente.nome)}</td>
+                                <td>${escaparHtml(paciente.cpf)}</td>
+                                <td>${escaparHtml(paciente.data_nascimento)}</td>
+                                <td>${escaparHtml(paciente.idade)}</td>
+                                <td>
+                                    <span class="${totalPassagens > 0 ? "passagens-dia-badge alerta" : "passagens-dia-badge"}">
+                                        ${totalPassagens}
+                                    </span>
+                                </td>
                             </tr>
                         `;
                     });
@@ -137,6 +232,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
             if (idadePaciente) {
                 idadePaciente.value = linha.dataset.idade;
+            }
+
+            try {
+                mostrarPassagensDia(JSON.parse(decodeURIComponent(linha.dataset.passagens || "")));
+            } catch (erro) {
+                esconderPassagensDia();
             }
 
             busca.value = "";

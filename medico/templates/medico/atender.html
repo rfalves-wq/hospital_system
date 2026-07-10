@@ -79,6 +79,83 @@
             margin-bottom: 16px;
         }
 
+        .passagens-dia-card {
+            background: #fff;
+            border: 1px solid var(--borda);
+            border-left: 5px solid var(--verde);
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 16px;
+        }
+
+        .passagens-dia-card.alerta {
+            background: #fff7ed;
+            border-color: #fed7aa;
+            border-left-color: #f97316;
+        }
+
+        .passagens-dia-topo {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+
+        .passagens-dia-titulo {
+            font-weight: 900;
+            color: #0f172a;
+            margin-bottom: 2px;
+        }
+
+        .passagens-dia-periodo {
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .passagens-dia-badge {
+            background: #dcfce7;
+            color: #166534;
+            border-radius: 999px;
+            padding: 7px 11px;
+            font-size: 13px;
+            font-weight: 900;
+            white-space: nowrap;
+        }
+
+        .passagens-dia-card.alerta .passagens-dia-badge {
+            background: #ffedd5;
+            color: #9a3412;
+        }
+
+        .passagens-dia-tabela {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .passagens-dia-tabela th {
+            background: #f8fafc;
+            color: #334155;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+            padding: 8px;
+            border: 1px solid #e5edf5;
+        }
+
+        .passagens-dia-tabela td {
+            padding: 8px;
+            border: 1px solid #e5edf5;
+            vertical-align: middle;
+        }
+
+        .passagem-atual {
+            background: #eaf4ff;
+            font-weight: 800;
+        }
+
         .nav-tabs {
             border-bottom: 1px solid var(--borda);
             gap: 4px;
@@ -636,6 +713,10 @@
             .estoque-farmacia-saldo {
                 width: max-content;
             }
+
+            .passagens-dia-topo {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
@@ -717,6 +798,79 @@
                         <div class="info-label">Idade</div>
                         <div class="info-value">{{ acolhimento.idade }} anos</div>
                     </div>
+                </div>
+            </div>
+
+            <div class="passagens-dia-card {% if tem_passagem_anterior_hoje %}alerta{% endif %}">
+                <div class="passagens-dia-topo">
+                    <div>
+                        <div class="passagens-dia-titulo">
+                            Passagens no hospital hoje
+                        </div>
+
+                        <div class="passagens-dia-periodo">
+                            Período avaliado:
+                            {{ periodo_passagens_inicio|date:"d/m/Y H:i:s" }}
+                            até
+                            {{ periodo_passagens_fim|date:"d/m/Y" }} 23:59:59
+                        </div>
+                    </div>
+
+                    <div class="passagens-dia-badge">
+                        {{ total_passagens_hospital_dia }} passagem(ns)
+                    </div>
+                </div>
+
+                {% if tem_passagem_anterior_hoje %}
+                    <div class="alert alert-warning py-2 mb-2">
+                        Este paciente possui outra passagem registrada no hospital neste mesmo dia.
+                    </div>
+                {% endif %}
+
+                <div class="table-responsive">
+                    <table class="passagens-dia-tabela">
+                        <thead>
+                            <tr>
+                                <th>BAM</th>
+                                <th>Data</th>
+                                <th>Hora chegada</th>
+                                <th>Tipo</th>
+                                <th>Status</th>
+                                <th>Registro</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for passagem in passagens_hospital_dia %}
+                                <tr class="{% if passagem.id == acolhimento.id %}passagem-atual{% endif %}">
+                                    <td>{{ passagem.numero_bam|default:"-" }}</td>
+                                    <td>{{ passagem.data_acolhimento|date:"d/m/Y" }}</td>
+                                    <td>
+                                        {% if passagem.hora_chegada %}
+                                            {{ passagem.hora_chegada|time:"H:i" }}
+                                        {% else %}
+                                            {{ passagem.data_acolhimento|time:"H:i" }}
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ passagem.get_tipo_atendimento_display }}</td>
+                                    <td>{{ passagem.get_status_display }}</td>
+                                    <td>
+                                        {% if passagem.id == acolhimento.id %}
+                                            Atendimento atual
+                                        {% else %}
+                                            Passagem anterior
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-muted fw-bold">
+                                        Nenhuma passagem encontrada neste período.
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
@@ -836,7 +990,13 @@
 
                                     <div class="info-item">
                                         <div class="info-label">Hora</div>
-                                        <div class="info-value">{{ acolhimento.data_acolhimento|time:"H:i" }}</div>
+                                        <div class="info-value">
+                                            {% if acolhimento.hora_chegada %}
+                                                {{ acolhimento.hora_chegada|time:"H:i" }}
+                                            {% else %}
+                                                {{ acolhimento.data_acolhimento|time:"H:i" }}
+                                            {% endif %}
+                                        </div>
                                     </div>
 
                                 </div>

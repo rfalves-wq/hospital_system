@@ -71,6 +71,7 @@
                                             <th>Tipo</th>
                                             <th class="d-none d-md-table-cell">Data</th>
                                             <th>Hora</th>
+                                            <th>Passagens</th>
                                             <th>Ação</th>
                                         </tr>
                                     </thead>
@@ -159,7 +160,23 @@
                                             </td>
 
                                             <td>
-                                                {{ acolhimento.data_acolhimento|time:"H:i" }}
+                                                {% if acolhimento.hora_chegada %}
+                                                    {{ acolhimento.hora_chegada|time:"H:i" }}
+                                                {% else %}
+                                                    {{ acolhimento.data_acolhimento|time:"H:i" }}
+                                                {% endif %}
+                                            </td>
+
+                                            <td>
+                                                {% if acolhimento.tem_passagem_anterior_hoje %}
+                                                    <span class="badge bg-warning text-dark">
+                                                        {{ acolhimento.total_passagens_hospital_dia }} hoje
+                                                    </span>
+                                                {% else %}
+                                                    <span class="badge bg-success">
+                                                        {{ acolhimento.total_passagens_hospital_dia }} hoje
+                                                    </span>
+                                                {% endif %}
                                             </td>
 
                                             <td>
@@ -217,6 +234,7 @@
                                         <th>CPF</th>
                                         <th>Data</th>
                                         <th>Hora</th>
+                                        <th>Passagens</th>
                                         <th>Status</th>
                                     </tr>
                                 </thead>
@@ -245,7 +263,25 @@
 
                                                 <td>{{ item.data_acolhimento|date:"d/m/Y" }}</td>
 
-                                                <td>{{ item.data_acolhimento|time:"H:i" }}</td>
+                                                <td>
+                                                    {% if item.hora_chegada %}
+                                                        {{ item.hora_chegada|time:"H:i" }}
+                                                    {% else %}
+                                                        {{ item.data_acolhimento|time:"H:i" }}
+                                                    {% endif %}
+                                                </td>
+
+                                                <td>
+                                                    {% if item.tem_passagem_anterior_hoje %}
+                                                        <span class="badge bg-warning text-dark">
+                                                            {{ item.total_passagens_hospital_dia }} hoje
+                                                        </span>
+                                                    {% else %}
+                                                        <span class="badge bg-success">
+                                                            {{ item.total_passagens_hospital_dia }} hoje
+                                                        </span>
+                                                    {% endif %}
+                                                </td>
 
                                                 <td>
                                                     {% if item.status == "CLASSIFICACAO" %}
@@ -260,7 +296,7 @@
                                         {% endfor %}
                                     {% else %}
                                         <tr>
-                                            <td colspan="6" class="text-center text-muted">
+                                            <td colspan="7" class="text-center text-muted">
                                                 Nenhum registro encontrado.
                                             </td>
                                         </tr>

@@ -5,7 +5,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Liberar Medicação</title>
+    <title>Liberar Medicacao</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -142,6 +142,93 @@
             font-weight: 700;
         }
 
+        .estoque-tools {
+            display: grid;
+            grid-template-columns: minmax(260px, 1fr) 230px 210px;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .estoque-status {
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .estoque-status.alerta {
+            color: #9a3412;
+        }
+
+        .estoque-lista {
+            display: none;
+            max-height: 280px;
+            overflow-y: auto;
+            border: 1px solid #e5edf5;
+            border-radius: 10px;
+            background: #fff;
+            margin-bottom: 12px;
+        }
+
+        .estoque-lista.is-active {
+            display: block;
+        }
+
+        .estoque-item {
+            display: grid;
+            grid-template-columns: 1fr 130px 120px 90px;
+            gap: 8px;
+            align-items: center;
+            padding: 10px 12px;
+            border-bottom: 1px solid #eef2f7;
+        }
+
+        .estoque-item:last-child {
+            border-bottom: 0;
+        }
+
+        .estoque-nome {
+            font-weight: 900;
+            color: #0f172a;
+        }
+
+        .estoque-detalhe {
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .estoque-saldo {
+            background: #dcfce7;
+            color: #166534;
+            border-radius: 999px;
+            padding: 6px 10px;
+            font-size: 12px;
+            font-weight: 900;
+            text-align: center;
+        }
+
+        .selecionados-box {
+            border: 1px solid #e5edf5;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .selecionados-box table {
+            margin-bottom: 0;
+        }
+
+        .selecionados-vazio {
+            padding: 12px;
+            color: var(--muted);
+            font-weight: 800;
+            background: #f8fafc;
+        }
+
+        .qtd-baixa {
+            max-width: 120px;
+        }
+
         .acao-final {
             position: sticky;
             bottom: 0;
@@ -152,7 +239,9 @@
         }
 
         @media (max-width: 992px) {
-            .status-strip {
+            .status-strip,
+            .estoque-tools,
+            .estoque-item {
                 grid-template-columns: 1fr;
             }
         }
@@ -179,8 +268,8 @@
 
         <div class="page-header d-flex justify-content-between align-items-center">
             <div>
-                <h3>{% if ja_liberada %}Atualizar Liberação{% else %}Liberar Medicação{% endif %}</h3>
-                <small>Separação e dispensação de medicamento hospitalar</small>
+                <h3>{% if ja_liberada %}Atualizar Liberacao{% else %}Liberar Medicacao{% endif %}</h3>
+                <small>Separacao, dispensacao e baixa de medicamento hospitalar</small>
             </div>
 
             <a href="{% url 'farmacia_dashboard' %}" class="btn btn-light fw-bold">
@@ -228,7 +317,7 @@
                     </div>
 
                     <div class="col-md-2">
-                        <div class="info-label">Médico</div>
+                        <div class="info-label">Medico</div>
                         <div class="info-value">{{ consulta.medico_responsavel|default:"-" }}</div>
                     </div>
 
@@ -246,12 +335,12 @@
                 </div>
 
                 <div class="status-item">
-                    <div class="status-label">Farmácia</div>
+                    <div class="status-label">Farmacia</div>
                     <div class="status-value">
                         {% if consulta.farmacia_liberada %}
                             Liberada em {{ consulta.data_liberacao_farmacia|date:"d/m/Y H:i" }}
                         {% else %}
-                            Aguardando liberação
+                            Aguardando liberacao
                         {% endif %}
                     </div>
                 </div>
@@ -260,9 +349,9 @@
                     <div class="status-label">Enfermagem</div>
                     <div class="status-value">
                         {% if consulta.medicacao_realizada %}
-                            Medicação administrada
+                            Medicacao administrada
                         {% else %}
-                            Aguardando administração
+                            Aguardando administracao
                         {% endif %}
                     </div>
                 </div>
@@ -279,22 +368,83 @@
 
                 <div class="section-box">
                     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
-                        <h5 class="section-title mb-0">Prescrição Médica</h5>
+                        <h5 class="section-title mb-0">Prescricao Medica</h5>
 
                         <button type="button" class="btn btn-outline-primary btn-sm fw-bold" id="btnCopiarPrescricao">
-                            Copiar para dispensação
+                            Copiar para dispensacao
                         </button>
                     </div>
 
                     <label class="form-label fw-bold">
-                        Prescrição enviada pelo médico
+                        Prescricao enviada pelo medico
                     </label>
 
-                    <textarea class="form-control" rows="7" id="prescricaoMedica" readonly>{{ consulta.prescricao|default:"Sem prescrição informada." }}</textarea>
+                    <textarea class="form-control" rows="7" id="prescricaoMedica" readonly>{{ consulta.prescricao|default:"Sem prescricao informada." }}</textarea>
                 </div>
 
                 <div class="section-box">
-                    <h5 class="section-title">Dispensação da Farmácia</h5>
+                    <h5 class="section-title">Itens do Estoque para Baixa</h5>
+
+                    {% if ja_liberada %}
+                        <div class="alert alert-info">
+                            Esta medicacao ja foi liberada. Para evitar baixa duplicada, novas alteracoes aqui nao descontam novamente do estoque.
+                        </div>
+                    {% else %}
+                        <div class="estoque-tools">
+                            <input
+                                type="text"
+                                id="buscaMedicamentoEstoque"
+                                class="form-control"
+                                placeholder="Buscar medicamento no estoque...">
+
+                            <select id="categoriaMedicamentoEstoque" class="form-select">
+                                <option value="">Todas as categorias</option>
+                                {% for codigo, nome in categorias %}
+                                    <option value="{{ codigo }}">{{ nome }}</option>
+                                {% endfor %}
+                            </select>
+
+                            <select id="metodoMedicamentoEstoque" class="form-select">
+                                <option value="">Todos os metodos</option>
+                                {% for codigo, nome in metodos_aplicacao %}
+                                    <option value="{{ codigo }}">{{ nome }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div id="statusMedicamentoEstoque" class="estoque-status">
+                            Digite pelo menos 2 letras ou selecione um filtro para buscar no estoque.
+                        </div>
+
+                        <div id="listaMedicamentosEstoque" class="estoque-lista"></div>
+                    {% endif %}
+
+                    {{ form.itens_estoque_json }}
+                    {{ form.itens_estoque_json.errors }}
+
+                    <div class="selecionados-box">
+                        <table class="table table-sm align-middle" id="tabelaItensBaixa">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Medicamento</th>
+                                    <th style="width: 150px;">Quantidade</th>
+                                    <th style="width: 120px;">Unidade</th>
+                                    <th style="width: 90px;">Acao</th>
+                                </tr>
+                            </thead>
+                            <tbody id="itensBaixaBody">
+                                <tr>
+                                    <td colspan="4" class="selecionados-vazio">
+                                        Nenhum medicamento selecionado para baixa.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="section-box">
+                    <h5 class="section-title">Dispensacao da Farmacia</h5>
 
                     <div class="mb-3">
                         <label class="form-label fw-bold">Medicamentos dispensados <span class="text-danger">*</span></label>
@@ -323,14 +473,14 @@
                     </div>
 
                     <div class="mt-3">
-                        <label class="form-label fw-bold">Observações da farmácia</label>
+                        <label class="form-label fw-bold">Observacoes da farmacia</label>
                         {{ form.observacao_farmacia }}
                         {{ form.observacao_farmacia.errors }}
                     </div>
                 </div>
 
                 <div class="section-box">
-                    <h5 class="section-title">Profissional Responsável</h5>
+                    <h5 class="section-title">Profissional Responsavel</h5>
 
                     <div class="row g-3">
                         <div class="col-md-8">
@@ -340,7 +490,7 @@
                         </div>
 
                         <div class="col-md-4">
-                            <label class="form-label fw-bold">Registro / Matrícula <span class="text-danger">*</span></label>
+                            <label class="form-label fw-bold">Registro / Matricula <span class="text-danger">*</span></label>
                             {{ form.profissional_farmacia_registro }}
                             {{ form.profissional_farmacia_registro.errors }}
                         </div>
@@ -348,13 +498,13 @@
                 </div>
 
                 <div class="help-box mb-3">
-                    Depois de liberar, esta medicação ficará disponível no módulo de Medicação para a enfermagem administrar e registrar o que foi utilizado.
+                    Ao liberar, os itens selecionados acima geram saida no estoque e a medicacao fica disponivel para a enfermagem administrar.
                 </div>
 
                 <div class="form-check mb-3">
                     <input class="form-check-input" type="checkbox" value="1" id="confirmarConferencia" required>
                     <label class="form-check-label fw-bold" for="confirmarConferencia">
-                        Conferi a prescrição médica e os medicamentos dispensados.
+                        Conferi a prescricao medica, os itens do estoque e os medicamentos dispensados.
                     </label>
                 </div>
 
@@ -364,7 +514,7 @@
                     </a>
 
                     <button type="submit" class="btn btn-primary btn-lg" id="btnLiberarFarmacia">
-                        <span class="btn-text">{% if ja_liberada %}Atualizar Liberação{% else %}Liberar Medicação{% endif %}</span>
+                        <span class="btn-text">{% if ja_liberada %}Atualizar Liberacao{% else %}Liberar Medicacao{% endif %}</span>
                         <span class="btn-loading d-none">
                             <span class="spinner-border spinner-border-sm me-2"></span>
                             Salvando...
@@ -389,12 +539,292 @@ document.addEventListener("DOMContentLoaded", function () {
     const btnCopiarPrescricao = document.getElementById("btnCopiarPrescricao");
     const prescricaoMedica = document.getElementById("prescricaoMedica");
     const medicamentosDispensados = document.getElementById("id_medicamentos_dispensados");
+    const quantidadeFarmacia = document.getElementById("id_quantidade_farmacia");
+    const busca = document.getElementById("buscaMedicamentoEstoque");
+    const categoria = document.getElementById("categoriaMedicamentoEstoque");
+    const metodo = document.getElementById("metodoMedicamentoEstoque");
+    const lista = document.getElementById("listaMedicamentosEstoque");
+    const status = document.getElementById("statusMedicamentoEstoque");
+    const hiddenItens = document.getElementById("id_itens_estoque_json");
+    const itensBody = document.getElementById("itensBaixaBody");
+    const exigirBaixa = {% if ja_liberada %}false{% else %}true{% endif %};
+
+    let timerBusca = null;
+    let numeroBusca = 0;
+    let itensBaixa = [];
+
+    function definirStatus(texto, alerta) {
+        if (!status) return;
+        status.textContent = texto;
+        status.classList.toggle("alerta", Boolean(alerta));
+    }
+
+    function limparLista() {
+        if (!lista) return;
+        lista.innerHTML = "";
+        lista.classList.remove("is-active");
+    }
+
+    function numeroDecimal(valor) {
+        const numero = Number(String(valor || "0").replace(",", "."));
+        return Number.isFinite(numero) ? numero : 0;
+    }
+
+    function formatarQuantidade(valor) {
+        const numero = numeroDecimal(valor);
+        return Number.isInteger(numero) ? String(numero) : String(numero).replace(".", ",");
+    }
+
+    function montarDetalhe(medicamento) {
+        const detalhes = [];
+
+        if (medicamento.categoria) detalhes.push(`Categoria: ${medicamento.categoria}`);
+        if (medicamento.metodo) detalhes.push(`Metodo: ${medicamento.metodo}`);
+        if (medicamento.principio_ativo) detalhes.push(`Principio ativo: ${medicamento.principio_ativo}`);
+        if (medicamento.localizacao) detalhes.push(`Local: ${medicamento.localizacao}`);
+
+        return detalhes.join(" | ");
+    }
+
+    function atualizarResumoDispensacao() {
+        if (hiddenItens) {
+            hiddenItens.value = JSON.stringify(
+                itensBaixa.map(function (item) {
+                    return {
+                        medicamento_id: item.id,
+                        quantidade: item.quantidade,
+                        nome: item.nome,
+                        unidade: item.unidade,
+                        estoque: item.estoque,
+                    };
+                })
+            );
+        }
+
+        if (medicamentosDispensados && itensBaixa.length > 0) {
+            medicamentosDispensados.value = itensBaixa.map(function (item) {
+                return `${item.nome} - ${formatarQuantidade(item.quantidade)} ${item.unidade}`;
+            }).join("\n");
+        }
+
+        if (quantidadeFarmacia && itensBaixa.length > 0) {
+            quantidadeFarmacia.value = itensBaixa.map(function (item) {
+                return `${formatarQuantidade(item.quantidade)} ${item.unidade}`;
+            }).join(" / ");
+        }
+    }
+
+    function renderizarSelecionados() {
+        if (!itensBody) return;
+
+        itensBody.innerHTML = "";
+
+        if (itensBaixa.length === 0) {
+            const vazio = document.createElement("tr");
+            vazio.innerHTML = `
+                <td colspan="4" class="selecionados-vazio">
+                    Nenhum medicamento selecionado para baixa.
+                </td>
+            `;
+            itensBody.appendChild(vazio);
+            atualizarResumoDispensacao();
+            return;
+        }
+
+        itensBaixa.forEach(function (item) {
+            const linha = document.createElement("tr");
+
+            const colMedicamento = document.createElement("td");
+            colMedicamento.innerHTML = `
+                <div class="estoque-nome"></div>
+                <div class="estoque-detalhe">Estoque disponivel: ${item.estoque} ${item.unidade}</div>
+            `;
+            colMedicamento.querySelector(".estoque-nome").textContent = item.nome;
+
+            const colQuantidade = document.createElement("td");
+            const input = document.createElement("input");
+            input.type = "number";
+            input.className = "form-control form-control-sm qtd-baixa";
+            input.min = "0.01";
+            input.step = "0.01";
+            input.value = item.quantidade;
+            input.addEventListener("input", function () {
+                item.quantidade = this.value;
+                atualizarResumoDispensacao();
+            });
+            colQuantidade.appendChild(input);
+
+            const colUnidade = document.createElement("td");
+            colUnidade.textContent = item.unidade || "-";
+
+            const colAcao = document.createElement("td");
+            const botaoRemover = document.createElement("button");
+            botaoRemover.type = "button";
+            botaoRemover.className = "btn btn-outline-danger btn-sm fw-bold";
+            botaoRemover.textContent = "Remover";
+            botaoRemover.addEventListener("click", function () {
+                itensBaixa = itensBaixa.filter(function (selecionado) {
+                    return selecionado.id !== item.id;
+                });
+
+                renderizarSelecionados();
+            });
+            colAcao.appendChild(botaoRemover);
+
+            linha.appendChild(colMedicamento);
+            linha.appendChild(colQuantidade);
+            linha.appendChild(colUnidade);
+            linha.appendChild(colAcao);
+
+            itensBody.appendChild(linha);
+        });
+
+        atualizarResumoDispensacao();
+    }
+
+    function adicionarItemBaixa(medicamento, quantidade) {
+        const quantidadeNumero = numeroDecimal(quantidade);
+
+        if (quantidadeNumero <= 0) {
+            alert("Informe uma quantidade maior que zero.");
+            return;
+        }
+
+        const existente = itensBaixa.find(function (item) {
+            return item.id === medicamento.id;
+        });
+
+        if (existente) {
+            existente.quantidade = String(numeroDecimal(existente.quantidade) + quantidadeNumero);
+        } else {
+            itensBaixa.push({
+                id: medicamento.id,
+                nome: medicamento.nome,
+                unidade: medicamento.unidade || "unidade",
+                estoque: medicamento.estoque,
+                quantidade: String(quantidadeNumero),
+            });
+        }
+
+        renderizarSelecionados();
+    }
+
+    function renderizarMedicamentos(dados) {
+        limparLista();
+
+        const resultados = dados.resultados || [];
+        const total = dados.total || 0;
+
+        if (!lista) return;
+
+        if (resultados.length === 0) {
+            lista.classList.add("is-active");
+            lista.innerHTML = `<div class="p-3 text-muted fw-bold">Nenhum medicamento encontrado.</div>`;
+            definirStatus("Nenhum medicamento encontrado.", true);
+            return;
+        }
+
+        resultados.forEach(function (medicamento) {
+            const item = document.createElement("div");
+            item.className = "estoque-item";
+
+            const conteudo = document.createElement("div");
+            const nome = document.createElement("div");
+            nome.className = "estoque-nome";
+            nome.textContent = medicamento.nome || "-";
+
+            const detalhe = document.createElement("div");
+            detalhe.className = "estoque-detalhe";
+            detalhe.textContent = montarDetalhe(medicamento);
+
+            conteudo.appendChild(nome);
+            conteudo.appendChild(detalhe);
+
+            const saldo = document.createElement("div");
+            saldo.className = "estoque-saldo";
+            saldo.textContent = `${medicamento.estoque} ${medicamento.unidade || ""}`.trim();
+
+            const quantidade = document.createElement("input");
+            quantidade.type = "number";
+            quantidade.className = "form-control form-control-sm";
+            quantidade.min = "0.01";
+            quantidade.step = "0.01";
+            quantidade.value = "1";
+
+            const botaoAdicionar = document.createElement("button");
+            botaoAdicionar.type = "button";
+            botaoAdicionar.className = "btn btn-outline-primary btn-sm fw-bold";
+            botaoAdicionar.textContent = "Adicionar";
+            botaoAdicionar.addEventListener("click", function () {
+                adicionarItemBaixa(medicamento, quantidade.value);
+            });
+
+            item.appendChild(conteudo);
+            item.appendChild(saldo);
+            item.appendChild(quantidade);
+            item.appendChild(botaoAdicionar);
+
+            lista.appendChild(item);
+        });
+
+        lista.classList.add("is-active");
+
+        if (total > resultados.length) {
+            definirStatus(`Mostrando ${resultados.length} de ${total} medicamento(s). Refine a busca para ver outros itens.`);
+        } else {
+            definirStatus(`${resultados.length} medicamento(s) encontrado(s).`);
+        }
+    }
+
+    function buscarMedicamentos() {
+        if (!lista) return;
+
+        const termo = busca ? busca.value.trim() : "";
+        const categoriaValor = categoria ? categoria.value : "";
+        const metodoValor = metodo ? metodo.value : "";
+
+        clearTimeout(timerBusca);
+
+        timerBusca = setTimeout(function () {
+            if (termo.length < 2 && !categoriaValor && !metodoValor) {
+                limparLista();
+                definirStatus("Digite pelo menos 2 letras ou selecione um filtro para buscar no estoque.");
+                return;
+            }
+
+            const parametros = new URLSearchParams({
+                q: termo,
+                categoria: categoriaValor,
+                metodo_aplicacao: metodoValor,
+            });
+
+            const buscaAtual = ++numeroBusca;
+            definirStatus("Buscando medicamentos no estoque...");
+
+            fetch(`{% url 'farmacia_buscar_medicamento_estoque' %}?${parametros.toString()}`)
+                .then(function (response) {
+                    if (!response.ok) {
+                        throw new Error("Erro ao buscar medicamentos.");
+                    }
+
+                    return response.json();
+                })
+                .then(function (dados) {
+                    if (buscaAtual !== numeroBusca) return;
+                    renderizarMedicamentos(dados);
+                })
+                .catch(function () {
+                    limparLista();
+                    definirStatus("Nao foi possivel consultar o estoque agora.", true);
+                });
+        }, 250);
+    }
 
     if (btnCopiarPrescricao && prescricaoMedica && medicamentosDispensados) {
         btnCopiarPrescricao.addEventListener("click", function () {
             const texto = prescricaoMedica.value.trim();
 
-            if (!texto || texto === "Sem prescrição informada.") {
+            if (!texto || texto === "Sem prescricao informada.") {
                 return;
             }
 
@@ -408,12 +838,47 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
+    if (busca) busca.addEventListener("input", buscarMedicamentos);
+    if (categoria) categoria.addEventListener("change", buscarMedicamentos);
+    if (metodo) metodo.addEventListener("change", buscarMedicamentos);
+
+    if (hiddenItens && hiddenItens.value) {
+        try {
+            const itensSalvos = JSON.parse(hiddenItens.value);
+
+            if (Array.isArray(itensSalvos)) {
+                itensBaixa = itensSalvos.map(function (item) {
+                    return {
+                        id: Number(item.medicamento_id),
+                        nome: item.nome || `Medicamento #${item.medicamento_id}`,
+                        unidade: item.unidade || "unidade",
+                        estoque: item.estoque || "-",
+                        quantidade: String(item.quantidade || "1"),
+                    };
+                }).filter(function (item) {
+                    return item.id > 0;
+                });
+            }
+        } catch (erro) {
+            itensBaixa = [];
+        }
+    }
+
+    renderizarSelecionados();
+
     if (form && botao) {
-        form.addEventListener("submit", function () {
+        form.addEventListener("submit", function (event) {
+            if (exigirBaixa && itensBaixa.length === 0) {
+                event.preventDefault();
+                alert("Selecione pelo menos um medicamento do estoque para dar baixa.");
+                return;
+            }
+
             if (!form.checkValidity()) {
                 return;
             }
 
+            atualizarResumoDispensacao();
             botao.disabled = true;
 
             const texto = botao.querySelector(".btn-text");

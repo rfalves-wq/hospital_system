@@ -2,6 +2,7 @@ from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db import transaction
 from django.db.models import F, Q
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
@@ -78,6 +79,147 @@ def farmacia_dashboard(request):
     )
 
 
+def buscar_medicamento_estoque(request):
+    termo = request.GET.get("q", "").strip()
+    categoria = request.GET.get("categoria", "").strip()
+    metodo_aplicacao = request.GET.get("metodo_aplicacao", "").strip()
+
+    if len(termo) < 2 and not categoria and not metodo_aplicacao:
+        return JsonResponse({
+            "total": 0,
+            "resultados": [],
+        })
+
+    medicamentos = MedicamentoEstoque.objects.filter(
+        ativo=True,
+        estoque_atual__gt=0
+    )
+
+    if termo:
+        medicamentos = medicamentos.filter(
+            Q(nome__icontains=termo)
+            | Q(principio_ativo__icontains=termo)
+            | Q(apresentacao__icontains=termo)
+            | Q(concentracao__icontains=termo)
+            | Q(localizacao__icontains=termo)
+            | Q(categoria__icontains=termo)
+            | Q(metodo_aplicacao__icontains=termo)
+        )
+
+    if categoria:
+        medicamentos = medicamentos.filter(categoria=categoria)
+
+    if metodo_aplicacao:
+        medicamentos = medicamentos.filter(metodo_aplicacao=metodo_aplicacao)
+
+    total = medicamentos.count()
+
+    medicamentos = medicamentos.order_by(
+        "categoria",
+        "nome",
+        "concentracao",
+        "apresentacao"
+    )[:20]
+
+    resultados = []
+
+    for medicamento in medicamentos:
+        resultados.append({
+            "id": medicamento.id,
+            "nome": medicamento.descricao_completa,
+            "categoria": medicamento.get_categoria_display(),
+            "metodo": medicamento.get_metodo_aplicacao_display(),
+            "principio_ativo": medicamento.principio_ativo,
+            "localizacao": medicamento.localizacao,
+            "estoque": str(medicamento.estoque_atual),
+            "unidade": medicamento.unidade_medida,
+        })
+
+    return JsonResponse({
+        "total": total,
+        "resultados": resultados,
+    })
+
+
+def nome_paciente_consulta(consulta):
+    if consulta.acolhimento.paciente:
+        return consulta.acolhimento.paciente.nome_completo
+
+    return consulta.acolhimento.nome_paciente
+
+
+def baixar_itens_estoque(consulta, itens_estoque, form):
+    itens_baixa = []
+
+    for item in itens_estoque:
+        try:
+            medicamento = (
+                MedicamentoEstoque.objects
+                .select_for_update()
+                .get(
+                    id=item["medicamento_id"],
+                    ativo=True
+                )
+            )
+        except MedicamentoEstoque.DoesNotExist:
+            form.add_error(
+                "itens_estoque_json",
+                "Um dos medicamentos selecionados nao esta mais disponivel no estoque."
+            )
+            continue
+
+        quantidade = item["quantidade"]
+
+        if medicamento.estoque_atual < quantidade:
+            form.add_error(
+                "itens_estoque_json",
+                (
+                    f"Estoque insuficiente para {medicamento.descricao_completa}. "
+                    f"Disponivel: {medicamento.estoque_atual} {medicamento.unidade_medida}."
+                )
+            )
+            continue
+
+        itens_baixa.append((medicamento, quantidade))
+
+    if form.errors:
+        return False
+
+    paciente = nome_paciente_consulta(consulta)
+    destino = f"BAM {consulta.acolhimento.numero_bam} - {paciente}"[:180]
+
+    for medicamento, quantidade in itens_baixa:
+        saldo_anterior = medicamento.estoque_atual
+        saldo_atual = saldo_anterior - quantidade
+
+        MovimentacaoEstoque.objects.create(
+            medicamento=medicamento,
+            consulta=consulta,
+            tipo=MovimentacaoEstoque.SAIDA,
+            quantidade=quantidade,
+            saldo_anterior=saldo_anterior,
+            saldo_atual=saldo_atual,
+            lote=consulta.lote_farmacia or "",
+            validade=consulta.validade_farmacia,
+            origem_destino=destino,
+            profissional_nome=consulta.profissional_farmacia_nome,
+            profissional_registro=consulta.profissional_farmacia_registro or "",
+            observacao=(
+                "Saida por dispensacao da farmacia."
+                + (
+                    f" Observacao: {consulta.observacao_farmacia}"
+                    if consulta.observacao_farmacia
+                    else ""
+                )
+            ),
+        )
+
+        medicamento.estoque_atual = saldo_atual
+        medicamento.save(update_fields=["estoque_atual", "atualizado_em"])
+
+    return True
+
+
 def liberar_medicacao(request, consulta_id):
     consulta = get_object_or_404(
         ConsultaMedica.objects.select_related(
@@ -93,38 +235,53 @@ def liberar_medicacao(request, consulta_id):
     if request.method == "POST":
         form = FarmaciaForm(
             request.POST,
-            instance=consulta
+            instance=consulta,
+            exigir_itens_estoque=not ja_liberada
         )
 
         if form.is_valid():
-            consulta = form.save(commit=False)
+            with transaction.atomic():
+                consulta = form.save(commit=False)
 
-            if not consulta.farmacia_liberada:
-                consulta.data_liberacao_farmacia = timezone.now()
+                if not ja_liberada:
+                    baixa_ok = baixar_itens_estoque(
+                        consulta,
+                        getattr(form, "itens_estoque", []),
+                        form
+                    )
+                else:
+                    baixa_ok = True
 
-            consulta.farmacia_liberada = True
-            consulta.save()
+                if baixa_ok:
+                    if not consulta.farmacia_liberada:
+                        consulta.data_liberacao_farmacia = timezone.now()
 
-            acolhimento = consulta.acolhimento
+                    consulta.farmacia_liberada = True
+                    consulta.save()
 
-            if acolhimento.status != "FINALIZADO":
-                acolhimento.status = "PROCEDIMENTOS"
-                acolhimento.save(update_fields=["status"])
+                    acolhimento = consulta.acolhimento
 
-            if ja_liberada:
-                messages.success(
-                    request,
-                    "Liberação da farmácia atualizada com sucesso."
-                )
-            else:
-                messages.success(
-                    request,
-                    "Medicação liberada pela farmácia com sucesso. Agora aparece para a enfermagem."
-                )
+                    if acolhimento.status != "FINALIZADO":
+                        acolhimento.status = "PROCEDIMENTOS"
+                        acolhimento.save(update_fields=["status"])
 
-            return redirect("farmacia_dashboard")
+                    if ja_liberada:
+                        messages.success(
+                            request,
+                            "Liberacao da farmacia atualizada com sucesso."
+                        )
+                    else:
+                        messages.success(
+                            request,
+                            "Medicacao liberada pela farmacia com baixa automatica no estoque."
+                        )
+
+                    return redirect("farmacia_dashboard")
     else:
-        form = FarmaciaForm(instance=consulta)
+        form = FarmaciaForm(
+            instance=consulta,
+            exigir_itens_estoque=not ja_liberada
+        )
 
     return render(
         request,
@@ -134,6 +291,8 @@ def liberar_medicacao(request, consulta_id):
             "consulta": consulta,
             "acolhimento": consulta.acolhimento,
             "ja_liberada": ja_liberada,
+            "categorias": MedicamentoEstoque.CATEGORIA_CHOICES,
+            "metodos_aplicacao": MedicamentoEstoque.METODO_APLICACAO_CHOICES,
         }
     )
 
@@ -269,7 +428,7 @@ def movimentar_estoque(request, medicamento_id, tipo):
         MovimentacaoEstoque.SAIDA,
         MovimentacaoEstoque.AJUSTE,
     ]:
-        messages.error(request, "Tipo de movimentação inválido.")
+        messages.error(request, "Tipo de movimentacao invalido.")
         return redirect("farmacia_estoque")
 
     if request.method == "POST":
@@ -296,7 +455,7 @@ def movimentar_estoque(request, medicamento_id, tipo):
                     if quantidade > saldo_anterior:
                         form.add_error(
                             "quantidade",
-                            "Quantidade maior que o saldo disponível."
+                            "Quantidade maior que o saldo disponivel."
                         )
                         saldo_atual = None
                     else:
@@ -316,7 +475,7 @@ def movimentar_estoque(request, medicamento_id, tipo):
                     medicamento_bloqueado.estoque_atual = saldo_atual
                     medicamento_bloqueado.save(update_fields=["estoque_atual", "atualizado_em"])
 
-                    messages.success(request, "Movimentação registrada com sucesso.")
+                    messages.success(request, "Movimentacao registrada com sucesso.")
                     return redirect("farmacia_estoque")
     else:
         form = MovimentacaoEstoqueForm(tipo_movimento=tipo)
