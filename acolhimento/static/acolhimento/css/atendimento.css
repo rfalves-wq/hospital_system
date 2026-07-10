@@ -532,6 +532,13 @@ h3 {
     font-weight: bold;
 }
 
+.modal-pergunta {
+    color: #334155;
+    font-size: 15px;
+    font-weight: 700;
+    margin: -6px 0 18px;
+}
+
 .btn-ok {
     background: #28a745;
     color: white;
@@ -569,6 +576,20 @@ h3 {
     display: flex;
     gap: 10px;
     justify-content: center;
+}
+
+.btn-imprimir {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 10px 22px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.btn-imprimir:hover {
+    background: var(--primary-dark);
 }
 
 .btn-cancelar {

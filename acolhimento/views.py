@@ -91,6 +91,8 @@ def tipo_atendimento(request):
             status="RECEPCAO",
         )
 
+        request.session["acolhimento_impressao_id"] = paciente.id
+
         messages.success(
             request,
             f"✔️ Atendimento registrado! Encaminhado para recepção. BAM: {paciente.numero_bam}"
@@ -98,14 +100,72 @@ def tipo_atendimento(request):
 
         return redirect("tipo_atendimento")
 
+    dados_impressao = buscar_dados_impressao(request)
+
     return render(
         request,
         "acolhimento/tipo_atendimento.html",
         {
             "erro": erro,
             "historico_acolhimentos": buscar_historico_acolhimentos(),
+            "dados_impressao": dados_impressao,
         }
     )
+
+
+def buscar_dados_impressao(request):
+    acolhimento_id = request.session.pop("acolhimento_impressao_id", None)
+
+    if not acolhimento_id:
+        return None
+
+    try:
+        acolhimento = Acolhimento.objects.get(id=acolhimento_id)
+    except Acolhimento.DoesNotExist:
+        return None
+
+    return dados_acolhimento_para_impressao(acolhimento)
+
+
+def dados_acolhimento_para_impressao(acolhimento):
+    data_acolhimento = (
+        acolhimento.data_acolhimento.strftime("%d/%m/%Y %H:%M")
+        if acolhimento.data_acolhimento
+        else ""
+    )
+
+    return {
+        "nome_paciente": acolhimento.nome_paciente or "",
+        "cpf": acolhimento.cpf or "",
+        "numero_bam": acolhimento.numero_bam or "",
+        "data_nascimento": (
+            acolhimento.data_nascimento.strftime("%d/%m/%Y")
+            if acolhimento.data_nascimento
+            else ""
+        ),
+        "idade": acolhimento.idade if acolhimento.idade is not None else "",
+        "hora_chegada": (
+            acolhimento.hora_chegada.strftime("%H:%M")
+            if acolhimento.hora_chegada
+            else ""
+        ),
+        "pressao_arterial": acolhimento.pressao_arterial or "",
+        "temperatura": (
+            str(acolhimento.temperatura).replace(".", ",")
+            if acolhimento.temperatura is not None
+            else ""
+        ),
+        "frequencia_respiratoria": (
+            acolhimento.frequencia_respiratoria
+            if acolhimento.frequencia_respiratoria is not None
+            else ""
+        ),
+        "pulso": acolhimento.pulso if acolhimento.pulso is not None else "",
+        "dor": acolhimento.dor if acolhimento.dor is not None else "",
+        "tipo_atendimento": acolhimento.tipo_atendimento or "",
+        "tipo_atendimento_label": acolhimento.get_tipo_atendimento_display(),
+        "data_acolhimento": data_acolhimento,
+    }
 
 
 def buscar_historico_acolhimentos():

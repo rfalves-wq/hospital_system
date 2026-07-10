@@ -85,12 +85,23 @@ document.addEventListener("DOMContentLoaded", function () {
             .replace(/'/g, "&#039;");
     }
 
-    function textoOuTraco(valor) {
-        if (valor === undefined || valor === null || valor === "") {
-            return "-";
+    function valorCampo(seletor) {
+        const campo = document.querySelector(seletor);
+        return campo && campo.value ? campo.value : "-";
+    }
+
+    function formatarDataBr(valor) {
+        if (!valor || !valor.includes("-")) {
+            return valor || "-";
         }
 
-        return String(valor);
+        const partes = valor.split("-");
+
+        if (partes.length !== 3) {
+            return valor;
+        }
+
+        return `${partes[2]}/${partes[1]}/${partes[0]}`;
     }
 
     function nomeTipoAtendimento(tipo) {
@@ -103,356 +114,184 @@ document.addEventListener("DOMContentLoaded", function () {
         return tipos[tipo] || tipo || "-";
     }
 
-    function classeTipoAtendimento(tipo) {
-        return {
-            NORMAL: "normal",
-            RISCO: "risco",
-            PREFERENCIAL: "preferencial"
-        }[tipo] || "normal";
-    }
-
-    function normalizarDadosImpressao(dados) {
-        const ficha = dados || {};
-        const tipoAtendimento = ficha.tipo_atendimento || ficha.tipoAtendimento || "";
-
-        return {
-            nomePaciente: textoOuTraco(ficha.nome_paciente || ficha.nomePaciente),
-            cpfPaciente: textoOuTraco(ficha.cpf || ficha.cpfPaciente),
-            dataNascimentoPaciente: textoOuTraco(ficha.data_nascimento || ficha.dataNascimentoPaciente),
-            idadePaciente: textoOuTraco(ficha.idade || ficha.idadePaciente),
-            horaChegadaPaciente: textoOuTraco(ficha.hora_chegada || ficha.horaChegadaPaciente),
-            pressao: textoOuTraco(ficha.pressao_arterial || ficha.pressao),
-            temperatura: textoOuTraco(ficha.temperatura),
-            frequencia: textoOuTraco(ficha.frequencia_respiratoria || ficha.frequencia),
-            pulso: textoOuTraco(ficha.pulso),
-            dor: textoOuTraco(ficha.dor),
-            tipoAtendimento: tipoAtendimento,
-            tipoTexto: textoOuTraco(
-                ficha.tipo_atendimento_label ||
-                ficha.tipoTexto ||
-                nomeTipoAtendimento(tipoAtendimento)
-            ),
-            numeroBam: textoOuTraco(ficha.numero_bam || ficha.numeroBam),
-            dataAcolhimento: textoOuTraco(ficha.data_acolhimento || ficha.dataAcolhimento)
-        };
-    }
-
-    function obterDadosImpressaoSalva() {
-        const script = document.getElementById("dados-impressao-acolhimento");
-
-        if (!script) {
-            return null;
-        }
-
-        try {
-            return JSON.parse(script.textContent);
-        } catch (erro) {
-            return null;
-        }
-    }
-
-    function imprimirDadosPaciente(dados) {
+    function imprimirDadosPaciente(tipoAtendimento) {
         const agora = new Date();
-        const ficha = normalizarDadosImpressao(dados);
-        const tipoClasse = classeTipoAtendimento(ficha.tipoAtendimento);
+        const nomePaciente = valorCampo("#nome_paciente");
+        const cpfPaciente = valorCampo("#cpf");
+        const dataNascimentoPaciente = formatarDataBr(valorCampo("#data_nascimento"));
+        const idadePaciente = valorCampo("#idade");
+        const horaChegadaPaciente = valorCampo("#hora_chegada");
+        const tipoTexto = nomeTipoAtendimento(tipoAtendimento);
+
+        const pressao = valorCampo('[name="pressao_arterial"]');
+        const temperatura = valorCampo('[name="temperatura"]');
+        const frequencia = valorCampo('[name="frequencia_respiratoria"]');
+        const pulso = valorCampo('[name="pulso"]');
+        const dor = valorCampo('[name="dor"]');
 
         const conteudo = `
             <!DOCTYPE html>
             <html lang="pt-br">
             <head>
                 <meta charset="UTF-8">
-                <title>Comprovante de Acolhimento</title>
+                <title>Ficha de Atendimento</title>
                 <style>
                     * {
                         box-sizing: border-box;
                     }
 
-                    @page {
-                        margin: 10mm;
-                        size: A4;
-                    }
-
                     body {
-                        background: #fff;
-                        color: #0f172a;
+                        color: #111827;
                         font-family: Arial, Helvetica, sans-serif;
-                        font-size: 12px;
-                        margin: 0;
+                        margin: 24px;
                     }
 
-                    .folha {
-                        border: 1px solid #cbd5e1;
-                        margin: 0 auto;
-                        max-width: 760px;
-                    }
-
-                    .topo {
-                        align-items: center;
-                        background: #0f4c81;
-                        color: #fff;
-                        display: flex;
-                        justify-content: space-between;
-                        padding: 12px 14px;
-                    }
-
-                    .hospital {
-                        font-size: 11px;
-                        font-weight: 700;
-                        letter-spacing: .08em;
-                        text-transform: uppercase;
+                    .cabecalho {
+                        border-bottom: 3px solid #0f4c81;
+                        margin-bottom: 18px;
+                        padding-bottom: 12px;
                     }
 
                     h1 {
-                        font-size: 18px;
-                        line-height: 1.1;
-                        margin: 4px 0 0;
+                        color: #0f4c81;
+                        font-size: 22px;
+                        margin: 0 0 4px;
+                    }
+
+                    .subtitulo {
+                        color: #475569;
+                        font-size: 13px;
                     }
 
                     .tipo {
-                        border-radius: 999px;
-                        color: #111827;
-                        font-size: 13px;
-                        font-weight: 900;
-                        padding: 8px 12px;
-                        text-align: center;
-                        white-space: nowrap;
-                    }
-
-                    .tipo.normal {
-                        background: #facc15;
-                    }
-
-                    .tipo.risco {
-                        background: #dc3545;
-                        color: #fff;
-                    }
-
-                    .tipo.preferencial {
-                        background: #198754;
-                        color: #fff;
-                    }
-
-                    .meta {
-                        border-bottom: 1px solid #cbd5e1;
-                        display: grid;
-                        grid-template-columns: repeat(3, 1fr);
-                    }
-
-                    .meta div {
-                        border-right: 1px solid #cbd5e1;
-                        padding: 7px 10px;
-                    }
-
-                    .meta div:last-child {
-                        border-right: 0;
-                    }
-
-                    .secao {
-                        padding: 12px 14px 0;
-                    }
-
-                    .secao-titulo {
-                        border-bottom: 2px solid #0f4c81;
+                        background: #eaf4ff;
+                        border: 1px solid #bfdbfe;
+                        border-left: 5px solid #0f4c81;
+                        border-radius: 8px;
                         color: #0f4c81;
-                        font-size: 13px;
-                        font-weight: 900;
-                        margin-bottom: 8px;
-                        padding-bottom: 4px;
-                        text-transform: uppercase;
+                        font-size: 18px;
+                        font-weight: 800;
+                        margin-bottom: 16px;
+                        padding: 12px;
                     }
 
-                    table {
-                        border-collapse: collapse;
-                        margin-bottom: 10px;
-                        width: 100%;
-                    }
-
-                    th,
-                    td {
-                        border: 1px solid #cbd5e1;
-                        padding: 7px 8px;
-                        text-align: left;
-                        vertical-align: top;
-                    }
-
-                    th {
-                        background: #f1f5f9;
-                        color: #334155;
-                        font-size: 10px;
-                        letter-spacing: .04em;
-                        text-transform: uppercase;
-                        width: 22%;
-                    }
-
-                    .vitals th {
-                        text-align: center;
-                        width: auto;
-                    }
-
-                    .vitals td {
-                        font-size: 14px;
-                        font-weight: 900;
-                        text-align: center;
-                    }
-
-                    .observacao {
-                        background: #f8fafc;
-                        border: 1px solid #cbd5e1;
-                        color: #475569;
-                        font-size: 11px;
-                        line-height: 1.4;
-                        margin-bottom: 12px;
-                        padding: 8px;
-                    }
-
-                    .rodape {
+                    .grid {
                         display: grid;
-                        gap: 20px;
-                        grid-template-columns: 1fr 1fr;
-                        padding: 22px 14px 14px;
+                        grid-template-columns: repeat(2, minmax(0, 1fr));
+                        gap: 10px;
+                        margin-bottom: 16px;
+                    }
+
+                    .item {
+                        border: 1px solid #d1d5db;
+                        border-radius: 8px;
+                        padding: 10px;
+                    }
+
+                    .item.full {
+                        grid-column: 1 / -1;
+                    }
+
+                    .label {
+                        color: #64748b;
+                        font-size: 11px;
+                        font-weight: 800;
+                        letter-spacing: .04em;
+                        margin-bottom: 4px;
+                        text-transform: uppercase;
+                    }
+
+                    .valor {
+                        font-size: 15px;
+                        font-weight: 700;
+                        word-break: break-word;
                     }
 
                     .assinatura {
-                        border-top: 1px solid #0f172a;
-                        padding-top: 6px;
+                        margin-top: 44px;
                         text-align: center;
                     }
 
-                    .print-actions {
-                        margin: 12px auto 0;
-                        max-width: 760px;
-                        text-align: right;
-                    }
-
-                    .print-actions button {
-                        background: #0f4c81;
-                        border: 0;
-                        border-radius: 6px;
-                        color: #fff;
-                        cursor: pointer;
-                        font-weight: 800;
-                        padding: 9px 14px;
-                    }
-
-                    .muted {
-                        color: #64748b;
-                        font-size: 11px;
-                    }
-
-                    .valor-forte {
-                        font-size: 14px;
-                        font-weight: 900;
-                        text-transform: uppercase;
+                    .linha {
+                        border-top: 1px solid #111827;
+                        display: inline-block;
+                        padding-top: 8px;
+                        width: 320px;
                     }
 
                     @media print {
-                        .print-actions {
-                            display: none;
-                        }
-
-                        .folha {
-                            border-color: #111827;
-                            max-width: none;
-                        }
-
                         body {
-                            -webkit-print-color-adjust: exact;
-                            print-color-adjust: exact;
+                            margin: 12mm;
                         }
                     }
                 </style>
             </head>
             <body>
-                <div class="folha">
-                    <div class="topo">
-                        <div>
-                            <div class="hospital">Recepcao e Acolhimento</div>
-                            <h1>Comprovante de Atendimento</h1>
-                        </div>
-
-                        <div class="tipo ${escaparHtml(tipoClasse)}">${escaparHtml(ficha.tipoTexto)}</div>
-                    </div>
-
-                    <div class="meta">
-                        <div>
-                            <strong>Data/Hora da impressao</strong><br>
-                            <span>${escaparHtml(agora.toLocaleString("pt-BR"))}</span>
-                        </div>
-
-                        <div>
-                            <strong>Hora da chegada</strong><br>
-                            <span>${escaparHtml(ficha.horaChegadaPaciente)}</span>
-                        </div>
-
-                        <div>
-                            <strong>Registro</strong><br>
-                            <span>${escaparHtml(ficha.numeroBam)}</span>
-                        </div>
-                    </div>
-
-                    <div class="secao">
-                        <div class="secao-titulo">Dados do paciente</div>
-
-                        <table>
-                            <tr>
-                                <th>Paciente</th>
-                                <td colspan="3" class="valor-forte">${escaparHtml(ficha.nomePaciente)}</td>
-                            </tr>
-                            <tr>
-                                <th>BAM</th>
-                                <td>${escaparHtml(ficha.numeroBam)}</td>
-                                <th>Acolhimento</th>
-                                <td>${escaparHtml(ficha.dataAcolhimento)}</td>
-                            </tr>
-                            <tr>
-                                <th>CPF</th>
-                                <td>${escaparHtml(ficha.cpfPaciente)}</td>
-                                <th>Nascimento</th>
-                                <td>${escaparHtml(ficha.dataNascimentoPaciente)}</td>
-                            </tr>
-                            <tr>
-                                <th>Idade</th>
-                                <td>${escaparHtml(ficha.idadePaciente)} anos</td>
-                                <th>Tipo</th>
-                                <td>${escaparHtml(ficha.tipoTexto)}</td>
-                            </tr>
-                        </table>
-                    </div>
-
-                    <div class="secao">
-                        <div class="secao-titulo">Sinais vitais</div>
-
-                        <table class="vitals">
-                            <tr>
-                                <th>Pressao arterial</th>
-                                <th>Temperatura</th>
-                                <th>Freq. respiratoria</th>
-                                <th>Pulso</th>
-                                <th>Dor</th>
-                            </tr>
-                            <tr>
-                                <td>${escaparHtml(ficha.pressao)}</td>
-                                <td>${escaparHtml(ficha.temperatura)} C</td>
-                                <td>${escaparHtml(ficha.frequencia)}</td>
-                                <td>${escaparHtml(ficha.pulso)}</td>
-                                <td>${escaparHtml(ficha.dor)} / 10</td>
-                            </tr>
-                        </table>
-
-                        <div class="observacao">
-                            Esta ficha acompanha o paciente para continuidade do fluxo de atendimento.
-                            Confira os dados antes de encaminhar.
-                        </div>
-                    </div>
-
-                    <div class="rodape">
-                        <div class="assinatura">Responsavel pelo acolhimento</div>
-                        <div class="assinatura">Recepcao / Setor de destino</div>
+                <div class="cabecalho">
+                    <h1>Ficha de Atendimento</h1>
+                    <div class="subtitulo">
+                        Impresso em ${escaparHtml(agora.toLocaleString("pt-BR"))}
                     </div>
                 </div>
 
-                <div class="print-actions">
-                    <button type="button" onclick="window.print()">Imprimir ficha</button>
+                <div class="tipo">${escaparHtml(tipoTexto)}</div>
+
+                <div class="grid">
+                    <div class="item full">
+                        <div class="label">Paciente</div>
+                        <div class="valor">${escaparHtml(nomePaciente)}</div>
+                    </div>
+
+                    <div class="item">
+                        <div class="label">CPF</div>
+                        <div class="valor">${escaparHtml(cpfPaciente)}</div>
+                    </div>
+
+                    <div class="item">
+                        <div class="label">Nascimento</div>
+                        <div class="valor">${escaparHtml(dataNascimentoPaciente)}</div>
+                    </div>
+
+                    <div class="item">
+                        <div class="label">Idade</div>
+                        <div class="valor">${escaparHtml(idadePaciente)} anos</div>
+                    </div>
+
+                    <div class="item">
+                        <div class="label">Hora da chegada</div>
+                        <div class="valor">${escaparHtml(horaChegadaPaciente)}</div>
+                    </div>
+                </div>
+
+                <div class="grid">
+                    <div class="item">
+                        <div class="label">Pressao arterial</div>
+                        <div class="valor">${escaparHtml(pressao)}</div>
+                    </div>
+
+                    <div class="item">
+                        <div class="label">Temperatura</div>
+                        <div class="valor">${escaparHtml(temperatura)} C</div>
+                    </div>
+
+                    <div class="item">
+                        <div class="label">Freq. respiratoria</div>
+                        <div class="valor">${escaparHtml(frequencia)}</div>
+                    </div>
+
+                    <div class="item">
+                        <div class="label">Pulso</div>
+                        <div class="valor">${escaparHtml(pulso)}</div>
+                    </div>
+
+                    <div class="item">
+                        <div class="label">Escala de dor</div>
+                        <div class="valor">${escaparHtml(dor)} / 10</div>
+                    </div>
+                </div>
+
+                <div class="assinatura">
+                    <span class="linha">Assinatura / Responsavel pelo acolhimento</span>
                 </div>
             </body>
             </html>
@@ -693,6 +532,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 return;
             }
 
+            if (e.submitter && e.submitter.name === "tipo_atendimento") {
+                imprimirDadosPaciente(e.submitter.value);
+            }
         });
     }
 
@@ -725,15 +567,6 @@ document.addEventListener("DOMContentLoaded", function () {
     // MODAL DE SUCESSO
     // =========================
     const modal = document.getElementById("modal-sucesso");
-    const btnImprimirAcolhimento = document.getElementById("btn-imprimir-acolhimento");
-    const dadosImpressaoAcolhimento = obterDadosImpressaoSalva();
-
-    if (btnImprimirAcolhimento && dadosImpressaoAcolhimento) {
-        btnImprimirAcolhimento.addEventListener("click", function () {
-            imprimirDadosPaciente(dadosImpressaoAcolhimento);
-            fecharModal();
-        });
-    }
 
     if (modal) {
         modal.style.display = "flex";

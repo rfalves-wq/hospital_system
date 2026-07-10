@@ -12,6 +12,7 @@ from .models import Recepcao
 
 def recepcao_dashboard(request):
     hoje = date.today()
+    dados_impressao = buscar_dados_impressao_recepcao(request)
 
     acolhimentos = (
         Acolhimento.objects
@@ -37,8 +38,89 @@ def recepcao_dashboard(request):
         {
             "acolhimentos": anexar_passagens_do_dia(acolhimentos),
             "historico": anexar_passagens_do_dia(historico),
+            "dados_impressao_recepcao": dados_impressao,
         }
     )
+
+
+def buscar_dados_impressao_recepcao(request):
+    acolhimento_id = request.session.pop("recepcao_impressao_acolhimento_id", None)
+
+    if not acolhimento_id:
+        return None
+
+    try:
+        acolhimento = (
+            Acolhimento.objects
+            .select_related("paciente")
+            .get(id=acolhimento_id)
+        )
+    except Acolhimento.DoesNotExist:
+        return None
+
+    if not acolhimento.paciente:
+        return None
+
+    return dados_recepcao_para_impressao(acolhimento)
+
+
+def texto_sim_nao(valor):
+    return "Sim" if valor else "Nao"
+
+
+def formatar_data(valor):
+    return valor.strftime("%d/%m/%Y") if valor else ""
+
+
+def formatar_data_hora(valor):
+    return valor.strftime("%d/%m/%Y %H:%M") if valor else ""
+
+
+def formatar_hora(valor):
+    return valor.strftime("%H:%M") if valor else ""
+
+
+def dados_recepcao_para_impressao(acolhimento):
+    paciente = acolhimento.paciente
+
+    return {
+        "numero_bam": acolhimento.numero_bam or "",
+        "data_acolhimento": formatar_data_hora(acolhimento.data_acolhimento),
+        "hora_chegada": (
+            formatar_hora(acolhimento.hora_chegada)
+            or formatar_hora(acolhimento.data_acolhimento)
+        ),
+        "tipo_atendimento": acolhimento.get_tipo_atendimento_display(),
+        "status": acolhimento.get_status_display(),
+        "data_recepcao": formatar_data_hora(paciente.data_atualizacao),
+        "nome_completo": paciente.nome_completo or "",
+        "nome_social": paciente.nome_social or "",
+        "cpf": paciente.cpf or "",
+        "cns": paciente.cns or "",
+        "sexo": paciente.get_sexo_display(),
+        "raca_cor": paciente.get_raca_cor_display(),
+        "nascimento": formatar_data(paciente.nascimento),
+        "idade": paciente.idade if paciente.idade is not None else "",
+        "nacionalidade": paciente.get_nacionalidade_display(),
+        "uf_nascimento": paciente.uf_nascimento or "",
+        "naturalidade": paciente.naturalidade or "",
+        "situacao_rua": texto_sim_nao(paciente.situacao_rua),
+        "nome_mae": paciente.nome_mae or "",
+        "nome_pai": paciente.nome_pai or "",
+        "telefone": paciente.telefone or "",
+        "email": paciente.email or "",
+        "cep": paciente.cep or "",
+        "municipio": paciente.municipio or "",
+        "bairro": paciente.bairro or "",
+        "logradouro": paciente.logradouro or "",
+        "numero": paciente.numero or "",
+        "complemento": paciente.complemento or "",
+        "nome_responsavel": paciente.nome_responsavel or "",
+        "cpf_responsavel": paciente.cpf_responsavel or "",
+        "nacionalidade_responsavel": paciente.nacionalidade_responsavel or "",
+        "uf_nascimento_responsavel": paciente.uf_nascimento_responsavel or "",
+        "naturalidade_responsavel": paciente.naturalidade_responsavel or "",
+    }
 
 
 def cadastrar_paciente(request, acolhimento_id):
@@ -63,6 +145,8 @@ def cadastrar_paciente(request, acolhimento_id):
             acolhimento.paciente = paciente
             acolhimento.status = "CLASSIFICACAO"
             acolhimento.save()
+
+            request.session["recepcao_impressao_acolhimento_id"] = acolhimento.id
 
             messages.success(
                 request,
@@ -111,5 +195,6 @@ def enviar_classificacao(request, acolhimento_id):
     if acolhimento.paciente:
         acolhimento.status = "CLASSIFICACAO"
         acolhimento.save()
+        request.session["recepcao_impressao_acolhimento_id"] = acolhimento.id
 
     return redirect("recepcao_dashboard")

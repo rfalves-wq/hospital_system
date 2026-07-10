@@ -45,23 +45,9 @@
                     {% endfor %}
                 </div>
 
-                {% if dados_impressao %}
-                    <p class="modal-pergunta">Deseja imprimir os dados do paciente?</p>
-
-                    <div class="modal-acoes">
-                        <button type="button" class="btn-imprimir" id="btn-imprimir-acolhimento">
-                            Sim, imprimir
-                        </button>
-
-                        <button type="button" class="btn-cancelar" onclick="fecharModal()">
-                            Nao
-                        </button>
-                    </div>
-                {% else %}
-                    <button class="btn-ok" onclick="fecharModal()">
-                        OK
-                    </button>
-                {% endif %}
+                <button class="btn-ok" onclick="fecharModal()">
+                    OK
+                </button>
             </div>
         </div>
     {% endif %}
@@ -265,11 +251,7 @@
 
 </div>
 
-{% if dados_impressao %}
-    {{ dados_impressao|json_script:"dados-impressao-acolhimento" }}
-{% endif %}
-
-<script src="{% static 'acolhimento/js/atendimento.js' %}?v=20260710-3"></script>
+<script src="{% static 'acolhimento/js/atendimento.js' %}?v=20260710-1"></script>
 
 </body>
 </html>
