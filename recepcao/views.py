@@ -1,5 +1,6 @@
 from datetime import date
 
+from django.contrib import messages
 from django.shortcuts import get_object_or_404, redirect, render
 
 from acolhimento.models import Acolhimento
@@ -62,6 +63,11 @@ def cadastrar_paciente(request, acolhimento_id):
             acolhimento.paciente = paciente
             acolhimento.status = "CLASSIFICACAO"
             acolhimento.save()
+
+            messages.success(
+                request,
+                f"Paciente {paciente.nome_completo} salvo e encaminhado para a Classificação de Risco."
+            )
 
             return redirect("recepcao_dashboard")
 

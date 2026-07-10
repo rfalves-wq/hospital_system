@@ -131,7 +131,7 @@ def buscar_medicamento_estoque(request):
             "metodo": medicamento.get_metodo_aplicacao_display(),
             "principio_ativo": medicamento.principio_ativo,
             "localizacao": medicamento.localizacao,
-            "estoque": str(medicamento.estoque_atual),
+            "estoque": medicamento.estoque_atual,
             "unidade": medicamento.unidade_medida,
         })
 

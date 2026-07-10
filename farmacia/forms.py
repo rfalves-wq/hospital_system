@@ -1,5 +1,4 @@
 import json
-from decimal import Decimal, InvalidOperation
 
 from django import forms
 
@@ -120,10 +119,15 @@ class FarmaciaForm(forms.ModelForm):
         for item in dados:
             try:
                 medicamento_id = int(item.get("medicamento_id"))
-                quantidade = Decimal(str(item.get("quantidade", "0")).replace(",", "."))
-            except (TypeError, ValueError, InvalidOperation):
+                quantidade_texto = str(item.get("quantidade", "0")).strip()
+
+                if "." in quantidade_texto or "," in quantidade_texto:
+                    raise ValueError
+
+                quantidade = int(quantidade_texto)
+            except (TypeError, ValueError):
                 raise forms.ValidationError(
-                    "Verifique as quantidades dos medicamentos selecionados."
+                    "Informe apenas quantidades inteiras para os medicamentos selecionados."
                 )
 
             if medicamento_id <= 0 or quantidade <= 0:
@@ -193,12 +197,12 @@ class MedicamentoEstoqueForm(forms.ModelForm):
             }),
             "estoque_atual": forms.NumberInput(attrs={
                 "class": "form-control",
-                "step": "0.01",
+                "step": "1",
                 "min": "0",
             }),
             "estoque_minimo": forms.NumberInput(attrs={
                 "class": "form-control",
-                "step": "0.01",
+                "step": "1",
                 "min": "0",
             }),
             "localizacao": forms.TextInput(attrs={
@@ -229,8 +233,8 @@ class MovimentacaoEstoqueForm(forms.ModelForm):
         widgets = {
             "quantidade": forms.NumberInput(attrs={
                 "class": "form-control",
-                "step": "0.01",
-                "min": "0.01",
+                "step": "1",
+                "min": "1",
             }),
             "lote": forms.TextInput(attrs={
                 "class": "form-control",
@@ -266,8 +270,10 @@ class MovimentacaoEstoqueForm(forms.ModelForm):
 
         if tipo_movimento == MovimentacaoEstoque.AJUSTE:
             self.fields["quantidade"].label = "Novo saldo do estoque"
+            self.fields["quantidade"].widget.attrs["min"] = "0"
         else:
             self.fields["quantidade"].label = "Quantidade"
+            self.fields["quantidade"].widget.attrs["min"] = "1"
 
         if tipo_movimento == MovimentacaoEstoque.ENTRADA:
             self.fields["origem_destino"].label = "Origem"
@@ -278,3 +284,14 @@ class MovimentacaoEstoqueForm(forms.ModelForm):
         else:
             self.fields["origem_destino"].label = "Motivo do ajuste"
             self.fields["origem_destino"].widget.attrs["placeholder"] = "Ex: inventário, correção de saldo"
+
+    def clean_quantidade(self):
+        quantidade = self.cleaned_data["quantidade"]
+
+        if self.tipo_movimento == MovimentacaoEstoque.AJUSTE:
+            if quantidade < 0:
+                raise forms.ValidationError("O saldo do estoque nao pode ser negativo.")
+        elif quantidade <= 0:
+            raise forms.ValidationError("Informe uma quantidade inteira maior que zero.")
+
+        return quantidade

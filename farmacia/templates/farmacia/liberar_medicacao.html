@@ -565,14 +565,19 @@ document.addEventListener("DOMContentLoaded", function () {
         lista.classList.remove("is-active");
     }
 
-    function numeroDecimal(valor) {
-        const numero = Number(String(valor || "0").replace(",", "."));
+    function numeroInteiro(valor) {
+        const texto = String(valor || "0").trim();
+
+        if (!/^\d+$/.test(texto)) {
+            return 0;
+        }
+
+        const numero = Number.parseInt(texto, 10);
         return Number.isFinite(numero) ? numero : 0;
     }
 
     function formatarQuantidade(valor) {
-        const numero = numeroDecimal(valor);
-        return Number.isInteger(numero) ? String(numero) : String(numero).replace(".", ",");
+        return String(numeroInteiro(valor));
     }
 
     function montarDetalhe(medicamento) {
@@ -645,8 +650,8 @@ document.addEventListener("DOMContentLoaded", function () {
             const input = document.createElement("input");
             input.type = "number";
             input.className = "form-control form-control-sm qtd-baixa";
-            input.min = "0.01";
-            input.step = "0.01";
+            input.min = "1";
+            input.step = "1";
             input.value = item.quantidade;
             input.addEventListener("input", function () {
                 item.quantidade = this.value;
@@ -683,10 +688,10 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function adicionarItemBaixa(medicamento, quantidade) {
-        const quantidadeNumero = numeroDecimal(quantidade);
+        const quantidadeNumero = numeroInteiro(quantidade);
 
         if (quantidadeNumero <= 0) {
-            alert("Informe uma quantidade maior que zero.");
+            alert("Informe uma quantidade inteira maior que zero.");
             return;
         }
 
@@ -695,7 +700,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
 
         if (existente) {
-            existente.quantidade = String(numeroDecimal(existente.quantidade) + quantidadeNumero);
+            existente.quantidade = String(numeroInteiro(existente.quantidade) + quantidadeNumero);
         } else {
             itensBaixa.push({
                 id: medicamento.id,
@@ -747,8 +752,8 @@ document.addEventListener("DOMContentLoaded", function () {
             const quantidade = document.createElement("input");
             quantidade.type = "number";
             quantidade.className = "form-control form-control-sm";
-            quantidade.min = "0.01";
-            quantidade.step = "0.01";
+            quantidade.min = "1";
+            quantidade.step = "1";
             quantidade.value = "1";
 
             const botaoAdicionar = document.createElement("button");

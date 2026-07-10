@@ -113,12 +113,12 @@
 
                     <div class="col-md-2">
                         <div class="info-label">Estoque atual</div>
-                        <div class="info-value">{{ medicamento.estoque_atual }}</div>
+                        <div class="info-value">{{ medicamento.estoque_atual|floatformat:0 }}</div>
                     </div>
 
                     <div class="col-md-2">
                         <div class="info-label">Mínimo</div>
-                        <div class="info-value">{{ medicamento.estoque_minimo }}</div>
+                        <div class="info-value">{{ medicamento.estoque_minimo|floatformat:0 }}</div>
                     </div>
 
                     <div class="col-md-3">

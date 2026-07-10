@@ -9,283 +9,471 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'recepcao/css/cadastro.css' %}">
+    <link rel="stylesheet" href="{% static 'recepcao/css/cadastro.css' %}?v=20260710-3">
+    <style>
+        .page-top {
+            background: linear-gradient(135deg, #0f4c81, #1769a6);
+            border-radius: 14px;
+            color: #fff;
+            padding: 18px 22px;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: 210px minmax(0, 1fr) 230px;
+            gap: 10px;
+        }
+
+        .summary-card,
+        .history-card,
+        .form-box,
+        .form-section {
+            background: #fff;
+            border: 1px solid #dce5ef;
+            border-radius: 12px;
+        }
+
+        .summary-card {
+            border-left: 5px solid #94a3b8;
+            padding: 11px 14px;
+        }
+
+        .summary-card.primary {
+            border-left-color: #0f4c81;
+        }
+
+        @media (max-width: 768px) {
+            .summary-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
 
 <body>
 
-    <div class="container my-4">
+<div class="container my-4">
 
-        <div class="d-flex justify-content-end align-items-center mb-3">
-            <a href="{% url 'recepcao_dashboard' %}" class="btn btn-outline-secondary">
-                Voltar
-            </a>
+    <div class="page-top d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h3>Cadastro da Recepção</h3>
+            <small>Conferência cadastral e envio para classificação de risco</small>
         </div>
 
-        <div class="alert alert-info">
-            Atendimento/BAM: <strong>{{ acolhimento.numero_bam }}</strong>
+        <a href="{% url 'recepcao_dashboard' %}" class="btn btn-light fw-bold">
+            Voltar
+        </a>
+    </div>
+
+    <div class="summary-grid mb-3">
+        <div class="summary-card primary">
+            <div class="summary-label">Atendimento/BAM</div>
+            <div class="summary-value">{{ acolhimento.numero_bam }}</div>
         </div>
 
-        <div class="card border-warning mb-3">
-            <div class="card-header bg-warning-subtle d-flex justify-content-between align-items-center">
-                <strong>Passagens no hospital hoje</strong>
-                {% if tem_passagem_anterior_hoje %}
-                    <span class="badge bg-warning text-dark">{{ total_passagens_hospital_dia }} registros</span>
+        <div class="summary-card">
+            <div class="summary-label">Paciente</div>
+            <div class="summary-value">
+                {% if form.nome_completo.value %}
+                    {{ form.nome_completo.value }}
                 {% else %}
-                    <span class="badge bg-success">{{ total_passagens_hospital_dia }} registro</span>
+                    {{ acolhimento.nome_paciente }}
                 {% endif %}
             </div>
+        </div>
 
-            <div class="card-body">
-                <p class="text-muted mb-2">
-                    Periodo verificado: {{ periodo_passagens_inicio|date:"d/m/Y" }} 00:00:00 ate {{ periodo_passagens_fim|date:"d/m/Y" }} 23:59:59.
+        <div class="summary-card">
+            <div class="summary-label">Idade</div>
+            <div class="summary-value">
+                <span id="idadeResumo">
+                    {% if form.idade.value %}
+                        {{ form.idade.value }}
+                    {% else %}
+                        {{ acolhimento.idade }}
+                    {% endif %}
+                </span>
+                anos
+                <span
+                    id="faixaEtariaBadge"
+                    class="faixa-badge ms-2"
+                    data-idade-inicial="{% if form.idade.value %}{{ form.idade.value }}{% else %}{{ acolhimento.idade|default:'' }}{% endif %}">
+                    -
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <div class="history-card mb-3">
+        <div class="history-head d-flex justify-content-between align-items-center">
+            <strong>Passagens no hospital hoje</strong>
+            {% if tem_passagem_anterior_hoje %}
+                <span class="badge bg-warning text-dark">{{ total_passagens_hospital_dia }} registros</span>
+            {% else %}
+                <span class="badge bg-success">{{ total_passagens_hospital_dia }} registro</span>
+            {% endif %}
+        </div>
+
+        <div class="history-body">
+            <div class="d-flex flex-wrap justify-content-between gap-2 mb-2">
+                <p class="text-muted mb-0">
+                    Período verificado: {{ periodo_passagens_inicio|date:"d/m/Y" }} 00:00:00 até {{ periodo_passagens_fim|date:"d/m/Y" }} 23:59:59.
                 </p>
 
                 {% if tem_passagem_anterior_hoje %}
-                    <div class="alert alert-warning py-2">
-                        Este paciente ja teve outra passagem no hospital hoje. Confira antes de prosseguir.
-                    </div>
+                    <span class="warning-chip">Verificar duplicidade do dia</span>
                 {% endif %}
+            </div>
 
-                <div class="table-responsive">
-                    <table class="table table-sm table-bordered align-middle mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th>BAM</th>
-                                <th>Data</th>
-                                <th>Hora chegada</th>
-                                <th>Tipo</th>
-                                <th>Status</th>
-                                <th>Registro</th>
+            {% if tem_passagem_anterior_hoje %}
+                <div class="alert alert-warning py-2">
+                    Este paciente já teve outra passagem no hospital hoje. Confira antes de prosseguir.
+                </div>
+            {% endif %}
+
+            <div class="table-responsive">
+                <table class="table table-sm table-bordered align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>BAM</th>
+                            <th>Data</th>
+                            <th>Hora chegada</th>
+                            <th>Tipo</th>
+                            <th>Status</th>
+                            <th>Registro</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for passagem in passagens_hospital_dia %}
+                            <tr {% if passagem.id == acolhimento.id %}class="table-primary"{% endif %}>
+                                <td>{{ passagem.numero_bam }}</td>
+                                <td>{{ passagem.data_acolhimento|date:"d/m/Y H:i" }}</td>
+                                <td>
+                                    {% if passagem.hora_chegada %}
+                                        {{ passagem.hora_chegada|time:"H:i" }}
+                                    {% else %}
+                                        {{ passagem.data_acolhimento|time:"H:i" }}
+                                    {% endif %}
+                                </td>
+                                <td>{{ passagem.get_tipo_atendimento_display }}</td>
+                                <td>{{ passagem.get_status_display }}</td>
+                                <td>
+                                    {% if passagem.id == acolhimento.id %}
+                                        Atual
+                                    {% else %}
+                                        Anterior
+                                    {% endif %}
+                                </td>
                             </tr>
-                        </thead>
+                        {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center text-muted">
+                                    Nenhuma passagem encontrada neste período.
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 
-                        <tbody>
-                            {% for passagem in passagens_hospital_dia %}
-                                <tr {% if passagem.id == acolhimento.id %}class="table-primary"{% endif %}>
-                                    <td>{{ passagem.numero_bam }}</td>
-                                    <td>{{ passagem.data_acolhimento|date:"d/m/Y H:i" }}</td>
-                                    <td>
-                                        {% if passagem.hora_chegada %}
-                                            {{ passagem.hora_chegada|time:"H:i" }}
-                                        {% else %}
-                                            {{ passagem.data_acolhimento|time:"H:i" }}
-                                        {% endif %}
-                                    </td>
-                                    <td>{{ passagem.get_tipo_atendimento_display }}</td>
-                                    <td>{{ passagem.get_status_display }}</td>
-                                    <td>
-                                        {% if passagem.id == acolhimento.id %}
-                                            Atual
-                                        {% else %}
-                                            Anterior
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                            {% empty %}
-                                <tr>
-                                    <td colspan="6" class="text-center text-muted">
-                                        Nenhuma passagem encontrada neste periodo.
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+    {% if paciente_existente %}
+        <div class="alert alert-warning">
+            Paciente já cadastrado. Confira os dados, edite se necessário e salve para enviar à classificação de risco.
+        </div>
+    {% endif %}
+
+    {% if form.non_field_errors %}
+        <div class="alert alert-danger">
+            {{ form.non_field_errors }}
+        </div>
+    {% endif %}
+
+    <form method="post" class="form-box" id="formRecepcao" novalidate>
+        {% csrf_token %}
+
+        <div id="alertaEnvioClassificacao" class="alert alert-primary d-none" role="alert">
+            Salvando cadastro e encaminhando o paciente para a Classificação de Risco.
+        </div>
+
+        <div class="form-section">
+            <div class="section-head">
+                <div>
+                    <h5>Dados do paciente</h5>
+                    <small>Identificação, documentos e dados de nascimento</small>
+                </div>
+            </div>
+
+            <div class="section-body">
+                <div class="row">
+                    <div class="col-md-8 mb-3">
+                        <label for="{{ form.nome_completo.id_for_label }}">Nome completo</label>
+                        {{ form.nome_completo }}
+                        {{ form.nome_completo.errors }}
+                    </div>
+
+                    <div class="col-md-4 mb-3">
+                        <label for="{{ form.nome_social.id_for_label }}">Nome social</label>
+                        {{ form.nome_social }}
+                        {{ form.nome_social.errors }}
+                    </div>
+
+                    <div class="col-md-3 mb-3">
+                        <label for="{{ form.cpf.id_for_label }}">CPF</label>
+                        {{ form.cpf }}
+                        {{ form.cpf.errors }}
+                    </div>
+
+                    <div class="col-md-3 mb-3">
+                        <label for="{{ form.cns.id_for_label }}">CNS</label>
+                        {{ form.cns }}
+                        {{ form.cns.errors }}
+                    </div>
+
+                    <div class="col-md-3 mb-3">
+                        <label for="{{ form.sexo.id_for_label }}">Sexo</label>
+                        {{ form.sexo }}
+                        {{ form.sexo.errors }}
+                    </div>
+
+                    <div class="col-md-3 mb-3">
+                        <label for="{{ form.raca_cor.id_for_label }}">Raça/Cor</label>
+                        {{ form.raca_cor }}
+                        {{ form.raca_cor.errors }}
+                    </div>
+
+                    <div class="col-md-3 mb-3">
+                        <label for="{{ form.nascimento.id_for_label }}">Nascimento</label>
+                        {{ form.nascimento }}
+                        {{ form.nascimento.errors }}
+                    </div>
+
+                    <div class="col-md-2 mb-3">
+                        <label for="{{ form.idade.id_for_label }}">Idade</label>
+                        {{ form.idade }}
+                        {{ form.idade.errors }}
+                    </div>
+
+                    <div class="col-md-3 mb-3">
+                        <label>Faixa etária</label>
+                        <div class="faixa-display" id="faixaEtariaTexto">-</div>
+                    </div>
+
+                    <div class="col-md-4 mb-3">
+                        <label for="{{ form.nacionalidade.id_for_label }}">Nacionalidade</label>
+                        {{ form.nacionalidade }}
+                        {{ form.nacionalidade.errors }}
+                    </div>
+
+                    <div class="col-md-3 mb-3" id="campo-uf-nascimento">
+                        <label for="{{ form.uf_nascimento.id_for_label }}">UF nascimento</label>
+                        {{ form.uf_nascimento }}
+                        {{ form.uf_nascimento.errors }}
+                    </div>
+
+                    <div class="col-md-6 mb-3" id="campo-naturalidade">
+                        <label for="id_naturalidade">Naturalidade</label>
+
+                        <select
+                            name="naturalidade"
+                            id="id_naturalidade"
+                            class="form-control"
+                            data-valor-atual="{{ form.naturalidade.value|default_if_none:'' }}">
+                            <option value="">Selecione a UF primeiro</option>
+                        </select>
+
+                        {{ form.naturalidade.errors }}
+                    </div>
+
+                    <div class="col-md-3 mb-3 d-flex align-items-end">
+                        <div class="form-check">
+                            {{ form.situacao_rua }}
+                            <label class="form-check-label" for="{{ form.situacao_rua.id_for_label }}">
+                                Situação de rua
+                            </label>
+                            {{ form.situacao_rua.errors }}
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        {% if paciente_existente %}
-            <div class="alert alert-warning">
-                Paciente já cadastrado. Confira os dados, edite se necessário e salve para enviar à classificação de risco.
+        <div class="form-section">
+            <div class="section-head">
+                <div>
+                    <h5>Filiação</h5>
+                    <small>Dados familiares informados na recepção</small>
+                </div>
             </div>
-        {% endif %}
 
-        {% if form.non_field_errors %}
-            <div class="alert alert-danger">
-                {{ form.non_field_errors }}
-            </div>
-        {% endif %}
+            <div class="section-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.nome_mae.id_for_label }}">Nome da mãe</label>
+                        {{ form.nome_mae }}
+                        {{ form.nome_mae.errors }}
+                    </div>
 
-        <form method="post" class="form-box">
-            {% csrf_token %}
-
-            <div class="section-title">Identificação</div>
-
-            <div class="row">
-                <div class="col-md-8 mb-3">
-                    <label for="{{ form.nome_completo.id_for_label }}">Nome completo</label>
-                    {{ form.nome_completo }}
-                    {{ form.nome_completo.errors }}
-                </div>
-
-                <div class="col-md-4 mb-3">
-                    <label for="{{ form.nome_social.id_for_label }}">Nome social</label>
-                    {{ form.nome_social }}
-                    {{ form.nome_social.errors }}
-                </div>
-
-                <div class="col-md-3 mb-3">
-                    <label for="{{ form.cpf.id_for_label }}">CPF</label>
-                    {{ form.cpf }}
-                    {{ form.cpf.errors }}
-                </div>
-
-                <div class="col-md-3 mb-3">
-                    <label for="{{ form.cns.id_for_label }}">CNS</label>
-                    {{ form.cns }}
-                    {{ form.cns.errors }}
-                </div>
-
-                <div class="col-md-3 mb-3">
-                    <label for="{{ form.sexo.id_for_label }}">Sexo</label>
-                    {{ form.sexo }}
-                    {{ form.sexo.errors }}
-                </div>
-
-                <div class="col-md-3 mb-3">
-                    <label for="{{ form.raca_cor.id_for_label }}">Raça/Cor</label>
-                    {{ form.raca_cor }}
-                    {{ form.raca_cor.errors }}
-                </div>
-
-                <div class="col-md-3 mb-3">
-                    <label for="{{ form.nascimento.id_for_label }}">Nascimento</label>
-                    {{ form.nascimento }}
-                    {{ form.nascimento.errors }}
-                </div>
-
-                <div class="col-md-2 mb-3">
-                    <label for="{{ form.idade.id_for_label }}">Idade</label>
-                    {{ form.idade }}
-                    {{ form.idade.errors }}
-                </div>
-
-                <div class="col-md-4 mb-3">
-                    <label for="{{ form.nacionalidade.id_for_label }}">Nacionalidade</label>
-                    {{ form.nacionalidade }}
-                    {{ form.nacionalidade.errors }}
-                </div>
-
-                <div class="col-md-3 mb-3" id="campo-uf-nascimento">
-                    <label for="{{ form.uf_nascimento.id_for_label }}">UF nascimento</label>
-                    {{ form.uf_nascimento }}
-                    {{ form.uf_nascimento.errors }}
-                </div>
-
-                <div class="col-md-6 mb-3" id="campo-naturalidade">
-                    <label for="id_naturalidade">Naturalidade</label>
-
-                    <select
-                        name="naturalidade"
-                        id="id_naturalidade"
-                        class="form-control"
-                        data-valor-atual="{{ form.naturalidade.value|default_if_none:'' }}"
-                    >
-                        <option value="">Selecione a UF primeiro</option>
-                    </select>
-
-                    {{ form.naturalidade.errors }}
-                </div>
-
-                <div class="col-md-3 mb-3 d-flex align-items-end">
-                    <div class="form-check">
-                        {{ form.situacao_rua }}
-                        <label class="form-check-label" for="{{ form.situacao_rua.id_for_label }}">
-                            Situação de rua
-                        </label>
-                        {{ form.situacao_rua.errors }}
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.nome_pai.id_for_label }}">Nome do pai</label>
+                        {{ form.nome_pai }}
+                        {{ form.nome_pai.errors }}
                     </div>
                 </div>
             </div>
+        </div>
 
-            <div class="mb-3 section-title">Filiação</div>
-
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label for="{{ form.nome_mae.id_for_label }}">Nome da mãe</label>
-                    {{ form.nome_mae }}
-                    {{ form.nome_mae.errors }}
+        <div class="form-section" id="secao-responsavel">
+            <div class="section-head">
+                <div>
+                    <h5>Responsável</h5>
+                    <small>Obrigatório para criança ou adolescente</small>
                 </div>
 
-                <div class="col-md-6 mb-3">
-                    <label for="{{ form.nome_pai.id_for_label }}">Nome do pai</label>
-                    {{ form.nome_pai }}
-                    {{ form.nome_pai.errors }}
+                <span id="responsavelObrigatorioBadge" class="section-chip d-none">Obrigatório</span>
+            </div>
+
+            <div class="section-body">
+                <div id="alertaResponsavelMenor" class="alert alert-warning d-none">
+                    Paciente menor de 18 anos. Informe o nome e CPF do responsável antes de encaminhar para a classificação.
+                </div>
+
+                <div class="row">
+                    <div class="col-md-8 mb-3">
+                        <label for="{{ form.nome_responsavel.id_for_label }}">
+                            Nome do responsável <span class="required-minor d-none text-danger">*</span>
+                        </label>
+                        {{ form.nome_responsavel }}
+                        {{ form.nome_responsavel.errors }}
+                    </div>
+
+                    <div class="col-md-4 mb-3">
+                        <label for="{{ form.cpf_responsavel.id_for_label }}">
+                            CPF do responsável <span class="required-minor d-none text-danger">*</span>
+                        </label>
+                        {{ form.cpf_responsavel }}
+                        {{ form.cpf_responsavel.errors }}
+                    </div>
+
+                    <div class="col-md-4 mb-3">
+                        <label for="{{ form.nacionalidade_responsavel.id_for_label }}">Nacionalidade</label>
+                        {{ form.nacionalidade_responsavel }}
+                        {{ form.nacionalidade_responsavel.errors }}
+                    </div>
+
+                    <div class="col-md-3 mb-3">
+                        <label for="{{ form.uf_nascimento_responsavel.id_for_label }}">UF nascimento</label>
+                        {{ form.uf_nascimento_responsavel }}
+                        {{ form.uf_nascimento_responsavel.errors }}
+                    </div>
+
+                    <div class="col-md-5 mb-3">
+                        <label for="id_naturalidade_responsavel">Naturalidade</label>
+                        <select
+                            name="naturalidade_responsavel"
+                            id="id_naturalidade_responsavel"
+                            class="form-control"
+                            data-valor-atual="{{ form.naturalidade_responsavel.value|default_if_none:'' }}">
+                            <option value="">Selecione a UF primeiro</option>
+                        </select>
+                        {{ form.naturalidade_responsavel.errors }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <div class="section-head">
+                <div>
+                    <h5>Contato</h5>
+                    <small>Telefone e e-mail para contato</small>
                 </div>
             </div>
 
-            <div class="mb-3 section-title">Contato</div>
+            <div class="section-body">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="{{ form.telefone.id_for_label }}">Telefone</label>
+                        {{ form.telefone }}
+                        {{ form.telefone.errors }}
+                    </div>
 
-            <div class="row">
-                <div class="col-md-4 mb-3">
-                    <label for="{{ form.telefone.id_for_label }}">Telefone</label>
-                    {{ form.telefone }}
-                    {{ form.telefone.errors }}
+                    <div class="col-md-8 mb-3">
+                        <label for="{{ form.email.id_for_label }}">E-mail</label>
+                        {{ form.email }}
+                        {{ form.email.errors }}
+                    </div>
                 </div>
+            </div>
+        </div>
 
-                <div class="col-md-8 mb-3">
-                    <label for="{{ form.email.id_for_label }}">E-mail</label>
-                    {{ form.email }}
-                    {{ form.email.errors }}
+        <div class="form-section">
+            <div class="section-head">
+                <div>
+                    <h5>Endereço</h5>
+                    <small>Localização do paciente</small>
                 </div>
             </div>
 
-            <div class="mb-3 section-title">Endereço</div>
+            <div class="section-body">
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <label for="{{ form.cep.id_for_label }}">CEP</label>
+                        {{ form.cep }}
+                        {{ form.cep.errors }}
+                    </div>
 
-            <div class="row">
-                <div class="col-md-3 mb-3">
-                    <label for="{{ form.cep.id_for_label }}">CEP</label>
-                    {{ form.cep }}
-                    {{ form.cep.errors }}
-                </div>
+                    <div class="col-md-5 mb-3">
+                        <label for="{{ form.municipio.id_for_label }}">Município</label>
+                        {{ form.municipio }}
+                        {{ form.municipio.errors }}
+                    </div>
 
-                <div class="col-md-5 mb-3">
-                    <label for="{{ form.municipio.id_for_label }}">Município</label>
-                    {{ form.municipio }}
-                    {{ form.municipio.errors }}
-                </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="{{ form.bairro.id_for_label }}">Bairro</label>
+                        {{ form.bairro }}
+                        {{ form.bairro.errors }}
+                    </div>
 
-                <div class="col-md-4 mb-3">
-                    <label for="{{ form.bairro.id_for_label }}">Bairro</label>
-                    {{ form.bairro }}
-                    {{ form.bairro.errors }}
-                </div>
+                    <div class="col-md-7 mb-3">
+                        <label for="{{ form.logradouro.id_for_label }}">Logradouro</label>
+                        {{ form.logradouro }}
+                        {{ form.logradouro.errors }}
+                    </div>
 
-                <div class="col-md-7 mb-3">
-                    <label for="{{ form.logradouro.id_for_label }}">Logradouro</label>
-                    {{ form.logradouro }}
-                    {{ form.logradouro.errors }}
-                </div>
+                    <div class="col-md-2 mb-3">
+                        <label for="{{ form.numero.id_for_label }}">Número</label>
+                        {{ form.numero }}
+                        {{ form.numero.errors }}
+                    </div>
 
-                <div class="col-md-2 mb-3">
-                    <label for="{{ form.numero.id_for_label }}">Número</label>
-                    {{ form.numero }}
-                    {{ form.numero.errors }}
-                </div>
-
-                <div class="col-md-3 mb-3">
-                    <label for="{{ form.complemento.id_for_label }}">Complemento</label>
-                    {{ form.complemento }}
-                    {{ form.complemento.errors }}
+                    <div class="col-md-3 mb-3">
+                        <label for="{{ form.complemento.id_for_label }}">Complemento</label>
+                        {{ form.complemento }}
+                        {{ form.complemento.errors }}
+                    </div>
                 </div>
             </div>
+        </div>
 
-            <div class="d-flex justify-content-end gap-2 mt-4">
-                <a href="{% url 'recepcao_dashboard' %}" class="btn btn-outline-secondary">
-                    Cancelar
-                </a>
+        <div class="action-footer d-flex justify-content-end gap-2 mt-4">
+            <a href="{% url 'recepcao_dashboard' %}" class="btn btn-outline-secondary">
+                Cancelar
+            </a>
 
-                <button type="submit" class="btn btn-primary">
-                    Salvar e Enviar para Classificação
-                </button>
-            </div>
+            <button type="submit" class="btn btn-primary" id="btnSalvarClassificacao">
+                <span class="btn-text">Salvar e Enviar para Classificação</span>
+                <span class="btn-loading d-none">Salvando...</span>
+            </button>
+        </div>
 
-        </form>
+    </form>
 
-    </div>
+</div>
 
-    <script src="{% static 'recepcao/js/cadastro.js' %}"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{% static 'recepcao/js/cadastro.js' %}?v=20260710-3"></script>
 </body>
 
 </html>

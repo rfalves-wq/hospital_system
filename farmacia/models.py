@@ -80,16 +80,8 @@ class MedicamentoEstoque(models.Model):
         blank=True,
         default="unidade"
     )
-    estoque_atual = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        default=0
-    )
-    estoque_minimo = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        default=0
-    )
+    estoque_atual = models.PositiveIntegerField(default=0)
+    estoque_minimo = models.PositiveIntegerField(default=0)
     localizacao = models.CharField(
         max_length=120,
         blank=True,
@@ -156,20 +148,9 @@ class MovimentacaoEstoque(models.Model):
         max_length=20,
         choices=TIPO_CHOICES
     )
-    quantidade = models.DecimalField(
-        max_digits=10,
-        decimal_places=2
-    )
-    saldo_anterior = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        default=0
-    )
-    saldo_atual = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        default=0
-    )
+    quantidade = models.PositiveIntegerField()
+    saldo_anterior = models.PositiveIntegerField(default=0)
+    saldo_atual = models.PositiveIntegerField(default=0)
     lote = models.CharField(max_length=120, blank=True, default="")
     validade = models.DateField(blank=True, null=True)
     origem_destino = models.CharField(

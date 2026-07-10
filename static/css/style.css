@@ -183,6 +183,10 @@ body {
     background: #6f42c1;
 }
 
+.prontuario::before {
+    background: #475569;
+}
+
 .painel::before {
     background: #0dcaf0;
 }

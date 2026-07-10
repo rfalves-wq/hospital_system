@@ -42,6 +42,8 @@ def classificacao_dashboard(request):
         .filter(
             data_classificacao__gte=periodo_inicio,
             data_classificacao__lte=periodo_fim,
+            acolhimento__data_acolhimento__gte=periodo_inicio,
+            acolhimento__data_acolhimento__lte=periodo_fim,
         )
         .order_by("-data_classificacao")
     )

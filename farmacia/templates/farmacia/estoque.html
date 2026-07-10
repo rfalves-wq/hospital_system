@@ -51,7 +51,7 @@
             display: grid;
             grid-template-columns: repeat(3, minmax(0, 1fr));
             gap: 10px;
-            margin-bottom: 16px;
+            margin-bottom: 12px;
         }
 
         .metric-card {
@@ -59,7 +59,7 @@
             border: 1px solid var(--borda);
             border-left: 5px solid var(--azul);
             border-radius: 12px;
-            padding: 13px 14px;
+            padding: 11px 14px;
         }
 
         .metric-card.warning {
@@ -79,10 +79,49 @@
         }
 
         .metric-value {
-            font-size: 1.45rem;
+            font-size: 1.35rem;
             font-weight: 900;
             color: #0f172a;
             line-height: 1.1;
+        }
+
+        .estoque-tabs {
+            border-bottom: 1px solid var(--borda);
+            gap: 6px;
+            margin-bottom: 14px;
+        }
+
+        .estoque-tabs .nav-link {
+            color: #334155;
+            border-radius: 10px 10px 0 0;
+            font-weight: 900;
+            padding: 10px 14px;
+        }
+
+        .estoque-tabs .nav-link.active {
+            color: var(--azul);
+            background: #fff;
+            border-color: var(--borda) var(--borda) #fff;
+        }
+
+        .tab-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 24px;
+            height: 22px;
+            margin-left: 6px;
+            padding: 0 7px;
+            border-radius: 999px;
+            background: #eaf4ff;
+            color: var(--azul);
+            font-size: .75rem;
+            font-weight: 900;
+        }
+
+        .estoque-tabs .nav-link.active .tab-badge {
+            background: var(--azul);
+            color: #fff;
         }
 
         .filter-box,
@@ -126,8 +165,7 @@
         }
 
         .table-scroll {
-            max-height: 540px;
-            overflow: auto;
+            overflow: visible;
             border: 1px solid #e5edf5;
             border-radius: 10px;
         }
@@ -141,11 +179,25 @@
             vertical-align: middle;
         }
 
+        .table-estoque td {
+            padding: 10px 12px;
+        }
+
+        .table-estoque th {
+            font-size: .78rem;
+            text-transform: uppercase;
+            letter-spacing: .02em;
+        }
+
+        .table-estoque th:last-child,
+        .table-estoque td:last-child {
+            width: 118px;
+            text-align: right;
+        }
+
         .table th {
             white-space: nowrap;
-            position: sticky;
-            top: 0;
-            z-index: 2;
+            position: static;
         }
 
         .table-primary th {
@@ -200,16 +252,56 @@
             font-size: .76rem;
         }
 
-        .action-group {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 5px;
-            min-width: 220px;
+        .acao-menu {
+            display: inline-block;
         }
 
-        .action-group .btn {
+        .acao-menu .dropdown-toggle {
+            min-width: 92px;
+            border-color: #bfdbfe;
+            background: #f8fbff;
+            color: var(--azul);
+            font-weight: 900;
+            padding: 6px 10px;
+        }
+
+        .acao-menu .dropdown-toggle:hover,
+        .acao-menu .dropdown-toggle:focus {
+            background: var(--azul);
+            border-color: var(--azul);
+            color: #fff;
+        }
+
+        .acao-menu .dropdown-menu {
+            border: 1px solid var(--borda);
+            border-radius: 10px;
+            box-shadow: 0 14px 28px rgba(15, 23, 42, .16);
+            padding: 6px;
+            min-width: 190px;
+        }
+
+        .acao-menu .dropdown-item {
+            border-radius: 8px;
+            color: #172033;
             font-weight: 800;
-            padding: 5px 8px;
+            padding: 8px 10px;
+        }
+
+        .acao-menu .dropdown-item:hover {
+            background: #eef6ff;
+            color: var(--azul);
+        }
+
+        .acao-menu .dropdown-item.entrada {
+            color: #166534;
+        }
+
+        .acao-menu .dropdown-item.saida {
+            color: #991b1b;
+        }
+
+        .acao-menu .dropdown-item.ajuste {
+            color: #854d0e;
         }
 
         .pagination-wrap {
@@ -226,6 +318,32 @@
             font-size: .9rem;
         }
 
+        .movimentacoes-table .mov-tipo {
+            display: inline-block;
+            min-width: 72px;
+            border-radius: 999px;
+            padding: 5px 9px;
+            font-weight: 900;
+            text-align: center;
+            background: #f1f5f9;
+            color: #334155;
+        }
+
+        .movimentacoes-table .mov-tipo.entrada {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .movimentacoes-table .mov-tipo.saida {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .movimentacoes-table .mov-tipo.ajuste {
+            background: #fef3c7;
+            color: #854d0e;
+        }
+
         @media (max-width: 1400px) {
             .filter-grid {
                 grid-template-columns: minmax(240px, 1fr) 1fr 1fr;
@@ -240,6 +358,8 @@
 
             .table-scroll {
                 max-height: none;
+                overflow-x: auto;
+                overflow-y: visible;
             }
         }
 
@@ -311,6 +431,36 @@
                 </div>
             </div>
 
+            <ul class="nav nav-tabs estoque-tabs" id="abasEstoqueFarmacia" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button
+                        class="nav-link active"
+                        id="aba-medicamentos-tab"
+                        data-bs-toggle="tab"
+                        data-bs-target="#aba-medicamentos"
+                        type="button"
+                        role="tab">
+                        Medicamentos
+                        <span class="tab-badge">{{ total_filtrado }}</span>
+                    </button>
+                </li>
+
+                <li class="nav-item" role="presentation">
+                    <button
+                        class="nav-link"
+                        id="aba-movimentacoes-tab"
+                        data-bs-toggle="tab"
+                        data-bs-target="#aba-movimentacoes"
+                        type="button"
+                        role="tab">
+                        Movimentacoes
+                        <span class="tab-badge">20</span>
+                    </button>
+                </li>
+            </ul>
+
+            <div class="tab-content" id="conteudoAbasEstoqueFarmacia">
+                <div class="tab-pane fade show active" id="aba-medicamentos" role="tabpanel" aria-labelledby="aba-medicamentos-tab">
             <form method="get" class="filter-box">
                 <div class="filter-grid">
                     <input
@@ -356,7 +506,7 @@
                 </div>
             </form>
 
-            <div class="section-box">
+                <div class="section-box">
                 <div class="section-title-row">
                     <h5>Medicamentos</h5>
 
@@ -366,7 +516,7 @@
                 </div>
 
                 <div class="table-scroll">
-                    <table class="table table-striped table-hover align-middle">
+                    <table class="table table-striped table-hover align-middle table-estoque">
                         <thead class="table-primary">
                             <tr>
                                 <th>Medicamento</th>
@@ -411,11 +561,11 @@
                                     <td>{{ medicamento.principio_ativo|default:"-" }}</td>
 
                                     <td>
-                                        <span class="estoque-numero">{{ medicamento.estoque_atual }}</span>
+                                        <span class="estoque-numero">{{ medicamento.estoque_atual|floatformat:0 }}</span>
                                         <span class="estoque-unidade">{{ medicamento.unidade_medida }}</span>
                                     </td>
 
-                                    <td>{{ medicamento.estoque_minimo }}</td>
+                                    <td>{{ medicamento.estoque_minimo|floatformat:0 }}</td>
                                     <td>{{ medicamento.localizacao|default:"-" }}</td>
 
                                     <td>
@@ -431,19 +581,39 @@
                                     </td>
 
                                     <td>
-                                        <div class="action-group">
-                                            <a href="{% url 'farmacia_movimentar_estoque' medicamento.id 'entrada' %}" class="btn btn-success btn-sm">
-                                                Entrada
-                                            </a>
-                                            <a href="{% url 'farmacia_movimentar_estoque' medicamento.id 'saida' %}" class="btn btn-danger btn-sm">
-                                                Saida
-                                            </a>
-                                            <a href="{% url 'farmacia_movimentar_estoque' medicamento.id 'ajuste' %}" class="btn btn-warning btn-sm">
-                                                Ajuste
-                                            </a>
-                                            <a href="{% url 'farmacia_medicamento_editar' medicamento.id %}" class="btn btn-outline-primary btn-sm">
-                                                Editar
-                                            </a>
+                                        <div class="dropdown acao-menu">
+                                            <button
+                                                class="btn btn-sm dropdown-toggle"
+                                                type="button"
+                                                data-bs-toggle="dropdown"
+                                                data-bs-boundary="viewport"
+                                                aria-expanded="false">
+                                                Acoes
+                                            </button>
+
+                                            <ul class="dropdown-menu dropdown-menu-end">
+                                                <li>
+                                                    <a class="dropdown-item entrada" href="{% url 'farmacia_movimentar_estoque' medicamento.id 'entrada' %}">
+                                                        Entrada no estoque
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a class="dropdown-item saida" href="{% url 'farmacia_movimentar_estoque' medicamento.id 'saida' %}">
+                                                        Saida do estoque
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a class="dropdown-item ajuste" href="{% url 'farmacia_movimentar_estoque' medicamento.id 'ajuste' %}">
+                                                        Ajustar saldo
+                                                    </a>
+                                                </li>
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li>
+                                                    <a class="dropdown-item" href="{% url 'farmacia_medicamento_editar' medicamento.id %}">
+                                                        Editar cadastro
+                                                    </a>
+                                                </li>
+                                            </ul>
                                         </div>
                                     </td>
                                 </tr>
@@ -509,6 +679,9 @@
                 {% endif %}
             </div>
 
+                </div>
+
+                <div class="tab-pane fade" id="aba-movimentacoes" role="tabpanel" aria-labelledby="aba-movimentacoes-tab">
             <div class="section-box">
                 <div class="section-title-row">
                     <h5>Ultimas movimentacoes</h5>
@@ -532,10 +705,18 @@
                             {% for mov in ultimas_movimentacoes %}
                                 <tr>
                                     <td>{{ mov.criado_em|date:"d/m/Y H:i" }}</td>
-                                    <td>{{ mov.get_tipo_display }}</td>
+                                    <td>
+                                        {% if mov.tipo == "ENTRADA" %}
+                                            <span class="mov-tipo entrada">Entrada</span>
+                                        {% elif mov.tipo == "SAIDA" %}
+                                            <span class="mov-tipo saida">Saida</span>
+                                        {% else %}
+                                            <span class="mov-tipo ajuste">Ajuste</span>
+                                        {% endif %}
+                                    </td>
                                     <td>{{ mov.medicamento.descricao_completa }}</td>
-                                    <td>{{ mov.quantidade }}</td>
-                                    <td>{{ mov.saldo_anterior }} -> {{ mov.saldo_atual }}</td>
+                                    <td>{{ mov.quantidade|floatformat:0 }}</td>
+                                    <td>{{ mov.saldo_anterior|floatformat:0 }} -> {{ mov.saldo_atual|floatformat:0 }}</td>
                                     <td>
                                         {{ mov.profissional_nome }}
                                         {% if mov.profissional_registro %}
@@ -558,8 +739,36 @@
         </div>
     </div>
 </div>
+</div>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const botoesAbas = document.querySelectorAll("#abasEstoqueFarmacia [data-bs-toggle='tab']");
+    const parametros = new URLSearchParams(window.location.search);
+    const abaSalva = localStorage.getItem("abaEstoqueFarmaciaAtiva");
+    const abaInicial = parametros.toString() ? "#aba-medicamentos" : abaSalva;
+
+    if (abaInicial) {
+        const botaoAba = document.querySelector(`[data-bs-target="${abaInicial}"]`);
+
+        if (botaoAba) {
+            new bootstrap.Tab(botaoAba).show();
+        }
+    }
+
+    botoesAbas.forEach(function (botao) {
+        botao.addEventListener("shown.bs.tab", function (evento) {
+            localStorage.setItem(
+                "abaEstoqueFarmaciaAtiva",
+                evento.target.getAttribute("data-bs-target")
+            );
+        });
+    });
+});
+</script>
 
 </body>
 </html>
