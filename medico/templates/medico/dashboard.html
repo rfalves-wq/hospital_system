@@ -117,6 +117,54 @@
                 {% endfor %}
             {% endif %}
 
+            {% if dados_impressao_medico %}
+                <div class="modal fade" id="modal-impressao-medico" tabindex="-1" aria-labelledby="titulo-modal-impressao-medico" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="titulo-modal-impressao-medico">
+                                    {% if dados_impressao_medico.condutaCodigo == "INTERNACAO" %}
+                                        Internação salva
+                                    {% elif dados_impressao_medico.imprimirTudo %}
+                                        Alta médica salva
+                                    {% else %}
+                                        Consulta médica salva
+                                    {% endif %}
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                            </div>
+
+                            <div class="modal-body">
+                                <p class="mb-1 fw-bold">
+                                    {% if dados_impressao_medico.imprimirTudo %}
+                                        Deseja imprimir todos os documentos do atendimento?
+                                    {% else %}
+                                        Deseja imprimir os dados da consulta médica?
+                                    {% endif %}
+                                </p>
+                                <p class="text-muted mb-0">
+                                    A impressão inclui a ficha médica e os pedidos preenchidos pelo médico.
+                                </p>
+                            </div>
+
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                                    Não
+                                </button>
+
+                                <button type="button" class="btn btn-primary" id="btn-imprimir-medico">
+                                    {% if dados_impressao_medico.imprimirTudo %}
+                                        Sim, imprimir tudo
+                                    {% else %}
+                                        Sim, imprimir
+                                    {% endif %}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
             <ul class="nav nav-tabs mb-3" id="abasMedico" role="tablist">
 
                 <li class="nav-item" role="presentation">
@@ -466,7 +514,12 @@
 
 </div>
 
+{% if dados_impressao_medico %}
+    {{ dados_impressao_medico|json_script:"dados-impressao-medico" }}
+{% endif %}
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{% static 'medico/js/impressao.js' %}?v=20260711-1"></script>
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
@@ -488,6 +541,35 @@ document.addEventListener("DOMContentLoaded", function () {
             localStorage.setItem("abaMedicoDashboardAtiva", destino);
         });
     });
+
+    if (window.MedicoImpressao) {
+        const dadosImpressao = window.MedicoImpressao.lerJson("dados-impressao-medico");
+        const modalElemento = document.getElementById("modal-impressao-medico");
+        const botaoImprimir = document.getElementById("btn-imprimir-medico");
+
+        if (modalElemento && window.bootstrap) {
+            const modal = new bootstrap.Modal(modalElemento);
+            modal.show();
+
+            modalElemento.addEventListener("hidden.bs.modal", function () {
+                const script = document.getElementById("dados-impressao-medico");
+
+                if (script) {
+                    script.remove();
+                }
+            });
+        }
+
+        if (botaoImprimir && dadosImpressao) {
+            botaoImprimir.addEventListener("click", function () {
+                window.MedicoImpressao.imprimirTudo(dadosImpressao);
+
+                if (modalElemento && window.bootstrap) {
+                    bootstrap.Modal.getOrCreateInstance(modalElemento).hide();
+                }
+            });
+        }
+    }
 });
 </script>
 

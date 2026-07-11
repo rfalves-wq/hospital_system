@@ -135,14 +135,16 @@
                 </div>
 
                 <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
-                    <div class="card module-card internacao disabled">
-                        <span class="module-status status-soon">Em breve</span>
-                        <div class="card-body">
-                            <div class="module-icon">&#128719;&#65039;</div>
-                            <h5>Centro de Internações</h5>
-                            <small>Leitos e evolução</small>
+                    <a href="{% url 'internacao_dashboard' %}" class="text-decoration-none">
+                        <div class="card module-card internacao">
+                            <span class="module-status status-active">Ativo</span>
+                            <div class="card-body">
+                                <div class="module-icon">&#128719;&#65039;</div>
+                                <h5>Centro de Internações</h5>
+                                <small>Leitos e evolução</small>
+                            </div>
                         </div>
-                    </div>
+                    </a>
                 </div>
 
                 <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">

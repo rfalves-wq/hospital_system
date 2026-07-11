@@ -1,0 +1,435 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Evolução da Internação</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            background: #f4f7fb;
+            color: #172033;
+            font-family: "Segoe UI", Arial, sans-serif;
+        }
+
+        .page-card {
+            border: 0;
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 8px 28px rgba(15, 23, 42, .08);
+        }
+
+        .page-header {
+            background: #0f4c81;
+            color: #fff;
+            padding: 20px 24px;
+        }
+
+        .badge-leito {
+            background: rgba(255, 255, 255, .16);
+            border: 1px solid rgba(255, 255, 255, .35);
+            border-radius: 999px;
+            font-size: 1rem;
+            font-weight: 900;
+            padding: 8px 13px;
+        }
+
+        .section-box {
+            background: #fff;
+            border: 1px solid #dce5ef;
+            border-radius: 12px;
+            padding: 16px;
+        }
+
+        .info-grid {
+            display: grid;
+            gap: 10px;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+
+        .info-item {
+            background: #f8fafc;
+            border: 1px solid #e5edf5;
+            border-radius: 10px;
+            padding: 11px;
+        }
+
+        .info-label {
+            color: #64748b;
+            font-size: 12px;
+            font-weight: 900;
+            text-transform: uppercase;
+        }
+
+        .info-value {
+            font-weight: 900;
+            margin-top: 3px;
+        }
+
+        .timeline {
+            display: grid;
+            gap: 12px;
+        }
+
+        .timeline-item {
+            border: 1px solid #dce5ef;
+            border-left: 5px solid #0f4c81;
+            border-radius: 10px;
+            padding: 13px;
+        }
+
+        .timeline-top {
+            align-items: center;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .text-preline {
+            white-space: pre-line;
+        }
+
+        textarea {
+            min-height: 100px;
+        }
+
+        @media (max-width: 900px) {
+            .info-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 600px) {
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container-fluid my-4">
+    <div class="card page-card">
+        <div class="page-header d-flex flex-wrap justify-content-between align-items-center gap-3">
+            <div>
+                <h3 class="mb-0">Evolução da Internação</h3>
+                <small>{{ nome_paciente }} - BAM {{ acolhimento.numero_bam }}</small>
+            </div>
+
+            <div class="d-flex flex-wrap align-items-center gap-2">
+                <span class="badge-leito">Leito {{ internacao.leito }}</span>
+                <button type="button" class="btn btn-outline-light fw-bold" data-print-internacao="admissao">
+                    Imprimir admissão
+                </button>
+                <button type="button" class="btn btn-outline-light fw-bold" data-print-internacao="evolucao">
+                    Imprimir evolução
+                </button>
+                <button type="button" class="btn btn-outline-light fw-bold" data-print-internacao="completo">
+                    Imprimir tudo
+                </button>
+                <a href="{% url 'internacao_dashboard' %}" class="btn btn-light fw-bold">
+                    Voltar
+                </a>
+            </div>
+        </div>
+
+        <div class="card-body">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert {% if message.tags == 'warning' %}alert-warning{% elif message.tags == 'error' %}alert-danger{% else %}alert-success{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            {% if dados_impressao_internacao %}
+                <div class="modal fade" id="modal-impressao-internacao" tabindex="-1" aria-labelledby="titulo-modal-impressao-internacao" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="titulo-modal-impressao-internacao">
+                                    {% if dados_impressao_internacao.tipoImpressao == "evolucao" %}
+                                        Evolução salva
+                                    {% else %}
+                                        Internação registrada
+                                    {% endif %}
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                            </div>
+
+                            <div class="modal-body">
+                                <p class="mb-1 fw-bold">Deseja imprimir os dados da internação?</p>
+                                <p class="text-muted mb-0">
+                                    A ficha será impressa com identificação do paciente, leito e dados registrados.
+                                </p>
+                            </div>
+
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                                    Não
+                                </button>
+
+                                <button type="button" class="btn btn-primary" id="btn-imprimir-internacao">
+                                    Sim, imprimir
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            <div class="section-box mb-3">
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">Paciente</div>
+                        <div class="info-value">{{ nome_paciente }}</div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-label">CPF</div>
+                        <div class="info-value">{{ acolhimento.cpf|default:"-" }}</div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-label">Idade</div>
+                        <div class="info-value">{{ acolhimento.idade }} anos</div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-label">Setor</div>
+                        <div class="info-value">{{ internacao.setor|default:"-" }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-3">
+                <div class="col-xl-4">
+                    <div class="section-box mb-3">
+                        <h5 class="fw-bold mb-3">Dados da internação</h5>
+
+                        <div class="mb-3">
+                            <div class="info-label">Admissão</div>
+                            <div class="info-value">{{ internacao.data_internacao|date:"d/m/Y H:i" }}</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="info-label">Responsável</div>
+                            <div>{{ internacao.profissional_responsavel|default:"-" }}</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="info-label">Diagnóstico / motivo</div>
+                            <div class="text-preline">{{ internacao.diagnostico_admissao|default:"-" }}</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="info-label">Cuidados iniciais</div>
+                            <div class="text-preline">{{ internacao.cuidados|default:"-" }}</div>
+                        </div>
+
+                        <div>
+                            <div class="info-label">Observações</div>
+                            <div class="text-preline">{{ internacao.observacoes|default:"-" }}</div>
+                        </div>
+                    </div>
+
+                    {% if internacao.status == "INTERNADO" %}
+                        <div class="section-box">
+                            <h5 class="fw-bold mb-3 text-danger">Alta da internação</h5>
+
+                            <form method="post">
+                                {% csrf_token %}
+                                <input type="hidden" name="acao" value="alta">
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Resumo da alta</label>
+                                    {{ alta_form.resumo_alta }}
+                                    {{ alta_form.resumo_alta.errors }}
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Profissional</label>
+                                    {{ alta_form.profissional_alta }}
+                                    {{ alta_form.profissional_alta.errors }}
+                                </div>
+
+                                <button type="submit" class="btn btn-danger fw-bold w-100">
+                                    Registrar alta da internação
+                                </button>
+                            </form>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="col-xl-8">
+                    {% if internacao.status == "INTERNADO" %}
+                        <div class="section-box mb-3">
+                            <h5 class="fw-bold mb-3">Nova evolução</h5>
+
+                            <form method="post">
+                                {% csrf_token %}
+                                <input type="hidden" name="acao" value="evoluir">
+
+                                {% if evolucao_form.non_field_errors %}
+                                    <div class="alert alert-danger">{{ evolucao_form.non_field_errors }}</div>
+                                {% endif %}
+
+                                <div class="row">
+                                    <div class="col-md-2 mb-3">
+                                        <label class="form-label fw-bold">PA</label>
+                                        {{ evolucao_form.pressao_arterial }}
+                                    </div>
+
+                                    <div class="col-md-2 mb-3">
+                                        <label class="form-label fw-bold">Temp.</label>
+                                        {{ evolucao_form.temperatura }}
+                                    </div>
+
+                                    <div class="col-md-2 mb-3">
+                                        <label class="form-label fw-bold">Pulso</label>
+                                        {{ evolucao_form.pulso }}
+                                    </div>
+
+                                    <div class="col-md-2 mb-3">
+                                        <label class="form-label fw-bold">FR</label>
+                                        {{ evolucao_form.frequencia_respiratoria }}
+                                    </div>
+
+                                    <div class="col-md-2 mb-3">
+                                        <label class="form-label fw-bold">Sat.</label>
+                                        {{ evolucao_form.saturacao }}
+                                    </div>
+
+                                    <div class="col-md-2 mb-3">
+                                        <label class="form-label fw-bold">Profissional</label>
+                                        {{ evolucao_form.profissional }}
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Evolução</label>
+                                    {{ evolucao_form.evolucao }}
+                                    {{ evolucao_form.evolucao.errors }}
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Conduta</label>
+                                    {{ evolucao_form.conduta }}
+                                    {{ evolucao_form.conduta.errors }}
+                                </div>
+
+                                <div class="d-flex justify-content-end">
+                                    <button type="submit" class="btn btn-primary fw-bold">
+                                        Salvar evolução
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    {% endif %}
+
+                    <div class="section-box">
+                        <h5 class="fw-bold mb-3">Histórico de evolução</h5>
+
+                        <div class="timeline">
+                            {% for evolucao in evolucoes %}
+                                <div class="timeline-item">
+                                    <div class="timeline-top">
+                                        <strong>{{ evolucao.data_evolucao|date:"d/m/Y H:i" }}</strong>
+                                        <span class="badge bg-secondary">{{ evolucao.profissional|default:"Sem profissional" }}</span>
+                                    </div>
+
+                                    <div class="mb-2">
+                                        <span class="badge bg-light text-dark">PA: {{ evolucao.pressao_arterial|default:"-" }}</span>
+                                        <span class="badge bg-light text-dark">Temp.: {{ evolucao.temperatura|default:"-" }}</span>
+                                        <span class="badge bg-light text-dark">Pulso: {{ evolucao.pulso|default:"-" }}</span>
+                                        <span class="badge bg-light text-dark">FR: {{ evolucao.frequencia_respiratoria|default:"-" }}</span>
+                                        <span class="badge bg-light text-dark">Sat.: {{ evolucao.saturacao|default:"-" }}</span>
+                                    </div>
+
+                                    <div class="mb-2">
+                                        <div class="info-label">Evolução</div>
+                                        <div class="text-preline">{{ evolucao.evolucao }}</div>
+                                    </div>
+
+                                    {% if evolucao.conduta %}
+                                        <div>
+                                            <div class="info-label">Conduta</div>
+                                            <div class="text-preline">{{ evolucao.conduta }}</div>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            {% empty %}
+                                <div class="text-muted fw-bold text-center py-4">
+                                    Nenhuma evolução registrada para esta internação.
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{ dados_internacao_atual|json_script:"dados-internacao-atual" }}
+
+{% if dados_impressao_internacao %}
+    {{ dados_impressao_internacao|json_script:"dados-impressao-internacao" }}
+{% endif %}
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{% static 'internacao/js/impressao.js' %}?v=20260711-1"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    if (!window.InternacaoImpressao) {
+        return;
+    }
+
+    const dadosAtuais = window.InternacaoImpressao.lerJson("dados-internacao-atual") || {};
+    const dadosImpressao = window.InternacaoImpressao.lerJson("dados-impressao-internacao");
+    const modalElemento = document.getElementById("modal-impressao-internacao");
+    const botaoImprimir = document.getElementById("btn-imprimir-internacao");
+
+    document.querySelectorAll("[data-print-internacao]").forEach(function (botao) {
+        botao.addEventListener("click", function () {
+            const tipo = this.getAttribute("data-print-internacao");
+            window.InternacaoImpressao.imprimir(tipo, dadosAtuais);
+        });
+    });
+
+    if (modalElemento && window.bootstrap) {
+        const modal = new bootstrap.Modal(modalElemento);
+        modal.show();
+
+        modalElemento.addEventListener("hidden.bs.modal", function () {
+            const script = document.getElementById("dados-impressao-internacao");
+
+            if (script) {
+                script.remove();
+            }
+        });
+    }
+
+    if (botaoImprimir && dadosImpressao) {
+        botaoImprimir.addEventListener("click", function () {
+            window.InternacaoImpressao.imprimir(dadosImpressao.tipoImpressao, dadosImpressao);
+
+            if (modalElemento && window.bootstrap) {
+                bootstrap.Modal.getOrCreateInstance(modalElemento).hide();
+            }
+        });
+    }
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,229 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Abrir Internação</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            background: #f4f7fb;
+            color: #172033;
+            font-family: "Segoe UI", Arial, sans-serif;
+        }
+
+        .page-card {
+            border: 0;
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 8px 28px rgba(15, 23, 42, .08);
+        }
+
+        .page-header {
+            background: #0f4c81;
+            color: #fff;
+            padding: 20px 24px;
+        }
+
+        .section-box {
+            background: #fff;
+            border: 1px solid #dce5ef;
+            border-radius: 12px;
+            padding: 16px;
+        }
+
+        .info-grid {
+            display: grid;
+            gap: 10px;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+
+        .info-item {
+            background: #f8fafc;
+            border: 1px solid #e5edf5;
+            border-radius: 10px;
+            padding: 11px;
+        }
+
+        .info-label {
+            color: #64748b;
+            font-size: 12px;
+            font-weight: 900;
+            text-transform: uppercase;
+        }
+
+        .info-value {
+            font-weight: 900;
+            margin-top: 3px;
+        }
+
+        textarea {
+            min-height: 96px;
+        }
+
+        @media (max-width: 900px) {
+            .info-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 600px) {
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container-fluid my-4">
+    <div class="card page-card">
+        <div class="page-header d-flex justify-content-between align-items-center">
+            <div>
+                <h3 class="mb-0">Abrir Internação</h3>
+                <small>Registrar leito e dados iniciais da admissão.</small>
+            </div>
+
+            <a href="{% url 'internacao_dashboard' %}" class="btn btn-light fw-bold">
+                Voltar
+            </a>
+        </div>
+
+        <div class="card-body">
+            <div class="section-box mb-3">
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">Paciente</div>
+                        <div class="info-value">{{ nome_paciente }}</div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-label">BAM</div>
+                        <div class="info-value">{{ acolhimento.numero_bam }}</div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-label">CPF</div>
+                        <div class="info-value">{{ acolhimento.cpf|default:"-" }}</div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-label">Idade</div>
+                        <div class="info-value">{{ acolhimento.idade }} anos</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-3">
+                <div class="col-lg-4">
+                    <div class="section-box h-100">
+                        <h5 class="fw-bold mb-3">Resumo clínico</h5>
+
+                        <div class="mb-3">
+                            <div class="info-label">Classificação</div>
+                            <div class="info-value">
+                                {% if classificacao %}
+                                    {{ classificacao.get_cor_display }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="info-label">Hipótese diagnóstica</div>
+                            <div class="text-muted">
+                                {% if consulta %}
+                                    {{ consulta.hipotese_diagnostica|default:"-" }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="info-label">Orientações médicas</div>
+                            <div class="text-muted">
+                                {% if consulta %}
+                                    {{ consulta.orientacoes|default:"-" }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-8">
+                    <div class="section-box">
+                        <form method="post">
+                            {% csrf_token %}
+
+                            {% if form.non_field_errors %}
+                                <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+                            {% endif %}
+
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label fw-bold">Leito</label>
+                                    {{ form.leito }}
+                                    {{ form.leito.errors }}
+                                </div>
+
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label fw-bold">Setor</label>
+                                    {{ form.setor }}
+                                    {{ form.setor.errors }}
+                                </div>
+
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label fw-bold">Responsável</label>
+                                    {{ form.profissional_responsavel }}
+                                    {{ form.profissional_responsavel.errors }}
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Diagnóstico / motivo da internação</label>
+                                {{ form.diagnostico_admissao }}
+                                {{ form.diagnostico_admissao.errors }}
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Cuidados iniciais</label>
+                                {{ form.cuidados }}
+                                {{ form.cuidados.errors }}
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Observações</label>
+                                {{ form.observacoes }}
+                                {{ form.observacoes.errors }}
+                            </div>
+
+                            <div class="d-flex justify-content-end gap-2">
+                                <a href="{% url 'internacao_dashboard' %}" class="btn btn-outline-secondary">
+                                    Cancelar
+                                </a>
+                                <button type="submit" class="btn btn-primary fw-bold">
+                                    Registrar internação
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>

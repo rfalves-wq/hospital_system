@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     "imagem",
     "medicacao",
     "farmacia",
+    "internacao",
     
 ]
 
