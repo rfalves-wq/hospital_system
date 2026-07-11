@@ -87,6 +87,17 @@
             gap: 4px;
         }
 
+        .acao-medica {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .medico-responsavel {
+            color: #0f172a;
+            font-weight: 800;
+        }
+
         .table td,
         .table th {
             vertical-align: middle;
@@ -197,6 +208,21 @@
                     </button>
                 </li>
 
+                <li class="nav-item" role="presentation">
+                    <button
+                        class="nav-link"
+                        id="acompanhamento-tab"
+                        data-bs-toggle="tab"
+                        data-bs-target="#acompanhamento"
+                        type="button"
+                        role="tab">
+                        Acompanhamento
+                        <span class="badge bg-info text-dark ms-1">
+                            {{ total_consultas_ativas }}
+                        </span>
+                    </button>
+                </li>
+
             </ul>
 
             <div class="tab-content" id="conteudoAbasMedico">
@@ -211,6 +237,7 @@
                                 <tr>
                                     <th>BAM</th>
                                     <th>Paciente</th>
+                                    <th>Médico</th>
                                     <th>Idade</th>
                                     <th>Tipo</th>
                                     <th>Classificação</th>
@@ -234,6 +261,21 @@
                                                 {{ acolhimento.paciente.nome_completo }}
                                             {% else %}
                                                 {{ acolhimento.nome_paciente }}
+                                            {% endif %}
+                                        </td>
+
+                                        <td>
+                                            {% if acolhimento.consulta_medica %}
+                                                <div class="medico-responsavel">
+                                                    {{ acolhimento.consulta_medica.medico_responsavel|default:"-" }}
+                                                </div>
+                                                {% if acolhimento.consulta_medica.crm_medico %}
+                                                    <small class="text-muted">
+                                                        CRM {{ acolhimento.consulta_medica.crm_medico }}
+                                                    </small>
+                                                {% endif %}
+                                            {% else %}
+                                                <span class="text-muted">Primeira consulta</span>
                                             {% endif %}
                                         </td>
 
@@ -338,15 +380,32 @@
                                         </td>
 
                                         <td>
-                                            <a href="{% url 'atender_paciente' acolhimento.id %}"
-                                               class="btn btn-primary btn-sm">
-                                                Atender
-                                            </a>
+                                            <div class="acao-medica">
+                                                <a href="{% url 'atender_paciente' acolhimento.id %}"
+                                                   class="btn btn-primary btn-sm">
+                                                    Atender
+                                                </a>
+
+                                                {% if acolhimento.consulta_medica and medico_atual and acolhimento.consulta_medica.medico_responsavel != medico_atual %}
+                                                    <form method="post"
+                                                          action="{% url 'assumir_paciente_medico' acolhimento.id %}">
+                                                        {% csrf_token %}
+                                                        <input type="hidden" name="next" value="dashboard">
+                                                        <input type="hidden" name="novo_medico" value="{{ medico_atual }}">
+                                                        <input type="hidden" name="motivo" value="PLANTAO">
+                                                        <button type="submit"
+                                                                class="btn btn-outline-success btn-sm"
+                                                                onclick="return confirm('Confirmar que você vai assumir este paciente?');">
+                                                            Assumir
+                                                        </button>
+                                                    </form>
+                                                {% endif %}
+                                            </div>
                                         </td>
                                     </tr>
                                 {% empty %}
                                     <tr>
-                                        <td colspan="9" class="text-center text-muted py-4">
+                                        <td colspan="10" class="text-center text-muted py-4">
                                             Nenhum paciente aguardando consulta médica.
                                         </td>
                                     </tr>
@@ -494,6 +553,125 @@
                                     <tr>
                                         <td colspan="8" class="text-center text-muted py-4">
                                             Nenhum paciente atendido por você ainda.
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                </div>
+
+                <div class="tab-pane fade" id="acompanhamento" role="tabpanel">
+
+                    <div class="table-responsive">
+
+                        <table class="table table-bordered table-hover align-middle">
+
+                            <thead class="table-info">
+                                <tr>
+                                    <th>BAM</th>
+                                    <th>Paciente</th>
+                                    <th>Médico responsável</th>
+                                    <th>Conduta</th>
+                                    <th>Status Atual</th>
+                                    <th>Data Consulta</th>
+                                    <th>Ação</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+
+                                {% for consulta in consultas_ativas %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ consulta.acolhimento.numero_bam }}</strong>
+                                        </td>
+
+                                        <td>
+                                            {% if consulta.acolhimento.paciente %}
+                                                {{ consulta.acolhimento.paciente.nome_completo }}
+                                            {% else %}
+                                                {{ consulta.acolhimento.nome_paciente }}
+                                            {% endif %}
+                                        </td>
+
+                                        <td>
+                                            <div class="medico-responsavel">
+                                                {{ consulta.medico_responsavel|default:"-" }}
+                                            </div>
+                                            {% if consulta.crm_medico %}
+                                                <small class="text-muted">
+                                                    CRM {{ consulta.crm_medico }}
+                                                </small>
+                                            {% endif %}
+                                        </td>
+
+                                        <td>
+                                            <span class="badge bg-info text-dark">
+                                                {{ consulta.get_conduta_display }}
+                                            </span>
+                                        </td>
+
+                                        <td>
+                                            {% if consulta.acolhimento.status == "RETORNO_MEDICO" %}
+                                                <span class="badge bg-warning text-dark badge-retorno">
+                                                    Retorno ao Médico
+                                                </span>
+                                            {% elif consulta.acolhimento.status == "PROCEDIMENTOS" %}
+                                                <span class="badge bg-secondary">
+                                                    Em Procedimentos
+                                                </span>
+                                            {% elif consulta.acolhimento.status == "INTERNACAO" %}
+                                                <span class="badge bg-primary">
+                                                    Internação
+                                                </span>
+                                            {% elif consulta.acolhimento.status == "OBSERVACAO" %}
+                                                <span class="badge bg-dark">
+                                                    Observação
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">
+                                                    {{ consulta.acolhimento.get_status_display }}
+                                                </span>
+                                            {% endif %}
+                                        </td>
+
+                                        <td>
+                                            {{ consulta.data_consulta|date:"d/m/Y H:i" }}
+                                        </td>
+
+                                        <td>
+                                            <div class="acao-medica">
+                                                <a href="{% url 'atender_paciente' consulta.acolhimento.id %}"
+                                                   class="btn btn-outline-primary btn-sm">
+                                                    Ver / Editar
+                                                </a>
+
+                                                {% if medico_atual and consulta.medico_responsavel != medico_atual %}
+                                                    <form method="post"
+                                                          action="{% url 'assumir_paciente_medico' consulta.acolhimento.id %}">
+                                                        {% csrf_token %}
+                                                        <input type="hidden" name="next" value="dashboard">
+                                                        <input type="hidden" name="novo_medico" value="{{ medico_atual }}">
+                                                        <input type="hidden" name="motivo" value="PLANTAO">
+                                                        <button type="submit"
+                                                                class="btn btn-outline-success btn-sm"
+                                                                onclick="return confirm('Confirmar que você vai assumir este paciente?');">
+                                                            Assumir
+                                                        </button>
+                                                    </form>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="7" class="text-center text-muted py-4">
+                                            Nenhum paciente em acompanhamento médico.
                                         </td>
                                     </tr>
                                 {% endfor %}

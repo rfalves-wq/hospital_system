@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 
 from acolhimento.models import Acolhimento
 
@@ -271,3 +272,40 @@ class ConsultaMedica(models.Model):
             return False
 
         return True
+
+
+class TransferenciaConsultaMedica(models.Model):
+    MOTIVO_CHOICES = [
+        ("PLANTAO", "Passagem de plantão"),
+        ("TRANSFERENCIA", "Transferência do paciente"),
+        ("AUSENCIA", "Saída ou ausência do médico"),
+        ("OUTRO", "Outro motivo"),
+    ]
+
+    consulta = models.ForeignKey(
+        ConsultaMedica,
+        on_delete=models.CASCADE,
+        related_name="transferencias_medico",
+    )
+    medico_anterior = models.CharField(max_length=150, blank=True, default="")
+    crm_anterior = models.CharField(max_length=30, blank=True, default="")
+    medico_novo = models.CharField(max_length=150)
+    crm_novo = models.CharField(max_length=30, blank=True, default="")
+    motivo = models.CharField(
+        max_length=30,
+        choices=MOTIVO_CHOICES,
+        default="PLANTAO",
+    )
+    observacao = models.TextField(blank=True, default="")
+    data_transferencia = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        ordering = ["-data_transferencia"]
+        verbose_name = "Transferência de médico"
+        verbose_name_plural = "Transferências de médico"
+
+    def __str__(self):
+        return (
+            f"{self.consulta.acolhimento.numero_bam}: "
+            f"{self.medico_anterior or '-'} -> {self.medico_novo}"
+        )

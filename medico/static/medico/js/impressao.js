@@ -81,6 +81,8 @@
         dados.indicacaoOutrosImagem = valorCampo("id_indicacao_outros_imagem", dados.indicacaoOutrosImagem);
         dados.prescricao = valorCampo("id_prescricao", dados.prescricao);
         dados.orientacoes = valorCampo("id_orientacoes", dados.orientacoes);
+        dados.alergia = dados.alergia || "";
+        dados.usoMedicamento = dados.usoMedicamento || "";
         dados.dataConsulta = dados.dataConsulta || new Date().toLocaleString("pt-BR");
 
         return dados;
@@ -167,14 +169,34 @@
     }
 
     function secaoClassificacao(dados) {
-        if (!temTexto(dados.classificacao) && !temTexto(dados.queixaClassificacao)) {
+        if (
+            !temTexto(dados.classificacao)
+            && !temTexto(dados.queixaClassificacao)
+            && !temTexto(dados.alergia)
+            && !temTexto(dados.usoMedicamento)
+        ) {
             return "";
         }
 
         return secao("Classificacao de risco", tabela(`
             ${linha("Classificacao", dados.classificacao, "Data", dados.dataClassificacao)}
             ${linhaTexto("Queixa", dados.queixaClassificacao)}
+            ${linhaTexto("Alergia", dados.alergia)}
+            ${linhaTexto("Uso de medicamento", dados.usoMedicamento)}
         `));
+    }
+
+    function secaoAlertaAlergia(dados) {
+        if (!temTexto(dados.alergia)) {
+            return "";
+        }
+
+        return `
+            <div class="alerta-alergia">
+                <strong>ATENCAO: PACIENTE COM ALERGIA REGISTRADA</strong>
+                <div>${textoLongo(dados.alergia)}</div>
+            </div>
+        `;
     }
 
     function secaoConsulta(dados) {
@@ -209,6 +231,7 @@
     function secaoPrescricao(dados) {
         return secao("Prescricao / medicacao", tabela(`
             ${linha("Solicita medicacao", dados.solicitaMedicacao ? "Sim" : "Nao", "Medico", dados.medicoResponsavel)}
+            ${linhaTexto("Alergia registrada", dados.alergia)}
             ${linhaTexto("Prescricao", dados.prescricao)}
         `));
     }
@@ -254,6 +277,7 @@
             <article class="documento">
                 ${cabecalhoDocumento(titulo, dados)}
                 ${secaoPaciente(dados)}
+                ${secaoAlertaAlergia(dados)}
                 ${secoes.join("")}
                 ${assinatura(rotuloAssinatura)}
             </article>
@@ -423,6 +447,19 @@
                     }
                     .secao {
                         padding: 12px 14px 0;
+                    }
+                    .alerta-alergia {
+                        background: #fee2e2;
+                        border: 2px solid #dc2626;
+                        color: #7f1d1d;
+                        font-size: 13px;
+                        font-weight: 800;
+                        margin: 12px 14px 0;
+                        padding: 10px 12px;
+                    }
+                    .alerta-alergia strong {
+                        display: block;
+                        margin-bottom: 4px;
                     }
                     .secao-titulo {
                         border-bottom: 2px solid #0f4c81;

@@ -4,32 +4,61 @@ from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
+from django.views.decorators.http import require_POST
 
 from acolhimento.models import Acolhimento
 from acolhimento.utils import passagens_do_paciente_no_dia
 from farmacia.models import MedicamentoEstoque
 
 from .forms import ConsultaMedicaForm
-from .models import ConsultaMedica, CID
+from .models import ConsultaMedica, CID, TransferenciaConsultaMedica
+
+
+def nome_usuario(request):
+    if request.user.is_authenticated:
+        return request.user.get_full_name() or request.user.username
+
+    return ""
+
+
+def registrar_transferencia_medico(
+    consulta,
+    medico_novo,
+    crm_novo="",
+    motivo="OUTRO",
+    observacao="",
+    medico_anterior=None,
+    crm_anterior=None,
+):
+    TransferenciaConsultaMedica.objects.create(
+        consulta=consulta,
+        medico_anterior=(
+            consulta.medico_responsavel
+            if medico_anterior is None
+            else medico_anterior
+        ) or "",
+        crm_anterior=(
+            consulta.crm_medico
+            if crm_anterior is None
+            else crm_anterior
+        ) or "",
+        medico_novo=medico_novo,
+        crm_novo=crm_novo or "",
+        motivo=motivo,
+        observacao=observacao,
+    )
 
 
 def medico_dashboard(request):
     dados_impressao = buscar_dados_impressao_medico(request)
+    nome_medico = nome_usuario(request)
 
     acolhimentos = (
         Acolhimento.objects
-        .select_related("paciente", "classificacao")
+        .select_related("paciente", "classificacao", "consulta_medica")
         .filter(status__in=["CONSULTA", "RETORNO_MEDICO"])
         .order_by("data_acolhimento")
     )
-
-    nome_medico = ""
-
-    if request.user.is_authenticated:
-        nome_medico = (
-            request.user.get_full_name()
-            or request.user.username
-        )
 
     minhas_consultas = (
         ConsultaMedica.objects
@@ -42,6 +71,17 @@ def medico_dashboard(request):
         .order_by("-data_consulta")
     )
 
+    consultas_ativas = (
+        ConsultaMedica.objects
+        .select_related(
+            "acolhimento",
+            "acolhimento__paciente",
+            "acolhimento__classificacao"
+        )
+        .exclude(acolhimento__status="FINALIZADO")
+        .order_by("-data_consulta")
+    )
+
     return render(
         request,
         "medico/dashboard.html",
@@ -50,7 +90,10 @@ def medico_dashboard(request):
             "total_consulta": acolhimentos.count(),
             "minhas_consultas": minhas_consultas,
             "total_minhas_consultas": minhas_consultas.count(),
+            "consultas_ativas": consultas_ativas,
+            "total_consultas_ativas": consultas_ativas.count(),
             "dados_impressao_medico": dados_impressao,
+            "medico_atual": nome_medico,
         }
     )
 
@@ -155,6 +198,16 @@ def dados_base_para_impressao(acolhimento, classificacao=None):
         "queixaClassificacao": (
             classificacao.queixa_principal
             if classificacao and classificacao.queixa_principal
+            else ""
+        ),
+        "alergia": (
+            classificacao.alergia
+            if classificacao and classificacao.alergia
+            else ""
+        ),
+        "usoMedicamento": (
+            classificacao.uso_medicamento
+            if classificacao and classificacao.uso_medicamento
             else ""
         ),
         "dataClassificacao": (
@@ -330,11 +383,28 @@ def atender_paciente(request, acolhimento_id):
             instance=consulta
         )
 
+        medico_anterior = consulta.medico_responsavel if consulta else ""
+        crm_anterior = consulta.crm_medico if consulta else ""
+
         if form.is_valid():
 
             consulta_medica = form.save(commit=False)
             consulta_medica.acolhimento = acolhimento
             consulta_medica.save()
+
+            if consulta and (
+                medico_anterior != (consulta_medica.medico_responsavel or "")
+                or (crm_anterior or "") != (consulta_medica.crm_medico or "")
+            ):
+                registrar_transferencia_medico(
+                    consulta_medica,
+                    consulta_medica.medico_responsavel,
+                    consulta_medica.crm_medico or "",
+                    motivo="OUTRO",
+                    observacao="Responsável alterado ao salvar a consulta médica.",
+                    medico_anterior=medico_anterior,
+                    crm_anterior=crm_anterior,
+                )
 
             tem_procedimento = (
                 consulta_medica.solicita_medicacao
@@ -376,7 +446,7 @@ def atender_paciente(request, acolhimento_id):
         if classificacao:
             inicial["queixa_principal"] = classificacao.queixa_principal
 
-        if request.user.is_authenticated:
+        if request.user.is_authenticated and not consulta:
             inicial["medico_responsavel"] = (
                 request.user.get_full_name()
                 or request.user.username
@@ -400,6 +470,17 @@ def atender_paciente(request, acolhimento_id):
         .exclude(id=acolhimento.id)
         .exists()
     )
+    medico_atual = nome_usuario(request)
+    historico_transferencias = (
+        consulta.transferencias_medico.all()
+        if consulta
+        else []
+    )
+    pode_assumir_consulta = bool(
+        consulta
+        and acolhimento.status != "FINALIZADO"
+        and (not medico_atual or consulta.medico_responsavel != medico_atual)
+    )
 
     return render(
         request,
@@ -417,12 +498,95 @@ def atender_paciente(request, acolhimento_id):
             "passagens_hospital_dia": passagens_hospital_dia,
             "total_passagens_hospital_dia": total_passagens_hospital_dia,
             "tem_passagem_anterior_hoje": tem_passagem_anterior_hoje,
+            "medico_atual": medico_atual,
+            "historico_transferencias": historico_transferencias,
+            "pode_assumir_consulta": pode_assumir_consulta,
+            "motivos_transferencia": TransferenciaConsultaMedica.MOTIVO_CHOICES,
             "dados_base_impressao_medico": dados_base_para_impressao(
                 acolhimento,
                 classificacao
             ),
         }
     )
+
+
+@require_POST
+def assumir_paciente(request, acolhimento_id):
+    acolhimento = get_object_or_404(
+        Acolhimento,
+        id=acolhimento_id
+    )
+
+    consulta = ConsultaMedica.objects.filter(
+        acolhimento=acolhimento
+    ).first()
+
+    if not consulta:
+        messages.warning(
+            request,
+            "Ainda não existe consulta médica para este paciente."
+        )
+        return redirect("atender_paciente", acolhimento_id=acolhimento.id)
+
+    if acolhimento.status == "FINALIZADO":
+        messages.warning(
+            request,
+            "Paciente finalizado não pode ser assumido por outro médico."
+        )
+        return redirect("medico_dashboard")
+
+    novo_medico = (
+        request.POST.get("novo_medico")
+        or nome_usuario(request)
+        or ""
+    ).strip()
+    crm_novo = (request.POST.get("crm_novo") or "").strip()
+    motivo = (request.POST.get("motivo") or "PLANTAO").strip()
+    observacao = (request.POST.get("observacao") or "").strip()
+    motivos_validos = {
+        codigo
+        for codigo, _ in TransferenciaConsultaMedica.MOTIVO_CHOICES
+    }
+
+    if motivo not in motivos_validos:
+        motivo = "PLANTAO"
+
+    if not novo_medico:
+        messages.error(
+            request,
+            "Informe o nome do médico que vai assumir o paciente."
+        )
+        return redirect("atender_paciente", acolhimento_id=acolhimento.id)
+
+    if (
+        consulta.medico_responsavel == novo_medico
+        and (consulta.crm_medico or "") == crm_novo
+    ):
+        messages.info(
+            request,
+            "Este médico já está responsável pelo paciente."
+        )
+    else:
+        registrar_transferencia_medico(
+            consulta,
+            novo_medico,
+            crm_novo,
+            motivo=motivo,
+            observacao=observacao,
+        )
+        consulta.medico_responsavel = novo_medico
+        consulta.crm_medico = crm_novo
+        consulta.save(update_fields=["medico_responsavel", "crm_medico"])
+
+        messages.success(
+            request,
+            f"Paciente assumido por {novo_medico}. Histórico de passagem registrado."
+        )
+
+    if request.POST.get("next") == "dashboard":
+        return redirect("medico_dashboard")
+
+    return redirect("atender_paciente", acolhimento_id=acolhimento.id)
 
 
 def retornar_para_medico(request, acolhimento_id):

@@ -29,6 +29,12 @@ urlpatterns = [
     ),
 
     path(
+        "assumir/<int:acolhimento_id>/",
+        views.assumir_paciente,
+        name="assumir_paciente_medico"
+    ),
+
+    path(
         "retornar/<int:acolhimento_id>/",
         views.retornar_para_medico,
         name="retornar_para_medico"
