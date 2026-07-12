@@ -152,6 +152,43 @@
             white-space: nowrap;
         }
 
+        .bulk-toolbar {
+            align-items: center;
+            background: #f8fbff;
+            border: 1px solid #cfe3ff;
+            border-radius: 12px;
+            display: flex;
+            gap: 12px;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            padding: 10px 12px;
+        }
+
+        .bulk-toolbar strong {
+            color: var(--azul);
+            display: block;
+            font-weight: 900;
+            line-height: 1.2;
+        }
+
+        .bulk-toolbar span {
+            color: var(--muted);
+            display: block;
+            font-size: .82rem;
+            font-weight: 700;
+        }
+
+        .bulk-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+
+        .bulk-actions .btn {
+            min-width: 132px;
+        }
+
         .table-scroll {
             overflow: visible;
             border: 1px solid #e5edf5;
@@ -175,6 +212,17 @@
             font-size: .78rem;
             text-transform: uppercase;
             letter-spacing: .02em;
+        }
+
+        .select-col {
+            text-align: center;
+            width: 46px;
+        }
+
+        .table-estoque th.select-col,
+        .table-estoque td.select-col {
+            padding-left: 10px;
+            padding-right: 10px;
         }
 
         .table-estoque th:last-child,
@@ -332,6 +380,88 @@
             color: #854d0e;
         }
 
+        .bulk-modal-grid {
+            display: grid;
+            gap: 16px;
+            grid-template-columns: minmax(320px, .95fr) minmax(360px, 1fr);
+        }
+
+        .bulk-items-panel,
+        .bulk-fields-panel {
+            background: #f8fbff;
+            border: 1px solid var(--borda);
+            border-radius: 12px;
+            padding: 12px;
+        }
+
+        .bulk-items-header {
+            align-items: center;
+            display: flex;
+            gap: 10px;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .bulk-items-header strong {
+            color: #0f172a;
+            font-weight: 900;
+        }
+
+        .bulk-items-header span {
+            background: #eaf4ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 999px;
+            color: var(--azul);
+            font-size: .78rem;
+            font-weight: 900;
+            padding: 5px 8px;
+        }
+
+        .bulk-items-list {
+            display: grid;
+            gap: 8px;
+            max-height: 440px;
+            overflow: auto;
+            padding-right: 4px;
+        }
+
+        .bulk-item-row {
+            align-items: center;
+            background: #fff;
+            border: 1px solid #dce5ef;
+            border-radius: 10px;
+            display: grid;
+            gap: 10px;
+            grid-template-columns: minmax(0, 1fr) 150px;
+            padding: 10px;
+        }
+
+        .bulk-item-name {
+            color: #0f172a;
+            font-weight: 900;
+            line-height: 1.25;
+        }
+
+        .bulk-item-meta {
+            color: var(--muted);
+            font-size: .78rem;
+            font-weight: 700;
+            margin-top: 3px;
+        }
+
+        .bulk-item-row label {
+            color: var(--muted);
+            display: block;
+            font-size: .72rem;
+            font-weight: 900;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+        }
+
+        .bulk-item-row input {
+            font-weight: 900;
+        }
+
         @media (max-width: 1400px) {
             .filter-grid {
                 grid-template-columns: minmax(240px, 1fr) 1fr 1fr;
@@ -348,6 +478,10 @@
                 max-height: none;
                 overflow-x: auto;
                 overflow-y: visible;
+            }
+
+            .bulk-modal-grid {
+                grid-template-columns: 1fr;
             }
         }
 
@@ -366,5 +500,19 @@
             .section-title-row {
                 align-items: flex-start;
                 flex-direction: column;
+            }
+
+            .bulk-toolbar {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .bulk-actions,
+            .bulk-actions .btn {
+                width: 100%;
+            }
+
+            .bulk-item-row {
+                grid-template-columns: 1fr;
             }
         }

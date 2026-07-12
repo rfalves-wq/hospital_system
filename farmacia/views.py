@@ -4,12 +4,21 @@ from django.db import transaction
 from django.db.models import F, Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
+from django.utils.dateparse import parse_date
 from django.utils import timezone
 
 from medico.models import ConsultaMedica
 
 from .forms import FarmaciaForm, MedicamentoEstoqueForm, MovimentacaoEstoqueForm
 from .models import MedicamentoEstoque, MovimentacaoEstoque
+
+
+TIPOS_MOVIMENTACAO_ESTOQUE = {
+    MovimentacaoEstoque.ENTRADA,
+    MovimentacaoEstoque.SAIDA,
+    MovimentacaoEstoque.AJUSTE,
+}
 
 
 def filtrar_por_busca(queryset, termo):
@@ -386,6 +395,166 @@ def estoque_dashboard(request):
             "total_zerados": total_zerados,
         }
     )
+
+
+def redirect_estoque_lote(request):
+    destino = request.POST.get("next") or reverse("farmacia_estoque")
+
+    return redirect(destino)
+
+
+def quantidade_lote_valida(tipo, medicamento_id, request):
+    valor = request.POST.get(f"quantidade_{medicamento_id}", "").strip()
+
+    if not valor or "." in valor or "," in valor:
+        raise ValueError("Informe quantidades inteiras para todos os itens selecionados.")
+
+    quantidade = int(valor)
+
+    if tipo == MovimentacaoEstoque.AJUSTE:
+        if quantidade < 0:
+            raise ValueError("O novo saldo nao pode ser negativo.")
+    elif quantidade <= 0:
+        raise ValueError("A quantidade deve ser maior que zero.")
+
+    return quantidade
+
+
+def saldo_movimentado(tipo, saldo_anterior, quantidade):
+    if tipo == MovimentacaoEstoque.ENTRADA:
+        return saldo_anterior + quantidade
+
+    if tipo == MovimentacaoEstoque.SAIDA:
+        return saldo_anterior - quantidade
+
+    return quantidade
+
+
+def descricao_tipo_lote(tipo):
+    if tipo == MovimentacaoEstoque.ENTRADA:
+        return "entrada"
+
+    if tipo == MovimentacaoEstoque.SAIDA:
+        return "saida"
+
+    return "ajuste"
+
+
+def movimentar_estoque_lote(request):
+    if request.method != "POST":
+        return redirect("farmacia_estoque")
+
+    tipo = (request.POST.get("tipo_movimentacao") or "").upper()
+    ids_texto = request.POST.getlist("medicamentos")
+    profissional_nome = (request.POST.get("profissional_nome") or "").strip()
+    profissional_registro = (request.POST.get("profissional_registro") or "").strip()
+    lote = (request.POST.get("lote") or "").strip()
+    validade_texto = (request.POST.get("validade") or "").strip()
+    origem_destino = (request.POST.get("origem_destino") or "").strip()
+    observacao = (request.POST.get("observacao") or "").strip()
+
+    if tipo not in TIPOS_MOVIMENTACAO_ESTOQUE:
+        messages.error(request, "Tipo de movimentacao em lote invalido.")
+        return redirect_estoque_lote(request)
+
+    if not ids_texto:
+        messages.warning(request, "Marque pelo menos um medicamento para movimentar.")
+        return redirect_estoque_lote(request)
+
+    if not profissional_nome:
+        messages.error(request, "Informe o nome do profissional responsavel.")
+        return redirect_estoque_lote(request)
+
+    validade = None
+
+    if validade_texto:
+        validade = parse_date(validade_texto)
+
+        if validade is None:
+            messages.error(request, "Informe uma data de validade valida.")
+            return redirect_estoque_lote(request)
+
+    try:
+        ids = [int(medicamento_id) for medicamento_id in ids_texto]
+    except ValueError:
+        messages.error(request, "Lista de medicamentos selecionados invalida.")
+        return redirect_estoque_lote(request)
+
+    if len(set(ids)) != len(ids):
+        messages.error(request, "Ha medicamento repetido na selecao.")
+        return redirect_estoque_lote(request)
+
+    try:
+        quantidades = {
+            medicamento_id: quantidade_lote_valida(tipo, medicamento_id, request)
+            for medicamento_id in ids
+        }
+    except ValueError as erro:
+        messages.error(request, str(erro))
+        return redirect_estoque_lote(request)
+
+    with transaction.atomic():
+        medicamentos = list(
+            MedicamentoEstoque.objects
+            .select_for_update()
+            .filter(id__in=ids)
+        )
+
+        medicamentos_por_id = {
+            medicamento.id: medicamento
+            for medicamento in medicamentos
+        }
+
+        if len(medicamentos_por_id) != len(ids):
+            messages.error(request, "Um dos medicamentos selecionados nao foi encontrado.")
+            return redirect_estoque_lote(request)
+
+        for medicamento_id in ids:
+            medicamento = medicamentos_por_id[medicamento_id]
+            quantidade = quantidades[medicamento_id]
+
+            if tipo == MovimentacaoEstoque.SAIDA and quantidade > medicamento.estoque_atual:
+                messages.error(
+                    request,
+                    (
+                        f"Estoque insuficiente para {medicamento.descricao_completa}. "
+                        f"Disponivel: {medicamento.estoque_atual} {medicamento.unidade_medida}."
+                    )
+                )
+                return redirect_estoque_lote(request)
+
+        for medicamento_id in ids:
+            medicamento = medicamentos_por_id[medicamento_id]
+            quantidade = quantidades[medicamento_id]
+            saldo_anterior = medicamento.estoque_atual
+            saldo_atual = saldo_movimentado(tipo, saldo_anterior, quantidade)
+
+            MovimentacaoEstoque.objects.create(
+                medicamento=medicamento,
+                tipo=tipo,
+                quantidade=quantidade,
+                saldo_anterior=saldo_anterior,
+                saldo_atual=saldo_atual,
+                lote=lote,
+                validade=validade,
+                origem_destino=origem_destino,
+                profissional_nome=profissional_nome,
+                profissional_registro=profissional_registro,
+                observacao=observacao,
+            )
+
+            medicamento.estoque_atual = saldo_atual
+            medicamento.save(update_fields=["estoque_atual", "atualizado_em"])
+
+    messages.success(
+        request,
+        (
+            f"{len(ids)} medicamento(s) movimentado(s) em lote "
+            f"com {descricao_tipo_lote(tipo)} no estoque."
+        )
+    )
+
+    return redirect_estoque_lote(request)
 
 
 def cadastrar_medicamento(request, medicamento_id=None):

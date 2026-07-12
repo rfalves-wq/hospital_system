@@ -27,4 +27,6 @@ urlpatterns = [
     path("farmacia/", include("farmacia.urls")),
 
     path("internacao/", include("internacao.urls")),
+
+    path("prontuario/", include("prontuario.urls")),
 ]

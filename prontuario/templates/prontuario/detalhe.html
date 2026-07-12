@@ -1,0 +1,639 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'prontuario/css/detalhe.css' %}?v=20260712-2">
+{% endblock %}
+
+{% block content %}
+<main class="prontuario-detail">
+    <section class="detail-hero no-print">
+        <div>
+            <span class="hero-kicker">Prontuário</span>
+            <h1>
+                {% if paciente %}
+                    {{ paciente.nome_completo }}
+                {% elif atendimento_base %}
+                    {{ atendimento_base.nome_paciente }}
+                {% else %}
+                    Paciente
+                {% endif %}
+            </h1>
+            <p>Histórico consolidado das passagens, classificações, consultas, procedimentos e internações.</p>
+        </div>
+
+        <div class="hero-actions">
+            <a href="{% url 'prontuario_dashboard' %}" class="btn btn-light fw-bold">
+                Voltar
+            </a>
+            <button type="button" class="btn btn-warning fw-bold" data-print-prontuario>
+                Imprimir prontuário
+            </button>
+        </div>
+    </section>
+
+    <section class="print-header only-print">
+        <h1>Prontuário do Paciente</h1>
+        <p>Sistema Hospitalar</p>
+    </section>
+
+    <section class="overview-grid {% if not alergias and not medicamentos_em_uso %}overview-grid-single{% endif %}">
+        <section class="summary-card print-keep">
+            <div class="summary-title">
+                <div>
+                    <span>Identificação do paciente</span>
+                    <h2>
+                        {% if paciente %}
+                            {{ paciente.nome_completo }}
+                        {% elif atendimento_base %}
+                            {{ atendimento_base.nome_paciente }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </h2>
+                </div>
+
+                <div class="summary-badges">
+                    <span>{{ total_atendimentos }} atendimento(s)</span>
+                    <span>{{ total_consultas }} consulta(s)</span>
+                    <span>{{ total_internacoes }} internação(ões)</span>
+                </div>
+            </div>
+
+            <div class="summary-grid">
+                <div>
+                    <label>CPF</label>
+                    <strong>
+                        {% if paciente %}
+                            {{ paciente.cpf|default:"-" }}
+                        {% elif atendimento_base %}
+                            {{ atendimento_base.cpf|default:"-" }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </strong>
+                </div>
+                <div>
+                    <label>CNS</label>
+                    <strong>
+                        {% if paciente %}
+                            {{ paciente.cns|default:"-" }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </strong>
+                </div>
+                <div>
+                    <label>Nascimento</label>
+                    <strong>
+                        {% if paciente %}
+                            {{ paciente.nascimento|date:"d/m/Y" }}
+                        {% elif atendimento_base %}
+                            {{ atendimento_base.data_nascimento|date:"d/m/Y" }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </strong>
+                </div>
+                <div>
+                    <label>Idade</label>
+                    <strong>
+                        {% if paciente %}
+                            {{ paciente.idade }} anos
+                        {% elif atendimento_base %}
+                            {{ atendimento_base.idade }} anos
+                        {% else %}
+                            -
+                        {% endif %}
+                    </strong>
+                </div>
+                <div>
+                    <label>Telefone</label>
+                    <strong>
+                        {% if paciente %}
+                            {{ paciente.telefone|default:"-" }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </strong>
+                </div>
+                <div>
+                    <label>Última passagem</label>
+                    <strong>{{ ultima_passagem|date:"d/m/Y H:i"|default:"-" }}</strong>
+                </div>
+            </div>
+
+            {% if paciente %}
+                <div class="summary-grid secondary-grid">
+                    <div>
+                        <label>Mãe</label>
+                        <strong>{{ paciente.nome_mae|default:"-" }}</strong>
+                    </div>
+                    <div>
+                        <label>Pai</label>
+                        <strong>{{ paciente.nome_pai|default:"-" }}</strong>
+                    </div>
+                    <div>
+                        <label>Endereço</label>
+                        <strong>
+                            {{ paciente.logradouro|default:"-" }},
+                            {{ paciente.numero|default:"-" }} -
+                            {{ paciente.bairro|default:"-" }},
+                            {{ paciente.municipio|default:"-" }}
+                        </strong>
+                    </div>
+                </div>
+            {% endif %}
+        </section>
+
+        {% if alergias or medicamentos_em_uso %}
+            <aside class="alerts-column">
+                {% if alergias %}
+                    <section class="alert-card danger print-keep">
+                        <div class="alert-heading">
+                            <h2>Alergia registrada</h2>
+                            <span>{{ alergias|length }} item(ns)</span>
+                        </div>
+                        <div class="alert-chip-list">
+                            {% for alergia in alergias %}
+                                <span class="alert-chip">{{ alergia }}</span>
+                            {% endfor %}
+                        </div>
+                    </section>
+                {% endif %}
+
+                {% if medicamentos_em_uso %}
+                    <section class="alert-card warning print-keep">
+                        <div class="alert-heading">
+                            <h2>Medicamentos em uso</h2>
+                            <span>{{ medicamentos_em_uso|length }} item(ns)</span>
+                        </div>
+                        <div class="alert-chip-list">
+                            {% for medicamento in medicamentos_em_uso %}
+                                <span class="alert-chip">{{ medicamento }}</span>
+                            {% endfor %}
+                        </div>
+                    </section>
+                {% endif %}
+            </aside>
+        {% endif %}
+    </section>
+
+    <section class="timeline">
+        <div class="timeline-heading">
+            <div>
+                <span>Linha do tempo</span>
+                <h2>Passagens do paciente</h2>
+            </div>
+        </div>
+
+        {% for item in registros %}
+            <article class="record-card print-target" id="atendimento-{{ item.acolhimento.id }}">
+                <header class="record-header">
+                    <div>
+                        <span class="record-label">Atendimento</span>
+                        <h3>BAM {{ item.acolhimento.numero_bam|default:"-" }}</h3>
+                        <p>
+                            {{ item.acolhimento.data_acolhimento|date:"d/m/Y H:i" }}
+                            {% if item.acolhimento.hora_chegada %}
+                                | chegada {{ item.acolhimento.hora_chegada|time:"H:i" }}
+                            {% endif %}
+                        </p>
+                    </div>
+
+                    <div class="record-actions">
+                        <span class="status-pill">{{ item.acolhimento.get_status_display }}</span>
+                        <button
+                            type="button"
+                            class="btn btn-outline-primary btn-sm fw-bold no-print"
+                            data-print-section="#atendimento-{{ item.acolhimento.id }}">
+                            Imprimir passagem
+                        </button>
+                    </div>
+                </header>
+
+                <div class="record-section">
+                    <div class="section-title-line">
+                        <h4>Acolhimento</h4>
+                        <span>{{ item.acolhimento.get_tipo_atendimento_display }}</span>
+                    </div>
+
+                    <div class="info-grid">
+                        <div>
+                            <label>Paciente informado</label>
+                            <strong>{{ item.acolhimento.nome_paciente }}</strong>
+                        </div>
+                        <div>
+                            <label>CPF</label>
+                            <strong>{{ item.acolhimento.cpf|default:"-" }}</strong>
+                        </div>
+                        <div>
+                            <label>PA</label>
+                            <strong>{{ item.acolhimento.pressao_arterial|default:"-" }}</strong>
+                        </div>
+                        <div>
+                            <label>Temperatura</label>
+                            <strong>
+                                {% if item.acolhimento.temperatura %}
+                                    {{ item.acolhimento.temperatura }}°C
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </strong>
+                        </div>
+                        <div>
+                            <label>FR</label>
+                            <strong>{{ item.acolhimento.frequencia_respiratoria|default:"-" }}</strong>
+                        </div>
+                        <div>
+                            <label>Pulso</label>
+                            <strong>{{ item.acolhimento.pulso|default:"-" }}</strong>
+                        </div>
+                        <div>
+                            <label>Dor</label>
+                            <strong>
+                                {% if item.acolhimento.dor == 0 %}
+                                    0/10
+                                {% elif item.acolhimento.dor %}
+                                    {{ item.acolhimento.dor }}/10
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </strong>
+                        </div>
+                    </div>
+                </div>
+
+                {% if item.classificacao %}
+                    <div class="record-section">
+                        <div class="section-title-line">
+                            <h4>Classificação de risco</h4>
+                            <span class="risk-badge risk-{{ item.classificacao.cor|lower }}">
+                                {{ item.classificacao.get_cor_display }}
+                            </span>
+                        </div>
+
+                        <div class="text-columns">
+                            <div>
+                                <label>Queixa principal</label>
+                                <p>{{ item.classificacao.queixa_principal|linebreaksbr }}</p>
+                            </div>
+                            <div>
+                                <label>Tempo de início</label>
+                                <p>{{ item.classificacao.tempo_inicio_sintoma|default:"-" }}</p>
+                            </div>
+                        </div>
+
+                        <div class="info-grid">
+                            <div>
+                                <label>Forma de chegada</label>
+                                <strong>{{ item.classificacao.get_forma_chegada_display }}</strong>
+                            </div>
+                            <div>
+                                <label>Escala de dor</label>
+                                <strong>{{ item.classificacao.escala_dor|default:"-" }}</strong>
+                            </div>
+                            <div>
+                                <label>Glicemia</label>
+                                <strong>{{ item.classificacao.glicemia|default:"-" }}</strong>
+                            </div>
+                            <div>
+                                <label>Peso</label>
+                                <strong>{{ item.classificacao.peso|default:"-" }}</strong>
+                            </div>
+                            <div>
+                                <label>Altura</label>
+                                <strong>{{ item.classificacao.altura|default:"-" }}</strong>
+                            </div>
+                            <div>
+                                <label>Responsável</label>
+                                <strong>{{ item.classificacao.usuario_responsavel|default:"-" }}</strong>
+                            </div>
+                        </div>
+
+                        {% if item.classificacao.alergia %}
+                            <div class="inline-alert danger">
+                                <strong>Alergia:</strong> {{ item.classificacao.alergia|linebreaksbr }}
+                            </div>
+                        {% endif %}
+
+                        {% if item.classificacao.doenca_pre_existente or item.classificacao.uso_medicamento or item.classificacao.observacoes %}
+                            <div class="text-columns three">
+                                <div>
+                                    <label>Doença pré-existente</label>
+                                    <p>{{ item.classificacao.doenca_pre_existente|default:"-"|linebreaksbr }}</p>
+                                </div>
+                                <div>
+                                    <label>Uso de medicamento</label>
+                                    <p>{{ item.classificacao.uso_medicamento|default:"-"|linebreaksbr }}</p>
+                                </div>
+                                <div>
+                                    <label>Observações</label>
+                                    <p>{{ item.classificacao.observacoes|default:"-"|linebreaksbr }}</p>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endif %}
+
+                {% if item.consulta %}
+                    <div class="record-section">
+                        <div class="section-title-line">
+                            <h4>Consulta médica</h4>
+                            <span>{{ item.consulta.get_conduta_display }}</span>
+                        </div>
+
+                        <div class="info-grid">
+                            <div>
+                                <label>Médico responsável</label>
+                                <strong>{{ item.consulta.medico_responsavel|default:"-" }}</strong>
+                            </div>
+                            <div>
+                                <label>CRM</label>
+                                <strong>{{ item.consulta.crm_medico|default:"-" }}</strong>
+                            </div>
+                            <div>
+                                <label>Data da consulta</label>
+                                <strong>{{ item.consulta.data_consulta|date:"d/m/Y H:i" }}</strong>
+                            </div>
+                            <div>
+                                <label>CID</label>
+                                <strong>{{ item.consulta.cid|default:"-" }}</strong>
+                            </div>
+                        </div>
+
+                        <div class="text-columns">
+                            <div>
+                                <label>Queixa principal</label>
+                                <p>{{ item.consulta.queixa_principal|linebreaksbr }}</p>
+                            </div>
+                            <div>
+                                <label>Hipótese diagnóstica</label>
+                                <p>{{ item.consulta.hipotese_diagnostica|linebreaksbr }}</p>
+                            </div>
+                        </div>
+
+                        <div class="text-columns">
+                            <div>
+                                <label>História da doença atual</label>
+                                <p>{{ item.consulta.historia_doenca_atual|default:"-"|linebreaksbr }}</p>
+                            </div>
+                            <div>
+                                <label>Exame físico</label>
+                                <p>{{ item.consulta.exame_fisico|default:"-"|linebreaksbr }}</p>
+                            </div>
+                        </div>
+
+                        {% if item.transferencias %}
+                            <div class="sub-block">
+                                <h5>Passagem de responsabilidade médica</h5>
+                                <div class="transfer-list">
+                                    {% for transferencia in item.transferencias %}
+                                        <div>
+                                            <strong>
+                                                {{ transferencia.medico_anterior|default:"-" }}
+                                                →
+                                                {{ transferencia.medico_novo|default:"-" }}
+                                            </strong>
+                                            <span>
+                                                {{ transferencia.get_motivo_display }} em
+                                                {{ transferencia.data_transferencia|date:"d/m/Y H:i" }}
+                                            </span>
+                                            {% if transferencia.observacao %}
+                                                <p>{{ transferencia.observacao|linebreaksbr }}</p>
+                                            {% endif %}
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    {% if item.consulta.solicita_medicacao or item.consulta.prescricao or item.consulta.medicamentos_dispensados or item.consulta.medicacao_administrada %}
+                        <div class="record-section">
+                            <div class="section-title-line">
+                                <h4>Prescrição, farmácia e medicação</h4>
+                                {% if item.consulta.medicacao_realizada %}
+                                    <span class="status-ok">Medicação realizada</span>
+                                {% elif item.consulta.farmacia_liberada %}
+                                    <span class="status-warn">Liberada pela farmácia</span>
+                                {% else %}
+                                    <span>Aguardando</span>
+                                {% endif %}
+                            </div>
+
+                            <div class="text-columns three">
+                                <div>
+                                    <label>Prescrição</label>
+                                    <p>{{ item.consulta.prescricao|default:"-"|linebreaksbr }}</p>
+                                </div>
+                                <div>
+                                    <label>Dispensação da farmácia</label>
+                                    <p>{{ item.consulta.medicamentos_dispensados|default:"-"|linebreaksbr }}</p>
+                                </div>
+                                <div>
+                                    <label>Medicação administrada</label>
+                                    <p>{{ item.consulta.medicacao_administrada|default:"-"|linebreaksbr }}</p>
+                                </div>
+                            </div>
+
+                            <div class="info-grid">
+                                <div>
+                                    <label>Farmácia</label>
+                                    <strong>{{ item.consulta.profissional_farmacia_nome|default:"-" }}</strong>
+                                </div>
+                                <div>
+                                    <label>Liberação</label>
+                                    <strong>{{ item.consulta.data_liberacao_farmacia|date:"d/m/Y H:i"|default:"-" }}</strong>
+                                </div>
+                                <div>
+                                    <label>Profissional da medicação</label>
+                                    <strong>{{ item.consulta.profissional_medicacao_nome|default:"-" }}</strong>
+                                </div>
+                                <div>
+                                    <label>Data da medicação</label>
+                                    <strong>{{ item.consulta.data_medicacao|date:"d/m/Y H:i"|default:"-" }}</strong>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    {% if item.consulta.solicita_exames_laboratoriais or item.consulta.resultado_exames_laboratoriais %}
+                        <div class="record-section">
+                            <div class="section-title-line">
+                                <h4>Laboratório</h4>
+                                {% if item.consulta.exames_laboratoriais_realizados %}
+                                    <span class="status-ok">Resultado lançado</span>
+                                {% else %}
+                                    <span>Aguardando resultado</span>
+                                {% endif %}
+                            </div>
+
+                            <div class="text-columns">
+                                <div>
+                                    <label>Pedido laboratorial</label>
+                                    <p>{{ item.consulta.exames_laboratoriais|default:"-"|linebreaksbr }}</p>
+                                </div>
+                                <div>
+                                    <label>Resultado</label>
+                                    <p>{{ item.consulta.resultado_exames_laboratoriais|default:"-"|linebreaksbr }}</p>
+                                </div>
+                            </div>
+
+                            <div class="info-grid">
+                                <div>
+                                    <label>Técnico</label>
+                                    <strong>{{ item.consulta.tecnico_laboratorio_nome|default:"-" }}</strong>
+                                </div>
+                                <div>
+                                    <label>Registro</label>
+                                    <strong>{{ item.consulta.tecnico_laboratorio_registro|default:"-" }}</strong>
+                                </div>
+                                <div>
+                                    <label>Data do resultado</label>
+                                    <strong>{{ item.consulta.data_resultado_laboratorio|date:"d/m/Y H:i"|default:"-" }}</strong>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    {% if item.consulta.solicita_exames_imagem or item.consulta.resultado_exames_imagem or item.consulta.resultado_raiox or item.consulta.resultado_tomografia or item.consulta.resultado_mamografia or item.consulta.resultado_densitometria %}
+                        <div class="record-section">
+                            <div class="section-title-line">
+                                <h4>Imagem</h4>
+                                {% if item.consulta.exames_imagem_realizados %}
+                                    <span class="status-ok">Resultados completos</span>
+                                {% else %}
+                                    <span>Aguardando resultado</span>
+                                {% endif %}
+                            </div>
+
+                            <div class="text-columns">
+                                <div>
+                                    <label>Pedido de imagem</label>
+                                    <p>{{ item.consulta.exames_imagem|default:"-"|linebreaksbr }}</p>
+                                </div>
+                                <div>
+                                    <label>Laudo geral</label>
+                                    <p>{{ item.consulta.resultado_exames_imagem|default:"-"|linebreaksbr }}</p>
+                                </div>
+                            </div>
+
+                            <div class="exam-grid">
+                                <div>
+                                    <h5>Raio-X</h5>
+                                    <p>{{ item.consulta.resultado_raiox|default:"-"|linebreaksbr }}</p>
+                                    <small>{{ item.consulta.data_resultado_raiox|date:"d/m/Y H:i"|default:"Sem data" }}</small>
+                                </div>
+                                <div>
+                                    <h5>Tomografia</h5>
+                                    <p>{{ item.consulta.resultado_tomografia|default:"-"|linebreaksbr }}</p>
+                                    <small>{{ item.consulta.data_resultado_tomografia|date:"d/m/Y H:i"|default:"Sem data" }}</small>
+                                </div>
+                                <div>
+                                    <h5>Mamografia</h5>
+                                    <p>{{ item.consulta.resultado_mamografia|default:"-"|linebreaksbr }}</p>
+                                    <small>{{ item.consulta.data_resultado_mamografia|date:"d/m/Y H:i"|default:"Sem data" }}</small>
+                                </div>
+                                <div>
+                                    <h5>Densitometria</h5>
+                                    <p>{{ item.consulta.resultado_densitometria|default:"-"|linebreaksbr }}</p>
+                                    <small>{{ item.consulta.data_resultado_densitometria|date:"d/m/Y H:i"|default:"Sem data" }}</small>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    {% if item.consulta.orientacoes %}
+                        <div class="record-section">
+                            <div class="section-title-line">
+                                <h4>Orientações</h4>
+                            </div>
+                            <p class="free-text">{{ item.consulta.orientacoes|linebreaksbr }}</p>
+                        </div>
+                    {% endif %}
+                {% endif %}
+
+                {% if item.internacao %}
+                    <div class="record-section">
+                        <div class="section-title-line">
+                            <h4>Internação</h4>
+                            <span>{{ item.internacao.get_status_display }}</span>
+                        </div>
+
+                        <div class="info-grid">
+                            <div>
+                                <label>Leito</label>
+                                <strong>{{ item.internacao.leito|default:"-" }}</strong>
+                            </div>
+                            <div>
+                                <label>Setor</label>
+                                <strong>{{ item.internacao.setor|default:"-" }}</strong>
+                            </div>
+                            <div>
+                                <label>Admissão</label>
+                                <strong>{{ item.internacao.data_internacao|date:"d/m/Y H:i" }}</strong>
+                            </div>
+                            <div>
+                                <label>Alta</label>
+                                <strong>{{ item.internacao.data_alta|date:"d/m/Y H:i"|default:"-" }}</strong>
+                            </div>
+                            <div>
+                                <label>Responsável</label>
+                                <strong>{{ item.internacao.profissional_responsavel|default:"-" }}</strong>
+                            </div>
+                        </div>
+
+                        <div class="text-columns three">
+                            <div>
+                                <label>Diagnóstico de admissão</label>
+                                <p>{{ item.internacao.diagnostico_admissao|default:"-"|linebreaksbr }}</p>
+                            </div>
+                            <div>
+                                <label>Cuidados</label>
+                                <p>{{ item.internacao.cuidados|default:"-"|linebreaksbr }}</p>
+                            </div>
+                            <div>
+                                <label>Resumo de alta</label>
+                                <p>{{ item.internacao.resumo_alta|default:"-"|linebreaksbr }}</p>
+                            </div>
+                        </div>
+
+                        {% if item.evolucoes %}
+                            <div class="sub-block">
+                                <h5>Evoluções da internação</h5>
+                                <div class="evolution-list">
+                                    {% for evolucao in item.evolucoes %}
+                                        <div>
+                                            <strong>{{ evolucao.data_evolucao|date:"d/m/Y H:i" }} - {{ evolucao.profissional|default:"-" }}</strong>
+                                            <span>
+                                                PA {{ evolucao.pressao_arterial|default:"-" }}
+                                                | Temp. {{ evolucao.temperatura|default:"-" }}
+                                                | Pulso {{ evolucao.pulso|default:"-" }}
+                                                | FR {{ evolucao.frequencia_respiratoria|default:"-" }}
+                                                | Sat. {{ evolucao.saturacao|default:"-" }}
+                                            </span>
+                                            <p>{{ evolucao.evolucao|linebreaksbr }}</p>
+                                            {% if evolucao.conduta %}
+                                                <p><strong>Conduta:</strong> {{ evolucao.conduta|linebreaksbr }}</p>
+                                            {% endif %}
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </article>
+        {% empty %}
+            <div class="empty-state">
+                Nenhuma passagem encontrada para este prontuário.
+            </div>
+        {% endfor %}
+    </section>
+</main>
+{% endblock %}
+
+{% block extra_js %}
+    <script src="{% static 'prontuario/js/detalhe.js' %}?v=20260712-1"></script>
+{% endblock %}

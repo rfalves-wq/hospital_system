@@ -21,6 +21,11 @@ urlpatterns = [
         name="farmacia_estoque"
     ),
     path(
+        "estoque/lote/",
+        views.movimentar_estoque_lote,
+        name="farmacia_movimentar_estoque_lote"
+    ),
+    path(
         "estoque/novo/",
         views.cadastrar_medicamento,
         name="farmacia_medicamento_novo"

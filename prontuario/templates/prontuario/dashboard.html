@@ -1,0 +1,175 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'prontuario/css/dashboard.css' %}?v=20260712-1">
+{% endblock %}
+
+{% block content %}
+<main class="prontuario-page">
+    <section class="prontuario-hero">
+        <div>
+            <span class="hero-kicker">Histórico clínico completo</span>
+            <h1>Prontuário do Paciente</h1>
+            <p>Localize o paciente por nome, CPF, CNS ou BAM e acompanhe todas as passagens no hospital.</p>
+        </div>
+
+        <div class="hero-metrics">
+            <span>{{ total_pacientes }} paciente(s)</span>
+            <span>{{ total_atendimentos }} atendimento(s)</span>
+            <span>{{ total_consultas }} consulta(s)</span>
+            <span>{{ total_internacoes }} internação(ões)</span>
+        </div>
+    </section>
+
+    <section class="search-panel">
+        <form method="get" class="search-form">
+            <label for="busca-prontuario">Buscar prontuário</label>
+            <div class="search-row">
+                <input
+                    type="search"
+                    id="busca-prontuario"
+                    name="q"
+                    value="{{ termo }}"
+                    placeholder="Digite nome, CPF, CNS ou BAM"
+                    autocomplete="off">
+
+                <button type="submit" class="btn btn-primary fw-bold">
+                    Buscar
+                </button>
+
+                {% if termo %}
+                    <a href="{% url 'prontuario_dashboard' %}" class="btn btn-outline-secondary fw-bold">
+                        Limpar
+                    </a>
+                {% endif %}
+            </div>
+        </form>
+    </section>
+
+    <section class="result-panel">
+        <div class="panel-heading">
+            <div>
+                <h2>
+                    {% if termo %}
+                        Resultado da busca
+                    {% else %}
+                        Últimos prontuários movimentados
+                    {% endif %}
+                </h2>
+                <p>
+                    {% if termo %}
+                        Busca por "{{ termo }}".
+                    {% else %}
+                        Pacientes com atendimento registrado no sistema.
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle prontuario-table">
+                <thead>
+                    <tr>
+                        <th>Paciente</th>
+                        <th>CPF / CNS</th>
+                        <th>Nascimento</th>
+                        <th>Atendimentos</th>
+                        <th>Última passagem</th>
+                        <th>Ação</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for paciente in pacientes %}
+                        <tr>
+                            <td>
+                                <strong>{{ paciente.nome_completo }}</strong>
+                                {% if paciente.nome_social %}
+                                    <small>Nome social: {{ paciente.nome_social }}</small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span>{{ paciente.cpf|default:"-" }}</span>
+                                <small>CNS: {{ paciente.cns|default:"-" }}</small>
+                            </td>
+                            <td>
+                                <span>{{ paciente.nascimento|date:"d/m/Y" }}</span>
+                                <small>{{ paciente.idade }} anos</small>
+                            </td>
+                            <td>
+                                <span class="pill-info">{{ paciente.total_atendimentos }}</span>
+                            </td>
+                            <td>
+                                {% if paciente.ultima_passagem %}
+                                    {{ paciente.ultima_passagem|date:"d/m/Y H:i" }}
+                                {% else %}
+                                    <span class="text-muted">Sem passagem</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'prontuario_paciente' paciente.id %}" class="btn btn-outline-primary btn-sm fw-bold">
+                                    Abrir prontuário
+                                </a>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="6">
+                                <div class="empty-state">
+                                    Nenhum prontuário encontrado.
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    {% if atendimentos_avulsos %}
+        <section class="result-panel">
+            <div class="panel-heading">
+                <div>
+                    <h2>Atendimentos sem cadastro administrativo</h2>
+                    <p>Registros encontrados pelo BAM, nome ou CPF antes de virar paciente cadastrado.</p>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle prontuario-table">
+                    <thead>
+                        <tr>
+                            <th>BAM</th>
+                            <th>Paciente</th>
+                            <th>CPF</th>
+                            <th>Data</th>
+                            <th>Status</th>
+                            <th>Ação</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for atendimento in atendimentos_avulsos %}
+                            <tr>
+                                <td><strong>{{ atendimento.numero_bam }}</strong></td>
+                                <td>{{ atendimento.nome_paciente }}</td>
+                                <td>{{ atendimento.cpf|default:"-" }}</td>
+                                <td>{{ atendimento.data_acolhimento|date:"d/m/Y H:i" }}</td>
+                                <td>
+                                    <span class="pill-muted">{{ atendimento.get_status_display }}</span>
+                                </td>
+                                <td>
+                                    <a href="{% url 'prontuario_atendimento' atendimento.id %}" class="btn btn-outline-primary btn-sm fw-bold">
+                                        Abrir registro
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    {% endif %}
+</main>
+{% endblock %}
