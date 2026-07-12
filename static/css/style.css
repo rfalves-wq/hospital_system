@@ -296,6 +296,10 @@ body {
     background: #0f4c81;
 }
 
+.navbar-hospital {
+    background: #0f4c81;
+}
+
 @media (max-width: 768px) {
     .dashboard-container {
         padding: 14px;

@@ -1,0 +1,67 @@
+/* Extraido de internacao/templates/internacao/dashboard.html */
+body {
+            background: #f4f7fb;
+            color: #172033;
+            font-family: "Segoe UI", Arial, sans-serif;
+        }
+
+        .page-card {
+            border: 0;
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 8px 28px rgba(15, 23, 42, .08);
+        }
+
+        .page-header {
+            background: #0f4c81;
+            color: #fff;
+            padding: 20px 24px;
+        }
+
+        .page-header h3 {
+            font-weight: 900;
+            margin: 0;
+        }
+
+        .metric {
+            background: rgba(255, 255, 255, .16);
+            border: 1px solid rgba(255, 255, 255, .35);
+            border-radius: 999px;
+            font-weight: 900;
+            padding: 8px 13px;
+            white-space: nowrap;
+        }
+
+        .nav-tabs .nav-link {
+            color: #334155;
+            font-weight: 800;
+        }
+
+        .nav-tabs .nav-link.active {
+            color: #0f4c81;
+        }
+
+        .table td,
+        .table th {
+            vertical-align: middle;
+        }
+
+        .patient-name {
+            font-weight: 900;
+        }
+
+        .muted-block {
+            color: #64748b;
+            font-size: .86rem;
+        }
+
+        .text-preline {
+            white-space: pre-line;
+        }
+
+        .empty-box {
+            color: #64748b;
+            font-weight: 800;
+            padding: 34px;
+            text-align: center;
+        }

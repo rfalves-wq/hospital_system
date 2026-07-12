@@ -1,0 +1,344 @@
+/* Extraido de classificacao/templates/classificacao/classificar.html */
+body {
+            background: #f4f6f8;
+            color: #172033;
+            font-family: "Segoe UI", Arial, sans-serif;
+        }
+
+        .page-card {
+            background: #fff;
+            border-radius: 14px;
+            box-shadow: 0 8px 24px rgba(15, 23, 42, .08);
+            overflow: hidden;
+        }
+
+        .page-header {
+            background: #0f4c81;
+            color: #fff;
+            padding: 24px 28px;
+            border-bottom: 5px solid #b4232f;
+        }
+
+        .page-header h3 {
+            font-weight: 800;
+            margin: 0;
+        }
+
+        .subtitle {
+            color: #dceaf6;
+            margin-top: 4px;
+        }
+
+        .section-box {
+            background: #fff;
+            border: 1px solid #dde4ec;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 22px;
+        }
+
+        .section-title {
+            color: #0f4c81;
+            font-weight: 800;
+            padding-bottom: 10px;
+            margin-bottom: 18px;
+            border-bottom: 1px solid #e7edf4;
+        }
+
+        .info-card {
+            background: #f9fbfd;
+            border: 1px solid #dbe7f4;
+            border-left: 5px solid #0f4c81;
+            border-radius: 12px;
+            padding: 16px;
+        }
+
+        .passagens-card {
+            background: #fff7ed;
+            border: 1px solid #fed7aa;
+            border-left: 5px solid #f97316;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 22px;
+        }
+
+        .passagens-card h6 {
+            color: #9a3412;
+            font-weight: 900;
+            margin-bottom: 4px;
+        }
+
+        .passagens-card table {
+            margin-bottom: 0;
+        }
+
+        .data-label {
+            color: #64748b;
+            font-size: .76rem;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+        .data-value {
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: #111827;
+        }
+
+        .vital-card {
+            border: 1px solid #dfe7ef;
+            border-radius: 12px;
+            background: #fbfdff;
+            padding: 14px;
+            height: 100%;
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            border: 1px solid #cbd5e1;
+            border-radius: 9px;
+            padding: 10px 12px;
+            min-height: 44px;
+        }
+
+        textarea {
+            min-height: 96px;
+            resize: vertical;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #0f4c81;
+            box-shadow: 0 0 0 4px rgba(15, 76, 129, .13);
+        }
+
+        .required-star {
+            color: #b4232f;
+            font-weight: 900;
+        }
+
+        .manchester-grid {
+            display: grid;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .row.g-3:has(.manchester-card) {
+            display: grid;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .row.g-3:has(.manchester-card) > [class*="col-"] {
+            width: auto;
+            max-width: none;
+            padding: 0;
+        }
+
+        .manchester-option {
+            position: relative;
+            display: block;
+            min-height: 116px;
+            border: 1px solid #dce5ef;
+            border-left-width: 6px;
+            border-radius: 10px;
+            background: #fbfdff;
+            padding: 14px 14px 12px;
+            cursor: pointer;
+            transition: .15s ease;
+        }
+
+        .manchester-option:hover {
+            background: #f8fbff;
+            box-shadow: 0 8px 18px rgba(15, 23, 42, .08);
+            transform: translateY(-1px);
+        }
+
+        .manchester-option input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+            width: 1px;
+            height: 1px;
+            min-height: 0;
+            padding: 0;
+            border: 0;
+        }
+
+        .radio-dot {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 18px;
+            height: 18px;
+            border: 2px solid #cbd5e1;
+            border-radius: 50%;
+            background: #fff;
+        }
+
+        .manchester-option:has(input:checked) {
+            background: #fff;
+            box-shadow: 0 0 0 3px rgba(15, 76, 129, .10);
+        }
+
+        .manchester-option:has(input:checked) .radio-dot {
+            border-color: currentColor;
+        }
+
+        .manchester-option:has(input:checked) .radio-dot::after {
+            content: "";
+            position: absolute;
+            inset: 3px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+
+        .manchester-name {
+            display: block;
+            padding-right: 28px;
+            font-size: 1.05rem;
+            font-weight: 900;
+            line-height: 1.15;
+        }
+
+        .manchester-priority {
+            display: block;
+            margin-top: 8px;
+            color: #172033;
+            font-weight: 800;
+            font-size: .9rem;
+        }
+
+        .manchester-time {
+            display: block;
+            margin-top: 14px;
+            color: #64748b;
+            font-weight: 700;
+            font-size: .86rem;
+        }
+
+        .manchester-vermelho {
+            border-left-color: #dc3545;
+            color: #dc3545;
+        }
+
+        .manchester-laranja {
+            border-left-color: #f97316;
+            color: #f97316;
+        }
+
+        .manchester-amarelo {
+            border-left-color: #f59e0b;
+            color: #b45309;
+        }
+
+        .manchester-verde {
+            border-left-color: #198754;
+            color: #198754;
+        }
+
+        .manchester-azul {
+            border-left-color: #0d6efd;
+            color: #0d6efd;
+        }
+
+        .manchester-card {
+            position: relative;
+            display: block;
+            min-height: 116px;
+            border: 1px solid #dce5ef !important;
+            border-left-width: 6px !important;
+            border-radius: 10px;
+            background: #fbfdff;
+            cursor: pointer;
+            transition: .15s ease;
+        }
+
+        .manchester-card:hover {
+            background: #f8fbff;
+            box-shadow: 0 8px 18px rgba(15, 23, 42, .08);
+            transform: translateY(-1px);
+        }
+
+        .manchester-card input[type="radio"] {
+            position: absolute;
+            top: 13px;
+            right: 13px;
+            width: 18px;
+            height: 18px;
+            min-height: 0;
+            padding: 0;
+            margin: 0;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .manchester-card h4 {
+            padding-right: 28px;
+            margin: 0 0 8px;
+            font-size: 1.05rem;
+            font-weight: 900;
+            line-height: 1.15;
+        }
+
+        .manchester-card strong {
+            display: block;
+            color: #172033;
+            font-size: .9rem;
+            margin-bottom: 14px;
+        }
+
+        .manchester-card:has(input:checked) {
+            background: #fff;
+            box-shadow: 0 0 0 3px rgba(15, 76, 129, .10);
+        }
+
+        .manchester-card.border-danger {
+            border-left-color: #dc3545 !important;
+        }
+
+        .manchester-card.border-warning {
+            border-left-color: #f59e0b !important;
+        }
+
+        .manchester-card.border-success {
+            border-left-color: #198754 !important;
+        }
+
+        .manchester-card.border-primary {
+            border-left-color: #0d6efd !important;
+        }
+
+        .tempo-box {
+            border: 1px solid #dbe7f4;
+            border-left: 5px solid #0f4c81;
+            background: #f8fafc;
+            border-radius: 10px;
+        }
+
+        @media (max-width: 1200px) {
+            .manchester-grid,
+            .row.g-3:has(.manchester-card) {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 768px) {
+            .manchester-grid,
+            .row.g-3:has(.manchester-card) {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .errorlist {
+            color: #dc3545;
+            font-size: .875rem;
+            margin-top: 4px;
+        }
+
+.texto-laranja {
+    color: #f97316;
+}

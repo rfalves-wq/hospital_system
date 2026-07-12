@@ -1,0 +1,50 @@
+/* Extraido de medicacao/templates/medicacao/dashboard.html */
+body {
+            background: #f4f7fb;
+            color: #172033;
+            font-family: "Segoe UI", Arial, sans-serif;
+        }
+
+        .page-card {
+            border: 0;
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 8px 28px rgba(15, 23, 42, .08);
+        }
+
+        .page-header {
+            background: #0f4c81;
+            color: #fff;
+            padding: 20px 24px;
+        }
+
+        .page-header h3 {
+            margin: 0;
+            font-weight: 800;
+        }
+
+        .nav-tabs .nav-link {
+            font-weight: 800;
+            color: #334155;
+        }
+
+        .nav-tabs .nav-link.active {
+            color: #0f4c81;
+        }
+
+        .table td,
+        .table th {
+            vertical-align: middle;
+        }
+
+        .prescricao-box {
+            max-width: 460px;
+            white-space: pre-wrap;
+            font-size: .9rem;
+        }
+
+        .badge-status {
+            border-radius: 999px;
+            padding: 7px 10px;
+            font-weight: 800;
+        }

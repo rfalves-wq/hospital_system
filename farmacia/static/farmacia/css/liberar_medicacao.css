@@ -1,0 +1,259 @@
+/* Extraido de farmacia/templates/farmacia/liberar_medicacao.html */
+:root {
+            --azul: #0f4c81;
+            --azul-claro: #eaf4ff;
+            --verde: #198754;
+            --cinza-bg: #f4f7fb;
+            --borda: #dce5ef;
+            --texto: #172033;
+            --muted: #64748b;
+        }
+
+        body {
+            background: var(--cinza-bg);
+            color: var(--texto);
+            font-family: "Segoe UI", Arial, sans-serif;
+        }
+
+        .page-card {
+            border: 0;
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 8px 28px rgba(15, 23, 42, .08);
+        }
+
+        .page-header {
+            background: linear-gradient(135deg, #0f4c81, #1769a6);
+            color: #fff;
+            padding: 20px 24px;
+        }
+
+        .page-header h3 {
+            margin: 0;
+            font-weight: 800;
+        }
+
+        .info-card {
+            background: #fff;
+            border: 1px solid var(--borda);
+            border-left: 5px solid var(--azul);
+            border-radius: 10px;
+            padding: 14px;
+            margin-bottom: 16px;
+        }
+
+        .status-strip {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .status-item {
+            background: #f8fafc;
+            border: 1px solid #e5edf5;
+            border-radius: 10px;
+            padding: 11px 12px;
+        }
+
+        .info-label,
+        .status-label {
+            color: var(--muted);
+            font-size: .75rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+            margin-bottom: 3px;
+        }
+
+        .info-value,
+        .status-value {
+            font-weight: 800;
+            color: #0f172a;
+            word-break: break-word;
+        }
+
+        .section-box {
+            background: #fff;
+            border: 1px solid var(--borda);
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .section-title {
+            color: var(--azul);
+            font-weight: 900;
+            margin-bottom: 14px;
+        }
+
+        input,
+        textarea,
+        select {
+            width: 100%;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 9px 11px;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 110px;
+        }
+
+        input:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--azul);
+            box-shadow: 0 0 0 4px rgba(15, 76, 129, .13);
+        }
+
+        textarea[readonly] {
+            background: #f8fafc;
+        }
+
+        .errorlist {
+            color: #dc3545;
+            font-weight: 700;
+            font-size: .875rem;
+            margin: 5px 0 0;
+            padding-left: 18px;
+        }
+
+        .help-box {
+            background: var(--azul-claro);
+            border: 1px solid #bfdbfe;
+            color: var(--azul);
+            border-radius: 10px;
+            padding: 12px;
+            font-weight: 700;
+        }
+
+        .estoque-tools {
+            display: grid;
+            grid-template-columns: minmax(260px, 1fr) 230px 210px;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .estoque-status {
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .estoque-status.alerta {
+            color: #9a3412;
+        }
+
+        .estoque-lista {
+            display: none;
+            max-height: 280px;
+            overflow-y: auto;
+            border: 1px solid #e5edf5;
+            border-radius: 10px;
+            background: #fff;
+            margin-bottom: 12px;
+        }
+
+        .estoque-lista.is-active {
+            display: block;
+        }
+
+        .estoque-item {
+            display: grid;
+            grid-template-columns: 1fr 130px 120px 90px;
+            gap: 8px;
+            align-items: center;
+            padding: 10px 12px;
+            border-bottom: 1px solid #eef2f7;
+        }
+
+        .estoque-item:last-child {
+            border-bottom: 0;
+        }
+
+        .estoque-nome {
+            font-weight: 900;
+            color: #0f172a;
+        }
+
+        .estoque-detalhe {
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .estoque-saldo {
+            background: #dcfce7;
+            color: #166534;
+            border-radius: 999px;
+            padding: 6px 10px;
+            font-size: 12px;
+            font-weight: 900;
+            text-align: center;
+        }
+
+        .selecionados-box {
+            border: 1px solid #e5edf5;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .selecionados-box table {
+            margin-bottom: 0;
+        }
+
+        .selecionados-vazio {
+            padding: 12px;
+            color: var(--muted);
+            font-weight: 800;
+            background: #f8fafc;
+        }
+
+        .qtd-baixa {
+            max-width: 120px;
+        }
+
+.col-qtd-baixa {
+    width: 150px;
+}
+
+.col-unidade-baixa {
+    width: 120px;
+}
+
+.col-acao-baixa {
+    width: 90px;
+}
+
+        .acao-final {
+            position: sticky;
+            bottom: 0;
+            background: #eef3f8;
+            border-top: 1px solid var(--borda);
+            padding: 14px 0 0;
+            z-index: 20;
+        }
+
+        @media (max-width: 992px) {
+            .status-strip,
+            .estoque-tools,
+            .estoque-item {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start !important;
+                gap: 12px;
+            }
+
+            .page-header .btn {
+                width: 100%;
+            }
+        }

@@ -1,0 +1,207 @@
+/* Extraido de classificacao/templates/classificacao/dashboard.html */
+:root {
+            --azul: #0f4c81;
+            --azul-escuro: #0b355d;
+            --vermelho: #b4232f;
+            --cinza-bg: #f7f7f8;
+            --cinza-borda: #e2e5e9;
+            --texto: #172033;
+        }
+
+        body {
+            background: var(--cinza-bg);
+            color: var(--texto);
+            font-family: "Segoe UI", Arial, sans-serif;
+        }
+
+        .page-card {
+            background: #fff;
+            border: 1px solid var(--cinza-borda);
+            border-radius: 12px;
+            box-shadow: 0 8px 22px rgba(15, 23, 42, .06);
+            overflow: hidden;
+        }
+
+        .page-header {
+            background: var(--azul);
+            color: #fff;
+            padding: 24px 28px;
+            border-bottom: 5px solid var(--vermelho);
+        }
+
+        .page-header h2 {
+            font-size: 1.65rem;
+            font-weight: 800;
+            margin: 0;
+        }
+
+        .page-header p {
+            margin: 4px 0 0;
+            color: #e8f2fb;
+        }
+
+        .contador {
+            background: rgba(255, 255, 255, .16);
+            border: 1px solid rgba(255, 255, 255, .35);
+            border-radius: 999px;
+            padding: 8px 16px;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 14px;
+            padding: 18px 20px;
+            background: #fff;
+            border-bottom: 1px solid #dbe3ec;
+        }
+
+        .section-header h4 {
+            margin: 0;
+            color: var(--azul);
+            font-weight: 900;
+            font-size: 1.1rem;
+        }
+
+        .section-header p {
+            margin: 3px 0 0;
+            color: #64748b;
+            font-size: .9rem;
+        }
+
+        .periodo-badge {
+            background: #eaf4ff;
+            border: 1px solid #bfdbfe;
+            color: var(--azul);
+            border-radius: 999px;
+            padding: 8px 12px;
+            font-size: .82rem;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        .tabs-wrap {
+            background: #fff;
+            border-bottom: 1px solid #dbe3ec;
+            padding: 14px 18px 0;
+        }
+
+        .class-tabs {
+            border-bottom: 0;
+            gap: 6px;
+        }
+
+        .class-tabs .nav-link {
+            color: #334155;
+            border: 1px solid #dbe3ec;
+            border-bottom: 0;
+            border-radius: 10px 10px 0 0;
+            font-weight: 900;
+            padding: 10px 14px;
+        }
+
+        .class-tabs .nav-link.active {
+            color: var(--azul);
+            background: #f8fbff;
+        }
+
+        .tab-pane {
+            background: #fff;
+        }
+
+        .table {
+            margin-bottom: 0;
+        }
+
+        .table thead th {
+            background: #f1f5f9;
+            color: #334155;
+            font-size: .78rem;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+            border-bottom: 1px solid #dbe3ec;
+            padding: 14px;
+        }
+
+        .table tbody td {
+            padding: 14px;
+            vertical-align: middle;
+        }
+
+        .table tbody tr:hover td {
+            background: #f8fbff;
+        }
+
+        .bam {
+            font-weight: 800;
+            color: var(--azul);
+        }
+
+        .paciente {
+            font-weight: 800;
+        }
+
+        .idade {
+            color: #64748b;
+            font-weight: 700;
+        }
+
+        .btn-classificar {
+            background: var(--vermelho);
+            border: none;
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-weight: 700;
+        }
+
+        .btn-classificar:hover {
+            background: #931b25;
+        }
+
+        .acoes-classificacao {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            gap: 6px;
+        }
+
+        .acoes-classificacao form {
+            margin: 0;
+        }
+
+        .empty-box {
+            padding: 34px;
+            text-align: center;
+            color: #64748b;
+            font-weight: 700;
+        }
+
+        @media (max-width: 768px) {
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start !important;
+                gap: 12px;
+            }
+
+            .contador {
+                width: 100%;
+                text-align: center;
+            }
+
+            .section-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .periodo-badge {
+                width: 100%;
+                white-space: normal;
+            }
+
+            .table {
+                font-size: .9rem;
+            }
+        }

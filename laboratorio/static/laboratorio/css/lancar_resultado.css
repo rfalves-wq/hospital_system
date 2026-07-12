@@ -1,0 +1,50 @@
+/* Extraido de laboratorio/templates/laboratorio/lancar_resultado.html */
+body {
+            background: #f4f7fb;
+        }
+
+        .page-card {
+            border: 0;
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 8px 28px rgba(15, 23, 42, .08);
+        }
+
+        .page-header {
+            background: #198754;
+            color: #fff;
+            padding: 20px 24px;
+        }
+
+        .info-card {
+            background: #fff;
+            border: 1px solid #dce5ef;
+            border-left: 5px solid #198754;
+            border-radius: 10px;
+            padding: 14px;
+            margin-bottom: 18px;
+        }
+
+        .info-label {
+            color: #64748b;
+            font-size: .75rem;
+            font-weight: 900;
+            text-transform: uppercase;
+        }
+
+        .info-value {
+            font-weight: 800;
+            color: #0f172a;
+        }
+
+        .section-box {
+            background: #fff;
+            border: 1px solid #dce5ef;
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        textarea[readonly] {
+            background: #f8fafc;
+        }

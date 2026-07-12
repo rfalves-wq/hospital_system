@@ -1,0 +1,370 @@
+/* Extraido de farmacia/templates/farmacia/estoque.html */
+:root {
+            --azul: #0f4c81;
+            --azul-2: #1769a6;
+            --verde: #198754;
+            --vermelho: #dc3545;
+            --amarelo: #ffc107;
+            --cinza-bg: #f4f7fb;
+            --borda: #dce5ef;
+            --texto: #172033;
+            --muted: #64748b;
+        }
+
+        body {
+            background: var(--cinza-bg);
+            color: var(--texto);
+            font-family: "Segoe UI", Arial, sans-serif;
+        }
+
+        .page-card {
+            border: 0;
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 8px 28px rgba(15, 23, 42, .08);
+        }
+
+        .page-header {
+            background: linear-gradient(135deg, var(--azul), var(--azul-2));
+            color: #fff;
+            padding: 20px 24px;
+        }
+
+        .page-header h3 {
+            margin: 0;
+            font-weight: 900;
+        }
+
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .metric-card {
+            background: #fff;
+            border: 1px solid var(--borda);
+            border-left: 5px solid var(--azul);
+            border-radius: 12px;
+            padding: 11px 14px;
+        }
+
+        .metric-card.warning {
+            border-left-color: var(--amarelo);
+        }
+
+        .metric-card.danger {
+            border-left-color: var(--vermelho);
+        }
+
+        .metric-label {
+            color: var(--muted);
+            font-size: .75rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+        }
+
+        .metric-value {
+            font-size: 1.35rem;
+            font-weight: 900;
+            color: #0f172a;
+            line-height: 1.1;
+        }
+
+        .estoque-tabs {
+            border-bottom: 1px solid var(--borda);
+            gap: 6px;
+            margin-bottom: 14px;
+        }
+
+        .estoque-tabs .nav-link {
+            color: #334155;
+            border-radius: 10px 10px 0 0;
+            font-weight: 900;
+            padding: 10px 14px;
+        }
+
+        .estoque-tabs .nav-link.active {
+            color: var(--azul);
+            background: #fff;
+            border-color: var(--borda) var(--borda) #fff;
+        }
+
+        .tab-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 24px;
+            height: 22px;
+            margin-left: 6px;
+            padding: 0 7px;
+            border-radius: 999px;
+            background: #eaf4ff;
+            color: var(--azul);
+            font-size: .75rem;
+            font-weight: 900;
+        }
+
+        .estoque-tabs .nav-link.active .tab-badge {
+            background: var(--azul);
+            color: #fff;
+        }
+
+        .filter-box,
+        .section-box {
+            background: #fff;
+            border: 1px solid var(--borda);
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 16px;
+        }
+
+        .filter-grid {
+            display: grid;
+            grid-template-columns: minmax(260px, 1.6fr) minmax(190px, .9fr) minmax(170px, .8fr) minmax(140px, .7fr) 130px 110px;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .section-title-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .section-title-row h5 {
+            margin: 0;
+            font-weight: 900;
+        }
+
+        .result-pill {
+            background: #eaf4ff;
+            border: 1px solid #bfdbfe;
+            color: var(--azul);
+            border-radius: 999px;
+            padding: 6px 10px;
+            font-size: .82rem;
+            font-weight: 900;
+            white-space: nowrap;
+        }
+
+        .table-scroll {
+            overflow: visible;
+            border: 1px solid #e5edf5;
+            border-radius: 10px;
+        }
+
+        .table {
+            margin-bottom: 0;
+        }
+
+        .table td,
+        .table th {
+            vertical-align: middle;
+        }
+
+        .table-estoque td {
+            padding: 10px 12px;
+        }
+
+        .table-estoque th {
+            font-size: .78rem;
+            text-transform: uppercase;
+            letter-spacing: .02em;
+        }
+
+        .table-estoque th:last-child,
+        .table-estoque td:last-child {
+            width: 118px;
+            text-align: right;
+        }
+
+        .table th {
+            white-space: nowrap;
+            position: static;
+        }
+
+        .table-primary th {
+            background: #cfe3ff !important;
+        }
+
+        .medicamento-nome {
+            font-weight: 900;
+            color: #0f172a;
+            line-height: 1.2;
+        }
+
+        .medicamento-meta {
+            color: var(--muted);
+            font-size: .78rem;
+            font-weight: 700;
+            line-height: 1.25;
+        }
+
+        .categoria-chip {
+            display: inline-block;
+            max-width: 260px;
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            border-radius: 999px;
+            color: #334155;
+            padding: 5px 9px;
+            font-size: .76rem;
+            font-weight: 900;
+            white-space: normal;
+            line-height: 1.2;
+        }
+
+        .estoque-numero {
+            font-weight: 900;
+            color: #0f172a;
+        }
+
+        .estoque-unidade {
+            color: var(--muted);
+            font-size: .78rem;
+            font-weight: 700;
+            display: block;
+            max-width: 130px;
+            overflow-wrap: anywhere;
+        }
+
+        .badge-status {
+            border-radius: 999px;
+            padding: 7px 10px;
+            font-weight: 900;
+            font-size: .76rem;
+        }
+
+        .acao-menu {
+            display: inline-block;
+        }
+
+        .acao-menu .dropdown-toggle {
+            min-width: 92px;
+            border-color: #bfdbfe;
+            background: #f8fbff;
+            color: var(--azul);
+            font-weight: 900;
+            padding: 6px 10px;
+        }
+
+        .acao-menu .dropdown-toggle:hover,
+        .acao-menu .dropdown-toggle:focus {
+            background: var(--azul);
+            border-color: var(--azul);
+            color: #fff;
+        }
+
+        .acao-menu .dropdown-menu {
+            border: 1px solid var(--borda);
+            border-radius: 10px;
+            box-shadow: 0 14px 28px rgba(15, 23, 42, .16);
+            padding: 6px;
+            min-width: 190px;
+        }
+
+        .acao-menu .dropdown-item {
+            border-radius: 8px;
+            color: #172033;
+            font-weight: 800;
+            padding: 8px 10px;
+        }
+
+        .acao-menu .dropdown-item:hover {
+            background: #eef6ff;
+            color: var(--azul);
+        }
+
+        .acao-menu .dropdown-item.entrada {
+            color: #166534;
+        }
+
+        .acao-menu .dropdown-item.saida {
+            color: #991b1b;
+        }
+
+        .acao-menu .dropdown-item.ajuste {
+            color: #854d0e;
+        }
+
+        .pagination-wrap {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+
+        .movimentacoes-table td,
+        .movimentacoes-table th {
+            font-size: .9rem;
+        }
+
+        .movimentacoes-table .mov-tipo {
+            display: inline-block;
+            min-width: 72px;
+            border-radius: 999px;
+            padding: 5px 9px;
+            font-weight: 900;
+            text-align: center;
+            background: #f1f5f9;
+            color: #334155;
+        }
+
+        .movimentacoes-table .mov-tipo.entrada {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .movimentacoes-table .mov-tipo.saida {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .movimentacoes-table .mov-tipo.ajuste {
+            background: #fef3c7;
+            color: #854d0e;
+        }
+
+        @media (max-width: 1400px) {
+            .filter-grid {
+                grid-template-columns: minmax(240px, 1fr) 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .metric-grid,
+            .filter-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .table-scroll {
+                max-height: none;
+                overflow-x: auto;
+                overflow-y: visible;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start !important;
+                gap: 12px;
+            }
+
+            .page-header .btn,
+            .filter-grid .btn {
+                width: 100%;
+            }
+
+            .section-title-row {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+        }

@@ -1,0 +1,67 @@
+/* Extraido de farmacia/templates/farmacia/movimentar_estoque.html */
+body {
+            background: #f4f7fb;
+            color: #172033;
+            font-family: "Segoe UI", Arial, sans-serif;
+        }
+
+        .page-card {
+            border: 0;
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 8px 28px rgba(15, 23, 42, .08);
+        }
+
+        .page-header {
+            background: linear-gradient(135deg, #0f4c81, #1769a6);
+            color: #fff;
+            padding: 20px 24px;
+        }
+
+        .page-header h3 {
+            margin: 0;
+            font-weight: 800;
+        }
+
+        .info-card,
+        .section-box {
+            background: #fff;
+            border: 1px solid #dce5ef;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .info-card {
+            border-left: 5px solid #0f4c81;
+        }
+
+        .info-label {
+            color: #64748b;
+            font-size: .75rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+        }
+
+        .info-value {
+            color: #0f172a;
+            font-weight: 900;
+        }
+
+        .errorlist {
+            color: #dc3545;
+            font-weight: 700;
+            font-size: .875rem;
+            margin: 5px 0 0;
+            padding-left: 18px;
+        }
+
+        .acao-final {
+            position: sticky;
+            bottom: 0;
+            background: #eef3f8;
+            border-top: 1px solid #dce5ef;
+            padding: 14px 0 0;
+            z-index: 20;
+        }

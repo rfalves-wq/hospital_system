@@ -53,12 +53,12 @@
                             Sim, imprimir
                         </button>
 
-                        <button type="button" class="btn-cancelar" onclick="fecharModal()">
+                        <button type="button" class="btn-cancelar" data-modal-close>
                             Nao
                         </button>
                     </div>
                 {% else %}
-                    <button class="btn-ok" onclick="fecharModal()">
+                    <button type="button" class="btn-ok" data-modal-close>
                         OK
                     </button>
                 {% endif %}

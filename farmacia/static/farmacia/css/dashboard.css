@@ -1,0 +1,150 @@
+/* Extraido de farmacia/templates/farmacia/dashboard.html */
+:root {
+            --azul: #0f4c81;
+            --azul-claro: #eaf4ff;
+            --verde: #198754;
+            --amarelo: #ffc107;
+            --cinza-bg: #f4f7fb;
+            --borda: #dce5ef;
+            --texto: #172033;
+            --muted: #64748b;
+        }
+
+        body {
+            background: var(--cinza-bg);
+            color: var(--texto);
+            font-family: "Segoe UI", Arial, sans-serif;
+        }
+
+        .page-card {
+            border: 0;
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 8px 28px rgba(15, 23, 42, .08);
+        }
+
+        .page-header {
+            background: linear-gradient(135deg, #0f4c81, #1769a6);
+            color: #fff;
+            padding: 20px 24px;
+        }
+
+        .page-header h3 {
+            margin: 0;
+            font-weight: 800;
+        }
+
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .metric-card {
+            background: #fff;
+            border: 1px solid var(--borda);
+            border-radius: 12px;
+            padding: 13px 14px;
+            border-left: 5px solid var(--azul);
+        }
+
+        .metric-card.warning {
+            border-left-color: var(--amarelo);
+        }
+
+        .metric-card.success {
+            border-left-color: var(--verde);
+        }
+
+        .metric-label {
+            color: var(--muted);
+            font-size: .75rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+        }
+
+        .metric-value {
+            font-size: 1.45rem;
+            font-weight: 900;
+            color: #0f172a;
+            line-height: 1.15;
+        }
+
+        .filter-box {
+            background: #fff;
+            border: 1px solid var(--borda);
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 16px;
+        }
+
+        .nav-tabs .nav-link {
+            font-weight: 800;
+            color: #334155;
+        }
+
+        .nav-tabs .nav-link.active {
+            color: var(--azul);
+        }
+
+        .table td,
+        .table th {
+            vertical-align: middle;
+        }
+
+        .table th {
+            white-space: nowrap;
+        }
+
+        .prescricao-texto {
+            max-width: 520px;
+            white-space: pre-wrap;
+            font-size: .9rem;
+            line-height: 1.35;
+        }
+
+        .badge-status {
+            font-size: .78rem;
+            padding: 7px 10px;
+            border-radius: 999px;
+            font-weight: 800;
+        }
+
+        .text-compact {
+            line-height: 1.25;
+        }
+
+        .empty-state {
+            background: #f8fafc;
+            border: 1px dashed #cbd5e1;
+            border-radius: 12px;
+            padding: 22px;
+            text-align: center;
+            color: var(--muted);
+            font-weight: 700;
+        }
+
+        @media (max-width: 992px) {
+            .metric-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 768px) {
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start !important;
+                gap: 12px;
+            }
+
+            .page-header .btn,
+            .page-header .badge {
+                width: 100%;
+            }
+
+            .metric-grid {
+                grid-template-columns: 1fr;
+            }
+        }

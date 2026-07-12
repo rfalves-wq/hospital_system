@@ -735,6 +735,10 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
+    document.querySelectorAll("[data-modal-close]").forEach(function (botao) {
+        botao.addEventListener("click", fecharModal);
+    });
+
     if (modal) {
         modal.style.display = "flex";
     }

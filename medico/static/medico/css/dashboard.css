@@ -1,0 +1,92 @@
+/* Extraido de medico/templates/medico/dashboard.html */
+body {
+            background: #f4f7fb;
+        }
+
+        .card-principal {
+            border: 0;
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 8px 28px rgba(15, 23, 42, .08);
+        }
+
+        .card-header-principal {
+            background: #0f4c81;
+            color: #fff;
+            padding: 20px 24px;
+        }
+
+        .nav-tabs .nav-link {
+            font-weight: 700;
+            color: #334155;
+        }
+
+        .nav-tabs .nav-link.active {
+            color: #0f4c81;
+        }
+
+        .badge-piscando {
+            animation: piscarLiberado 1s infinite;
+            box-shadow: 0 0 0 rgba(25, 135, 84, .7);
+        }
+
+        @keyframes piscarLiberado {
+            0% {
+                opacity: 1;
+                box-shadow: 0 0 0 0 rgba(25, 135, 84, .7);
+            }
+
+            50% {
+                opacity: .45;
+                box-shadow: 0 0 0 6px rgba(25, 135, 84, .15);
+            }
+
+            100% {
+                opacity: 1;
+                box-shadow: 0 0 0 0 rgba(25, 135, 84, 0);
+            }
+        }
+
+        .badge-aguardando {
+            opacity: .78;
+        }
+
+        .badge-retorno {
+            animation: piscarRetorno 1.2s infinite;
+        }
+
+        @keyframes piscarRetorno {
+            0% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: .55;
+            }
+
+            100% {
+                opacity: 1;
+            }
+        }
+
+        .solicitacoes {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+
+        .acao-medica {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .medico-responsavel {
+            color: #0f172a;
+            font-weight: 800;
+        }
+
+        .table td,
+        .table th {
+            vertical-align: middle;
+        }

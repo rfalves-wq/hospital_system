@@ -1,0 +1,787 @@
+/* Extraido de medico/templates/medico/atender.html */
+:root {
+            --azul: #0f4c81;
+            --azul-claro: #eaf4ff;
+            --vermelho: #dc3545;
+            --verde: #198754;
+            --cinza-bg: #f4f7fb;
+            --borda: #dce5ef;
+            --texto: #172033;
+            --muted: #64748b;
+        }
+
+        body {
+            background: var(--cinza-bg);
+            color: var(--texto);
+            font-family: "Segoe UI", Arial, sans-serif;
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 9px 11px;
+            background: #fff;
+            color: var(--texto);
+        }
+
+        textarea {
+            min-height: 92px;
+            resize: vertical;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: var(--azul);
+            box-shadow: 0 0 0 4px rgba(15, 76, 129, .13);
+        }
+
+        .page-card {
+            border: 0;
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 8px 28px rgba(15, 23, 42, .08);
+        }
+
+        .page-header {
+            background: linear-gradient(135deg, #0f4c81, #1769a6);
+            color: #fff;
+            padding: 18px 22px;
+        }
+
+        .page-header h3 {
+            margin: 0;
+            font-weight: 800;
+        }
+
+        .paciente-bar {
+            background: #fff;
+            border: 1px solid var(--borda);
+            border-left: 5px solid var(--azul);
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 16px;
+        }
+
+        .passagens-dia-card {
+            background: #fff;
+            border: 1px solid var(--borda);
+            border-left: 5px solid var(--verde);
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 16px;
+        }
+
+        .passagens-dia-card.alerta {
+            background: #fff7ed;
+            border-color: #fed7aa;
+            border-left-color: #f97316;
+        }
+
+        .responsavel-medico-card {
+            background: #fff;
+            border: 1px solid var(--borda);
+            border-left: 5px solid #2563eb;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            padding: 14px;
+        }
+
+        .responsavel-medico-topo {
+            align-items: flex-start;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: space-between;
+        }
+
+        .responsavel-medico-nome {
+            color: #0f172a;
+            font-size: 17px;
+            font-weight: 900;
+        }
+
+        .historico-transferencia {
+            border-top: 1px solid #e5edf5;
+            margin-top: 12px;
+            padding-top: 10px;
+        }
+
+        .historico-transferencia-item {
+            background: #f8fafc;
+            border: 1px solid #e5edf5;
+            border-radius: 8px;
+            margin-top: 7px;
+            padding: 8px 10px;
+        }
+
+        .passagens-dia-topo {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+
+        .passagens-dia-titulo {
+            font-weight: 900;
+            color: #0f172a;
+            margin-bottom: 2px;
+        }
+
+        .passagens-dia-periodo {
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .passagens-dia-badge {
+            background: #dcfce7;
+            color: #166534;
+            border-radius: 999px;
+            padding: 7px 11px;
+            font-size: 13px;
+            font-weight: 900;
+            white-space: nowrap;
+        }
+
+        .passagens-dia-card.alerta .passagens-dia-badge {
+            background: #ffedd5;
+            color: #9a3412;
+        }
+
+        .passagens-dia-tabela {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .passagens-dia-tabela th {
+            background: #f8fafc;
+            color: #334155;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+            padding: 8px;
+            border: 1px solid #e5edf5;
+        }
+
+        .passagens-dia-tabela td {
+            padding: 8px;
+            border: 1px solid #e5edf5;
+            vertical-align: middle;
+        }
+
+        .passagem-atual {
+            background: #eaf4ff;
+            font-weight: 800;
+        }
+
+        .nav-tabs {
+            border-bottom: 1px solid var(--borda);
+            gap: 4px;
+        }
+
+        .nav-tabs .nav-link {
+            color: #334155;
+            font-weight: 700;
+            border-radius: 10px 10px 0 0;
+            padding: 10px 14px;
+        }
+
+        .nav-tabs .nav-link.active {
+            color: var(--azul);
+            background: #fff;
+            border-color: var(--borda) var(--borda) #fff;
+        }
+
+        .section-card {
+            background: #fff;
+            border: 1px solid var(--borda);
+            border-radius: 12px;
+            margin-bottom: 16px;
+            overflow: hidden;
+        }
+
+        .section-head {
+            padding: 12px 15px;
+            font-weight: 800;
+            color: #fff;
+        }
+
+        .section-head.azul {
+            background: var(--azul);
+        }
+
+        .section-head.vermelho {
+            background: var(--vermelho);
+        }
+
+        .section-head.verde {
+            background: var(--verde);
+        }
+
+        .section-body {
+            padding: 15px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .info-item {
+            background: #f8fafc;
+            border: 1px solid #e5edf5;
+            border-radius: 10px;
+            padding: 11px;
+            min-height: 68px;
+        }
+
+        .info-item.full {
+            grid-column: 1 / -1;
+        }
+
+        .info-label {
+            color: var(--muted);
+            font-size: .72rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+            margin-bottom: 4px;
+        }
+
+        .info-value {
+            color: #0f172a;
+            font-weight: 800;
+            word-break: break-word;
+        }
+
+        .classificacao-destaque {
+            background: #fff7ed;
+            border-color: #fed7aa;
+        }
+
+        .badge-classificacao {
+            display: inline-block;
+            padding: 7px 12px;
+            border-radius: 999px;
+            font-weight: 800;
+        }
+
+        .badge-vermelho {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .badge-laranja {
+            background: #ffedd5;
+            color: #9a3412;
+        }
+
+        .badge-amarelo {
+            background: #fef3c7;
+            color: #854d0e;
+        }
+
+        .badge-verde {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .badge-azul {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+.cid-resultados {
+    display: none;
+    max-height: 260px;
+    overflow-y: auto;
+    z-index: 1000;
+}
+
+        .cid-agressao {
+            border-color: #dc3545 !important;
+            background: #fff5f5 !important;
+            color: #842029 !important;
+            font-weight: 800;
+        }
+
+        .cid-agressao-alerta {
+            background: #fee2e2;
+            border: 1px solid #fecaca;
+            color: #991b1b;
+            border-radius: 8px;
+            padding: 9px 11px;
+            font-weight: 800;
+        }
+
+        .alerta-alergia-card {
+            background: #fee2e2;
+            border: 2px solid #dc2626;
+            border-left: 8px solid #991b1b;
+            border-radius: 12px;
+            color: #7f1d1d;
+            margin-bottom: 16px;
+            padding: 14px 16px;
+        }
+
+        .alerta-alergia-titulo {
+            font-size: 16px;
+            font-weight: 900;
+            text-transform: uppercase;
+        }
+
+        .alerta-alergia-texto {
+            font-size: 15px;
+            font-weight: 900;
+            margin-top: 4px;
+            white-space: pre-line;
+        }
+
+        .alerta-alergia-menor {
+            color: #991b1b;
+            font-size: 13px;
+            font-weight: 800;
+            margin-top: 6px;
+        }
+
+        .info-item.alergia-destaque {
+            background: #fee2e2;
+            border-color: #dc2626;
+        }
+
+        .info-item.alergia-destaque .info-label,
+        .info-item.alergia-destaque .info-value {
+            color: #991b1b;
+        }
+
+        .form-check-input,
+        .form-check input[type="checkbox"] {
+            width: 1.1em;
+            height: 1.1em;
+            min-height: auto;
+            padding: 0;
+        }
+
+        .errorlist {
+            color: #dc3545;
+            font-size: .875rem;
+            font-weight: 700;
+            margin: 5px 0 0;
+            padding-left: 18px;
+        }
+
+        .erro-campo-link {
+            color: #842029;
+            font-weight: 700;
+            text-decoration: underline;
+        }
+
+        .exam-help {
+            color: var(--muted);
+            font-size: 13px;
+            margin-bottom: 10px;
+        }
+
+        .exam-tools {
+            display: grid;
+            grid-template-columns: 1fr 180px 180px;
+            gap: 8px;
+            background: #f8fafc;
+            border: 1px solid #e5edf5;
+            border-radius: 10px;
+            padding: 8px;
+            margin-bottom: 10px;
+        }
+
+        .exam-count {
+            background: #eaf4ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 8px;
+            color: var(--azul);
+            font-weight: 900;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px;
+        }
+
+        .exam-list.simple-list {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+
+        .exam-sector-toggle {
+            width: 100%;
+            border: 1px solid transparent;
+            font-weight: 900;
+            padding: 10px 12px;
+            border-radius: 9px;
+            margin-top: 8px;
+            margin-bottom: 7px;
+            text-align: left;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .exam-sector-toggle.raiox {
+            background: #eaf4ff;
+            border-left: 5px solid var(--azul);
+            color: var(--azul);
+        }
+
+        .exam-sector-toggle.tomografia {
+            background: #ecfdf5;
+            border-left: 5px solid var(--verde);
+            color: #166534;
+        }
+
+        .exam-sector-toggle.mamografia {
+            background: #fdf2f8;
+            border-left: 5px solid #d63384;
+            color: #9d174d;
+        }
+
+        .exam-sector-toggle.densitometria {
+            background: #f3e8ff;
+            border-left: 5px solid #7c3aed;
+            color: #5b21b6;
+        }
+
+        .exam-sector-toggle.open {
+            border-color: #94a3b8;
+        }
+
+        .exam-category-toggle {
+            width: calc(100% - 18px);
+            margin-left: 18px;
+            border: 0;
+            background: #f8fafc;
+            border-left: 4px solid #94a3b8;
+            color: #334155;
+            font-weight: 850;
+            padding: 8px 10px;
+            border-radius: 8px;
+            margin-bottom: 6px;
+            text-align: left;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .exam-master-body,
+        .exam-category-body {
+            margin-bottom: 8px;
+        }
+
+        .exam-master-body.is-hidden,
+        .exam-category-body.is-hidden,
+        .is-filter-hidden {
+            display: none !important;
+        }
+
+        .exam-category-body {
+            margin-left: 18px;
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 8px;
+            padding: 0 0 8px;
+        }
+
+        .toggle-symbol {
+            font-size: 19px;
+            line-height: 1;
+        }
+
+        .exam-option,
+        .exam-with-views {
+            border: 1px solid var(--borda);
+            border-radius: 9px;
+            padding: 9px 10px;
+            background: #f8fafc;
+            font-weight: 700;
+            color: var(--texto);
+            transition: .15s;
+        }
+
+        .exam-option {
+            cursor: pointer;
+        }
+
+        .exam-option:hover,
+        .exam-with-views:hover {
+            border-color: var(--azul);
+            background: var(--azul-claro);
+        }
+
+        .exam-option input {
+            width: auto;
+            min-height: auto;
+            margin-right: 7px;
+        }
+
+        .exam-option.selected,
+        .exam-with-views.selected {
+            border-color: var(--verde);
+            background: #e8f7ef;
+            color: #14532d;
+        }
+
+        .exam-title {
+            font-weight: 900;
+            color: var(--texto);
+            margin-bottom: 7px;
+        }
+
+        .exam-views {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .exam-views label {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: #fff;
+            border: 1px solid #dce5ef;
+            border-radius: 999px;
+            padding: 5px 8px;
+            font-size: 12px;
+            font-weight: 800;
+            color: #334155;
+            cursor: pointer;
+        }
+
+        .exam-views label:has(input:checked) {
+            background: #dcfce7;
+            border-color: #86efac;
+            color: #166534;
+        }
+
+        .exam-views input {
+            width: auto;
+            min-height: auto;
+        }
+
+        .indicacao-imagem-box {
+            background: #f8fafc;
+            border: 1px solid var(--borda);
+            border-radius: 10px;
+            padding: 12px;
+            height: 100%;
+        }
+
+        .indicacao-imagem-box textarea {
+            min-height: 110px;
+        }
+
+        .resultado-box {
+            background: #f8fafc;
+            border: 1px solid var(--borda);
+            border-radius: 12px;
+            padding: 14px;
+            height: 100%;
+        }
+
+        .resultado-box h6 {
+            font-weight: 900;
+            margin-bottom: 12px;
+        }
+
+        .resultado-laudo {
+            min-height: 140px;
+            background: #fff;
+        }
+
+        .resultado-pendente {
+            background: #fff7ed;
+            border: 1px solid #fed7aa;
+            color: #9a3412;
+            border-radius: 9px;
+            padding: 12px;
+            font-weight: 800;
+        }
+
+        .tecnico-lista {
+            background: #fff;
+            border: 1px solid #dce5ef;
+            border-radius: 9px;
+            padding: 10px;
+        }
+
+        .tecnico-linha {
+            border-bottom: 1px solid #eef2f7;
+            padding: 6px 0;
+        }
+
+        .tecnico-linha:last-child {
+            border-bottom: 0;
+        }
+
+        .estoque-farmacia-box {
+            background: #f8fafc;
+            border: 1px solid var(--borda);
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 14px;
+        }
+
+        .estoque-farmacia-topo {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 12px;
+            align-items: end;
+            margin-bottom: 10px;
+        }
+
+        .estoque-farmacia-controles {
+            display: grid;
+            grid-template-columns: minmax(240px, 1fr) 230px 210px;
+            gap: 8px;
+        }
+
+        .estoque-farmacia-status {
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 700;
+            margin-top: 8px;
+        }
+
+        .estoque-farmacia-status.alerta {
+            color: #9a3412;
+        }
+
+        .estoque-farmacia-lista {
+            display: none;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #e5edf5;
+            border-radius: 10px;
+            background: #fff;
+            margin-top: 10px;
+        }
+
+        .estoque-farmacia-lista.is-active {
+            display: block;
+        }
+
+        .estoque-farmacia-item {
+            display: grid;
+            grid-template-columns: 1fr auto auto;
+            gap: 10px;
+            align-items: center;
+            padding: 10px 12px;
+            border-bottom: 1px solid #eef2f7;
+        }
+
+        .estoque-farmacia-item:last-child {
+            border-bottom: 0;
+        }
+
+        .estoque-farmacia-nome {
+            font-weight: 900;
+            color: #0f172a;
+        }
+
+        .estoque-farmacia-detalhe {
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .estoque-farmacia-saldo {
+            min-width: 96px;
+            text-align: center;
+            background: #dcfce7;
+            color: #166534;
+            border-radius: 999px;
+            padding: 6px 10px;
+            font-weight: 900;
+            font-size: 12px;
+        }
+
+        .estoque-farmacia-vazio {
+            padding: 12px;
+            color: var(--muted);
+            font-weight: 800;
+        }
+
+        .acao-final {
+            position: sticky;
+            bottom: 0;
+            background: #eef3f8;
+            border-top: 1px solid var(--borda);
+            padding: 14px 0 0;
+            z-index: 20;
+        }
+
+        @media (max-width: 1200px) {
+            .exam-list.simple-list,
+            .exam-category-body {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .exam-tools {
+                grid-template-columns: 1fr;
+            }
+
+            .estoque-farmacia-topo,
+            .estoque-farmacia-controles {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .info-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 576px) {
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start !important;
+                gap: 12px;
+            }
+
+            .page-header .btn {
+                width: 100%;
+            }
+
+            .info-grid,
+            .exam-list.simple-list,
+            .exam-category-body {
+                grid-template-columns: 1fr;
+            }
+
+            .exam-category-toggle,
+            .exam-category-body {
+                margin-left: 0;
+                width: 100%;
+            }
+
+            .estoque-farmacia-item {
+                grid-template-columns: 1fr;
+            }
+
+            .estoque-farmacia-saldo {
+                width: max-content;
+            }
+
+            .passagens-dia-topo {
+                flex-direction: column;
+            }
+        }

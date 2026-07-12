@@ -366,3 +366,41 @@ input[type="checkbox"] {
         width: 100%;
     }
 }
+
+/* Extraido de recepcao/templates/recepcao/cadastro.html */
+.page-top {
+            background: linear-gradient(135deg, #0f4c81, #1769a6);
+            border-radius: 14px;
+            color: #fff;
+            padding: 18px 22px;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: 210px minmax(0, 1fr) 230px;
+            gap: 10px;
+        }
+
+        .summary-card,
+        .history-card,
+        .form-box,
+        .form-section {
+            background: #fff;
+            border: 1px solid #dce5ef;
+            border-radius: 12px;
+        }
+
+        .summary-card {
+            border-left: 5px solid #94a3b8;
+            padding: 11px 14px;
+        }
+
+        .summary-card.primary {
+            border-left-color: #0f4c81;
+        }
+
+        @media (max-width: 768px) {
+            .summary-grid {
+                grid-template-columns: 1fr;
+            }
+        }
