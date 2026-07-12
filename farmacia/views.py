@@ -1,3 +1,5 @@
+from datetime import date, datetime, timedelta
+
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db import transaction
@@ -110,6 +112,7 @@ def buscar_medicamento_estoque(request):
             | Q(principio_ativo__icontains=termo)
             | Q(apresentacao__icontains=termo)
             | Q(concentracao__icontains=termo)
+            | Q(lote_atual__icontains=termo)
             | Q(localizacao__icontains=termo)
             | Q(categoria__icontains=termo)
             | Q(metodo_aplicacao__icontains=termo)
@@ -142,6 +145,9 @@ def buscar_medicamento_estoque(request):
             "localizacao": medicamento.localizacao,
             "estoque": medicamento.estoque_atual,
             "unidade": medicamento.unidade_medida,
+            "lote": medicamento.lote_atual,
+            "validade": medicamento.validade.strftime("%d/%m/%Y") if medicamento.validade else "",
+            "dias_validade": medicamento.texto_dias_validade,
         })
 
     return JsonResponse({
@@ -208,8 +214,8 @@ def baixar_itens_estoque(consulta, itens_estoque, form):
             quantidade=quantidade,
             saldo_anterior=saldo_anterior,
             saldo_atual=saldo_atual,
-            lote=consulta.lote_farmacia or "",
-            validade=consulta.validade_farmacia,
+            lote=consulta.lote_farmacia or medicamento.lote_atual or "",
+            validade=consulta.validade_farmacia or medicamento.validade,
             origem_destino=destino,
             profissional_nome=consulta.profissional_farmacia_nome,
             profissional_registro=consulta.profissional_farmacia_registro or "",
@@ -311,6 +317,8 @@ def estoque_dashboard(request):
     status = request.GET.get("status", "").strip()
     categoria = request.GET.get("categoria", "").strip()
     metodo_aplicacao = request.GET.get("metodo_aplicacao", "").strip()
+    hoje = date.today()
+    limite_vencimento = hoje + timedelta(days=30)
 
     medicamentos = MedicamentoEstoque.objects.all()
 
@@ -320,6 +328,7 @@ def estoque_dashboard(request):
             | Q(principio_ativo__icontains=busca)
             | Q(apresentacao__icontains=busca)
             | Q(concentracao__icontains=busca)
+            | Q(lote_atual__icontains=busca)
             | Q(localizacao__icontains=busca)
             | Q(categoria__icontains=busca)
             | Q(metodo_aplicacao__icontains=busca)
@@ -345,6 +354,17 @@ def estoque_dashboard(request):
         )
     elif status == "inativos":
         medicamentos = medicamentos.filter(ativo=False)
+    elif status == "vencidos":
+        medicamentos = medicamentos.filter(
+            ativo=True,
+            validade__lt=hoje
+        )
+    elif status == "vencendo":
+        medicamentos = medicamentos.filter(
+            ativo=True,
+            validade__gte=hoje,
+            validade__lte=limite_vencimento
+        )
 
     medicamentos = medicamentos.order_by(
         "categoria",
@@ -374,6 +394,15 @@ def estoque_dashboard(request):
         ativo=True,
         estoque_atual__lte=0
     ).count()
+    total_vencendo = MedicamentoEstoque.objects.filter(
+        ativo=True,
+        validade__gte=hoje,
+        validade__lte=limite_vencimento
+    ).count()
+    total_vencidos = MedicamentoEstoque.objects.filter(
+        ativo=True,
+        validade__lt=hoje
+    ).count()
 
     return render(
         request,
@@ -393,6 +422,108 @@ def estoque_dashboard(request):
             "total_medicamentos": total_medicamentos,
             "total_estoque_baixo": total_estoque_baixo,
             "total_zerados": total_zerados,
+            "total_vencendo": total_vencendo,
+            "total_vencidos": total_vencidos,
+            "data_impressao_padrao": hoje.isoformat(),
+            "mes_impressao_padrao": hoje.strftime("%Y-%m"),
+        }
+    )
+
+
+def periodo_movimentacoes_impressao(request):
+    hoje = date.today()
+    tipo = (request.GET.get("tipo") or "dia").strip().lower()
+
+    if tipo == "mes":
+        mes_texto = (request.GET.get("mes") or hoje.strftime("%Y-%m")).strip()
+
+        try:
+            ano, mes = [int(parte) for parte in mes_texto.split("-", 1)]
+            inicio_data = date(ano, mes, 1)
+        except (TypeError, ValueError):
+            inicio_data = date(hoje.year, hoje.month, 1)
+
+        if inicio_data.month == 12:
+            fim_data = date(inicio_data.year + 1, 1, 1)
+        else:
+            fim_data = date(inicio_data.year, inicio_data.month + 1, 1)
+
+        return {
+            "tipo": "mes",
+            "titulo": "Movimentacoes por mes",
+            "periodo_label": inicio_data.strftime("%m/%Y"),
+            "inicio": datetime.combine(inicio_data, datetime.min.time()),
+            "fim": datetime.combine(fim_data, datetime.min.time()),
+        }
+
+    data_texto = (request.GET.get("data") or hoje.isoformat()).strip()
+    data = parse_date(data_texto) or hoje
+    fim_data = data + timedelta(days=1)
+
+    return {
+        "tipo": "dia",
+        "titulo": "Movimentacoes por dia",
+        "periodo_label": data.strftime("%d/%m/%Y"),
+        "inicio": datetime.combine(data, datetime.min.time()),
+        "fim": datetime.combine(fim_data, datetime.min.time()),
+    }
+
+
+def resumo_movimentacoes(movimentacoes):
+    resumo = {
+        MovimentacaoEstoque.ENTRADA: {
+            "rotulo": "Entradas",
+            "classe": "entrada",
+            "total": 0,
+            "quantidade": 0,
+        },
+        MovimentacaoEstoque.SAIDA: {
+            "rotulo": "Saidas",
+            "classe": "saida",
+            "total": 0,
+            "quantidade": 0,
+        },
+        MovimentacaoEstoque.AJUSTE: {
+            "rotulo": "Ajustes",
+            "classe": "ajuste",
+            "total": 0,
+            "quantidade": 0,
+        },
+    }
+
+    for movimentacao in movimentacoes:
+        item = resumo.get(movimentacao.tipo)
+
+        if not item:
+            continue
+
+        item["total"] += 1
+        item["quantidade"] += movimentacao.quantidade
+
+    return resumo.values()
+
+
+def imprimir_movimentacoes_estoque(request):
+    periodo = periodo_movimentacoes_impressao(request)
+    movimentacoes = list(
+        MovimentacaoEstoque.objects
+        .select_related("medicamento")
+        .filter(
+            criado_em__gte=periodo["inicio"],
+            criado_em__lt=periodo["fim"],
+        )
+        .order_by("criado_em", "medicamento__nome")
+    )
+
+    return render(
+        request,
+        "farmacia/imprimir_movimentacoes.html",
+        {
+            "periodo": periodo,
+            "movimentacoes": movimentacoes,
+            "resumo": resumo_movimentacoes(movimentacoes),
+            "total_movimentacoes": len(movimentacoes),
+            "gerado_em": datetime.now(),
         }
     )
 
@@ -420,6 +551,35 @@ def quantidade_lote_valida(tipo, medicamento_id, request):
     return quantidade
 
 
+def dados_lote_validade_por_item(ids, request):
+    dados = {}
+    lote_padrao = (request.POST.get("lote") or "").strip()
+    validade_padrao_texto = (request.POST.get("validade") or "").strip()
+
+    for medicamento_id in ids:
+        lote = (request.POST.get(f"lote_{medicamento_id}") or lote_padrao).strip()
+        validade_texto = (
+            request.POST.get(f"validade_{medicamento_id}")
+            or validade_padrao_texto
+        ).strip()
+        validade = None
+
+        if validade_texto:
+            validade = parse_date(validade_texto)
+
+            if validade is None:
+                raise ValueError(
+                    "Informe uma data de validade valida para todos os itens selecionados."
+                )
+
+        dados[medicamento_id] = {
+            "lote": lote,
+            "validade": validade,
+        }
+
+    return dados
+
+
 def saldo_movimentado(tipo, saldo_anterior, quantidade):
     if tipo == MovimentacaoEstoque.ENTRADA:
         return saldo_anterior + quantidade
@@ -440,6 +600,21 @@ def descricao_tipo_lote(tipo):
     return "ajuste"
 
 
+def campos_atualizacao_estoque(medicamento, tipo, lote=None, validade=None):
+    update_fields = ["estoque_atual", "atualizado_em"]
+
+    if tipo in {MovimentacaoEstoque.ENTRADA, MovimentacaoEstoque.AJUSTE}:
+        if lote:
+            medicamento.lote_atual = lote
+            update_fields.append("lote_atual")
+
+        if validade:
+            medicamento.validade = validade
+            update_fields.append("validade")
+
+    return update_fields
+
+
 def movimentar_estoque_lote(request):
     if request.method != "POST":
         return redirect("farmacia_estoque")
@@ -448,8 +623,6 @@ def movimentar_estoque_lote(request):
     ids_texto = request.POST.getlist("medicamentos")
     profissional_nome = (request.POST.get("profissional_nome") or "").strip()
     profissional_registro = (request.POST.get("profissional_registro") or "").strip()
-    lote = (request.POST.get("lote") or "").strip()
-    validade_texto = (request.POST.get("validade") or "").strip()
     origem_destino = (request.POST.get("origem_destino") or "").strip()
     observacao = (request.POST.get("observacao") or "").strip()
 
@@ -464,15 +637,6 @@ def movimentar_estoque_lote(request):
     if not profissional_nome:
         messages.error(request, "Informe o nome do profissional responsavel.")
         return redirect_estoque_lote(request)
-
-    validade = None
-
-    if validade_texto:
-        validade = parse_date(validade_texto)
-
-        if validade is None:
-            messages.error(request, "Informe uma data de validade valida.")
-            return redirect_estoque_lote(request)
 
     try:
         ids = [int(medicamento_id) for medicamento_id in ids_texto]
@@ -489,6 +653,12 @@ def movimentar_estoque_lote(request):
             medicamento_id: quantidade_lote_valida(tipo, medicamento_id, request)
             for medicamento_id in ids
         }
+    except ValueError as erro:
+        messages.error(request, str(erro))
+        return redirect_estoque_lote(request)
+
+    try:
+        dados_por_item = dados_lote_validade_por_item(ids, request)
     except ValueError as erro:
         messages.error(request, str(erro))
         return redirect_estoque_lote(request)
@@ -528,6 +698,7 @@ def movimentar_estoque_lote(request):
             quantidade = quantidades[medicamento_id]
             saldo_anterior = medicamento.estoque_atual
             saldo_atual = saldo_movimentado(tipo, saldo_anterior, quantidade)
+            dados_item = dados_por_item[medicamento_id]
 
             MovimentacaoEstoque.objects.create(
                 medicamento=medicamento,
@@ -535,8 +706,8 @@ def movimentar_estoque_lote(request):
                 quantidade=quantidade,
                 saldo_anterior=saldo_anterior,
                 saldo_atual=saldo_atual,
-                lote=lote,
-                validade=validade,
+                lote=dados_item["lote"],
+                validade=dados_item["validade"],
                 origem_destino=origem_destino,
                 profissional_nome=profissional_nome,
                 profissional_registro=profissional_registro,
@@ -544,7 +715,14 @@ def movimentar_estoque_lote(request):
             )
 
             medicamento.estoque_atual = saldo_atual
-            medicamento.save(update_fields=["estoque_atual", "atualizado_em"])
+            medicamento.save(
+                update_fields=campos_atualizacao_estoque(
+                    medicamento,
+                    tipo,
+                    lote=dados_item["lote"],
+                    validade=dados_item["validade"]
+                )
+            )
 
     messages.success(
         request,
@@ -642,7 +820,14 @@ def movimentar_estoque(request, medicamento_id, tipo):
                     movimentacao.save()
 
                     medicamento_bloqueado.estoque_atual = saldo_atual
-                    medicamento_bloqueado.save(update_fields=["estoque_atual", "atualizado_em"])
+                    medicamento_bloqueado.save(
+                        update_fields=campos_atualizacao_estoque(
+                            medicamento_bloqueado,
+                            tipo,
+                            lote=movimentacao.lote,
+                            validade=movimentacao.validade
+                        )
+                    )
 
                     messages.success(request, "Movimentacao registrada com sucesso.")
                     return redirect("farmacia_estoque")

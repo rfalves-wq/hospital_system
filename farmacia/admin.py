@@ -14,10 +14,12 @@ class MedicamentoEstoqueAdmin(admin.ModelAdmin):
         "concentracao",
         "estoque_atual",
         "estoque_minimo",
+        "lote_atual",
+        "validade",
         "ativo",
     )
-    list_filter = ("ativo", "categoria", "metodo_aplicacao", "apresentacao")
-    search_fields = ("nome", "principio_ativo", "concentracao")
+    list_filter = ("ativo", "categoria", "metodo_aplicacao", "apresentacao", "validade")
+    search_fields = ("nome", "principio_ativo", "concentracao", "lote_atual")
 
 
 @admin.register(MovimentacaoEstoque)
@@ -29,8 +31,10 @@ class MovimentacaoEstoqueAdmin(admin.ModelAdmin):
         "quantidade",
         "saldo_anterior",
         "saldo_atual",
+        "lote",
+        "validade",
         "profissional_nome",
     )
-    list_filter = ("tipo", "criado_em")
+    list_filter = ("tipo", "validade", "criado_em")
     search_fields = ("medicamento__nome", "profissional_nome", "lote")
     autocomplete_fields = ("medicamento",)

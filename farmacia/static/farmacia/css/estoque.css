@@ -37,7 +37,7 @@
 
         .metric-grid {
             display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
+            grid-template-columns: repeat(5, minmax(0, 1fr));
             gap: 10px;
             margin-bottom: 12px;
         }
@@ -56,6 +56,10 @@
 
         .metric-card.danger {
             border-left-color: var(--vermelho);
+        }
+
+        .metric-card.validade {
+            border-left-color: #7c3aed;
         }
 
         .metric-label {
@@ -281,6 +285,52 @@
             overflow-wrap: anywhere;
         }
 
+        .lote-valor,
+        .validade-data {
+            color: #0f172a;
+            font-size: .82rem;
+            font-weight: 900;
+            line-height: 1.25;
+            white-space: nowrap;
+        }
+
+        .validade-data {
+            color: var(--muted);
+            font-weight: 800;
+            margin-top: 2px;
+        }
+
+        .validade-pill {
+            border-radius: 999px;
+            display: inline-flex;
+            font-size: .72rem;
+            font-weight: 900;
+            line-height: 1.1;
+            margin-top: 5px;
+            padding: 5px 8px;
+            white-space: nowrap;
+        }
+
+        .validade-pill.em-dia {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .validade-pill.vence-logo {
+            background: #fef3c7;
+            color: #854d0e;
+        }
+
+        .validade-pill.vencido {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .validade-pill.sem-validade {
+            background: #f1f5f9;
+            color: #64748b;
+        }
+
         .badge-status {
             border-radius: 999px;
             padding: 7px 10px;
@@ -349,12 +399,76 @@
             flex-wrap: wrap;
         }
 
-        .movimentacoes-table td,
-        .movimentacoes-table th {
-            font-size: .9rem;
+        .movimentacoes-lista {
+            display: grid;
+            gap: 10px;
         }
 
-        .movimentacoes-table .mov-tipo {
+        .mov-print-panel {
+            background: #f8fbff;
+            border: 1px solid #cfe3ff;
+            border-radius: 12px;
+            display: grid;
+            gap: 10px;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            margin-bottom: 12px;
+            padding: 12px;
+        }
+
+        .mov-print-form {
+            align-items: end;
+            display: grid;
+            gap: 8px;
+            grid-template-columns: 130px minmax(160px, 1fr) 140px;
+        }
+
+        .mov-print-form label {
+            color: var(--azul);
+            font-size: .82rem;
+            font-weight: 900;
+            line-height: 1.2;
+            margin-bottom: 7px;
+        }
+
+        .mov-card {
+            background: #fff;
+            border: 1px solid #dce5ef;
+            border-left: 5px solid #94a3b8;
+            border-radius: 12px;
+            box-shadow: 0 8px 18px rgba(15, 23, 42, .05);
+            overflow: hidden;
+        }
+
+        .mov-card.entrada {
+            border-left-color: #198754;
+        }
+
+        .mov-card.saida {
+            border-left-color: #dc3545;
+        }
+
+        .mov-card.ajuste {
+            border-left-color: #d97706;
+        }
+
+        .mov-card-top {
+            align-items: center;
+            background: #f8fbff;
+            border-bottom: 1px solid #e5edf5;
+            display: flex;
+            gap: 12px;
+            justify-content: space-between;
+            padding: 10px 12px;
+        }
+
+        .mov-identidade {
+            align-items: center;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .mov-tipo {
             display: inline-block;
             min-width: 72px;
             border-radius: 999px;
@@ -365,25 +479,109 @@
             color: #334155;
         }
 
-        .movimentacoes-table .mov-tipo.entrada {
+        .mov-tipo.entrada {
             background: #dcfce7;
             color: #166534;
         }
 
-        .movimentacoes-table .mov-tipo.saida {
+        .mov-tipo.saida {
             background: #fee2e2;
             color: #991b1b;
         }
 
-        .movimentacoes-table .mov-tipo.ajuste {
+        .mov-tipo.ajuste {
             background: #fef3c7;
             color: #854d0e;
+        }
+
+        .mov-data {
+            color: var(--muted);
+            font-size: .82rem;
+            font-weight: 900;
+        }
+
+        .mov-saldo-resumo {
+            text-align: right;
+        }
+
+        .mov-saldo-resumo span,
+        .mov-info span {
+            color: var(--muted);
+            display: block;
+            font-size: .72rem;
+            font-weight: 900;
+            letter-spacing: .04em;
+            text-transform: uppercase;
+        }
+
+        .mov-saldo-resumo strong {
+            color: #0f172a;
+            display: block;
+            font-size: .95rem;
+            font-weight: 900;
+            line-height: 1.2;
+            white-space: nowrap;
+        }
+
+        .mov-card-body {
+            padding: 12px;
+        }
+
+        .mov-medicamento {
+            color: #0f172a;
+            font-size: .98rem;
+            font-weight: 900;
+            line-height: 1.25;
+            margin-bottom: 10px;
+        }
+
+        .mov-info-grid {
+            display: grid;
+            gap: 8px;
+            grid-template-columns: 110px minmax(120px, .8fr) minmax(120px, .8fr) minmax(220px, 1.4fr);
+        }
+
+        .mov-info {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            min-width: 0;
+            padding: 8px 10px;
+        }
+
+        .mov-info strong {
+            color: #0f172a;
+            display: block;
+            font-size: .9rem;
+            font-weight: 900;
+            line-height: 1.25;
+            margin-top: 2px;
+            overflow-wrap: anywhere;
+        }
+
+        .mov-info small {
+            color: var(--muted);
+            display: block;
+            font-size: .78rem;
+            font-weight: 800;
+            margin-top: 2px;
+            overflow-wrap: anywhere;
+        }
+
+        .mov-empty {
+            background: #f8fbff;
+            border: 1px dashed #bfdbfe;
+            border-radius: 12px;
+            color: var(--muted);
+            font-weight: 900;
+            padding: 18px;
+            text-align: center;
         }
 
         .bulk-modal-grid {
             display: grid;
             gap: 16px;
-            grid-template-columns: minmax(320px, .95fr) minmax(360px, 1fr);
+            grid-template-columns: minmax(560px, 1.25fr) minmax(320px, .85fr);
         }
 
         .bulk-items-panel,
@@ -426,13 +624,13 @@
         }
 
         .bulk-item-row {
-            align-items: center;
+            align-items: start;
             background: #fff;
             border: 1px solid #dce5ef;
             border-radius: 10px;
             display: grid;
             gap: 10px;
-            grid-template-columns: minmax(0, 1fr) 150px;
+            grid-template-columns: minmax(170px, .9fr) minmax(320px, 1.25fr);
             padding: 10px;
         }
 
@@ -449,6 +647,22 @@
             margin-top: 3px;
         }
 
+        .bulk-item-validade {
+            color: #854d0e;
+            font-weight: 900;
+        }
+
+        .bulk-item-fields {
+            display: grid;
+            gap: 8px;
+            grid-template-columns: minmax(95px, .55fr) minmax(120px, 1fr) minmax(135px, .9fr);
+        }
+
+        .bulk-item-field {
+            min-width: 0;
+        }
+
+        .bulk-item-field label,
         .bulk-item-row label {
             color: var(--muted);
             display: block;
@@ -458,11 +672,34 @@
             text-transform: uppercase;
         }
 
+        .bulk-item-field input,
         .bulk-item-row input {
             font-weight: 900;
         }
 
+        .bulk-fields-title {
+            background: #eef6ff;
+            border: 1px solid #cfe3ff;
+            border-radius: 10px;
+            color: var(--azul);
+            font-size: .82rem;
+            font-weight: 900;
+            padding: 10px 12px;
+        }
+
         @media (max-width: 1400px) {
+            .metric-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+
+            .mov-info-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .mov-print-panel {
+                grid-template-columns: 1fr;
+            }
+
             .filter-grid {
                 grid-template-columns: minmax(240px, 1fr) 1fr 1fr;
             }
@@ -481,6 +718,19 @@
             }
 
             .bulk-modal-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .mov-card-top {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .mov-saldo-resumo {
+                text-align: left;
+            }
+
+            .mov-print-form {
                 grid-template-columns: 1fr;
             }
         }
@@ -513,6 +763,14 @@
             }
 
             .bulk-item-row {
+                grid-template-columns: 1fr;
+            }
+
+            .bulk-item-fields {
+                grid-template-columns: 1fr;
+            }
+
+            .mov-info-grid {
                 grid-template-columns: 1fr;
             }
         }

@@ -95,7 +95,24 @@
                         </div>
 
                         <div class="col-md-4">
-                            <label class="form-label fw-bold">Localização</label>
+                            <label class="form-label fw-bold">Lote do medicamento</label>
+                            {{ form.lote_atual }}
+                            {{ form.lote_atual.errors }}
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Data de validade</label>
+                            {{ form.validade }}
+                            {{ form.validade.errors }}
+                            {% if medicamento and medicamento.validade %}
+                                <div class="form-text fw-bold">
+                                    {{ medicamento.texto_dias_validade }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Localizacao</label>
                             {{ form.localizacao }}
                             {{ form.localizacao.errors }}
                         </div>

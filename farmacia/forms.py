@@ -164,6 +164,8 @@ class MedicamentoEstoqueForm(forms.ModelForm):
             "unidade_medida",
             "estoque_atual",
             "estoque_minimo",
+            "lote_atual",
+            "validade",
             "localizacao",
             "ativo",
         ]
@@ -204,6 +206,14 @@ class MedicamentoEstoqueForm(forms.ModelForm):
                 "class": "form-control",
                 "step": "1",
                 "min": "0",
+            }),
+            "lote_atual": forms.TextInput(attrs={
+                "class": "form-control",
+                "placeholder": "Lote atual do medicamento",
+            }),
+            "validade": forms.DateInput(attrs={
+                "class": "form-control",
+                "type": "date",
             }),
             "localizacao": forms.TextInput(attrs={
                 "class": "form-control",

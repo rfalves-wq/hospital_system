@@ -44,7 +44,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const configuracoesTipo = {
         ENTRADA: {
             titulo: "Entrada em lote",
-            subtitulo: "Informe quanto entrou para cada medicamento selecionado.",
+            subtitulo: "Informe quantidade, lote e validade de cada medicamento selecionado.",
             quantidadeLabel: "Quantidade que entrou",
             quantidadeMin: "1",
             quantidadeInicial: "1",
@@ -55,7 +55,7 @@ document.addEventListener("DOMContentLoaded", function () {
         },
         SAIDA: {
             titulo: "Saida em lote",
-            subtitulo: "Informe quanto saiu para cada medicamento selecionado.",
+            subtitulo: "Confira lote e validade de cada medicamento e informe quanto saiu.",
             quantidadeLabel: "Quantidade que saiu",
             quantidadeMin: "1",
             quantidadeInicial: "1",
@@ -66,7 +66,7 @@ document.addEventListener("DOMContentLoaded", function () {
         },
         AJUSTE: {
             titulo: "Ajuste de saldo em lote",
-            subtitulo: "Informe o novo saldo final de cada medicamento selecionado.",
+            subtitulo: "Informe o novo saldo e, se preciso, atualize lote e validade de cada medicamento.",
             quantidadeLabel: "Novo saldo",
             quantidadeMin: "0",
             quantidadeInicial: "",
@@ -107,51 +107,118 @@ document.addEventListener("DOMContentLoaded", function () {
         return elemento;
     }
 
+    function criarCampoItem(opcoes) {
+        const grupo = document.createElement("div");
+        const label = document.createElement("label");
+        const input = document.createElement("input");
+
+        grupo.className = "bulk-item-field";
+        label.setAttribute("for", opcoes.id);
+        label.textContent = opcoes.label;
+
+        input.type = opcoes.type || "text";
+        input.className = "form-control";
+        input.id = opcoes.id;
+        input.name = opcoes.name;
+        input.value = opcoes.value || "";
+
+        if (opcoes.placeholder) {
+            input.placeholder = opcoes.placeholder;
+        }
+
+        if (opcoes.min !== undefined) {
+            input.min = opcoes.min;
+        }
+
+        if (opcoes.max !== undefined) {
+            input.max = opcoes.max;
+        }
+
+        if (opcoes.step !== undefined) {
+            input.step = opcoes.step;
+        }
+
+        if (opcoes.required) {
+            input.required = true;
+        }
+
+        grupo.appendChild(label);
+        grupo.appendChild(input);
+
+        return grupo;
+    }
+
     function criarItemSelecionado(checkbox, tipo, config) {
         const medicamentoId = checkbox.dataset.medicamentoId;
         const estoqueAtual = Number(checkbox.dataset.estoqueAtual || "0");
         const unidade = checkbox.dataset.unidade || "unidade";
+        const loteAtual = checkbox.dataset.loteAtual || "";
+        const validadeTexto = checkbox.dataset.validadeTexto || "";
+        const validadeIso = checkbox.dataset.validadeIso || "";
+        const validadeStatus = checkbox.dataset.validadeStatus || "";
         const item = document.createElement("div");
         const info = document.createElement("div");
-        const campo = document.createElement("div");
+        const campos = document.createElement("div");
         const hidden = document.createElement("input");
-        const label = document.createElement("label");
-        const input = document.createElement("input");
+        const valorLoteInicial = tipo === "ENTRADA" ? "" : loteAtual;
+        const valorValidadeInicial = tipo === "ENTRADA" ? "" : validadeIso;
 
         item.className = "bulk-item-row";
+        campos.className = "bulk-item-fields";
         info.appendChild(criarTexto("bulk-item-name", checkbox.dataset.medicamentoNome || "Medicamento"));
         info.appendChild(criarTexto("bulk-item-meta", `Estoque atual: ${estoqueAtual} ${unidade}`));
+
+        if (loteAtual || validadeTexto) {
+            info.appendChild(
+                criarTexto(
+                    "bulk-item-meta",
+                    `Lote: ${loteAtual || "-"} | Validade: ${validadeTexto || "-"}`
+                )
+            );
+        }
+
+        if (validadeStatus && validadeStatus !== "Sem validade") {
+            info.appendChild(criarTexto("bulk-item-meta bulk-item-validade", validadeStatus));
+        }
 
         hidden.type = "hidden";
         hidden.name = "medicamentos";
         hidden.value = medicamentoId;
 
-        label.setAttribute("for", `quantidade-lote-${medicamentoId}`);
-        label.textContent = config.quantidadeLabel;
-
-        input.type = "number";
-        input.className = "form-control";
-        input.id = `quantidade-lote-${medicamentoId}`;
-        input.name = `quantidade_${medicamentoId}`;
-        input.min = config.quantidadeMin;
-        input.step = "1";
-        input.required = true;
+        const campoQuantidade = criarCampoItem({
+            id: `quantidade-lote-${medicamentoId}`,
+            name: `quantidade_${medicamentoId}`,
+            label: config.quantidadeLabel,
+            type: "number",
+            min: config.quantidadeMin,
+            step: "1",
+            value: tipo === "AJUSTE" ? String(estoqueAtual) : config.quantidadeInicial,
+            required: true
+        });
 
         if (tipo === "SAIDA") {
-            input.max = String(estoqueAtual);
+            campoQuantidade.querySelector("input").max = String(estoqueAtual);
         }
 
-        if (tipo === "AJUSTE") {
-            input.value = String(estoqueAtual);
-        } else {
-            input.value = config.quantidadeInicial;
-        }
+        campos.appendChild(campoQuantidade);
+        campos.appendChild(criarCampoItem({
+            id: `lote-item-${medicamentoId}`,
+            name: `lote_${medicamentoId}`,
+            label: "Lote",
+            value: valorLoteInicial,
+            placeholder: "Lote deste item"
+        }));
+        campos.appendChild(criarCampoItem({
+            id: `validade-item-${medicamentoId}`,
+            name: `validade_${medicamentoId}`,
+            label: "Validade",
+            type: "date",
+            value: valorValidadeInicial
+        }));
 
-        campo.appendChild(label);
-        campo.appendChild(input);
         item.appendChild(hidden);
         item.appendChild(info);
-        item.appendChild(campo);
+        item.appendChild(campos);
 
         return item;
     }

@@ -53,6 +53,9 @@ document.addEventListener("DOMContentLoaded", function () {
         if (medicamento.categoria) detalhes.push(`Categoria: ${medicamento.categoria}`);
         if (medicamento.metodo) detalhes.push(`Metodo: ${medicamento.metodo}`);
         if (medicamento.principio_ativo) detalhes.push(`Principio ativo: ${medicamento.principio_ativo}`);
+        if (medicamento.lote) detalhes.push(`Lote: ${medicamento.lote}`);
+        if (medicamento.validade) detalhes.push(`Validade: ${medicamento.validade}`);
+        if (medicamento.validade && medicamento.dias_validade) detalhes.push(medicamento.dias_validade);
         if (medicamento.localizacao) detalhes.push(`Local: ${medicamento.localizacao}`);
 
         return detalhes.join(" | ");

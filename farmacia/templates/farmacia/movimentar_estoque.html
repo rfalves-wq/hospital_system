@@ -39,7 +39,7 @@
         <div class="card-body">
             <div class="info-card">
                 <div class="row g-3">
-                    <div class="col-md-5">
+                    <div class="col-md-4">
                         <div class="info-label">Medicamento</div>
                         <div class="info-value">{{ medicamento.descricao_completa }}</div>
                     </div>
@@ -54,8 +54,24 @@
                         <div class="info-value">{{ medicamento.estoque_minimo|floatformat:0 }}</div>
                     </div>
 
-                    <div class="col-md-3">
-                        <div class="info-label">Localização</div>
+                    <div class="col-md-2">
+                        <div class="info-label">Lote atual</div>
+                        <div class="info-value">{{ medicamento.lote_atual|default:"-" }}</div>
+                    </div>
+
+                    <div class="col-md-2">
+                        <div class="info-label">Validade</div>
+                        <div class="info-value">
+                            {% if medicamento.validade %}
+                                {{ medicamento.validade|date:"d/m/Y" }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="col-md-12">
+                        <div class="info-label">Localizacao</div>
                         <div class="info-value">{{ medicamento.localizacao|default:"-" }}</div>
                     </div>
                 </div>

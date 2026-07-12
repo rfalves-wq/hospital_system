@@ -1,0 +1,130 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <title>{{ periodo.titulo }} - Farmacia</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="stylesheet" href="{% static 'farmacia/css/imprimir_movimentacoes.css' %}?v=20260712-1">
+</head>
+
+<body data-auto-print="true">
+    <div class="print-actions no-print">
+        <button type="button" data-print-page>
+            Imprimir
+        </button>
+
+        <button type="button" data-close-page>
+            Fechar
+        </button>
+    </div>
+
+    <main class="print-page">
+        <header class="report-header">
+            <div>
+                <p class="eyebrow">Sistema Hospitalar</p>
+                <h1>{{ periodo.titulo }}</h1>
+                <p class="subtitle">Farmacia - periodo: {{ periodo.periodo_label }}</p>
+            </div>
+
+            <div class="report-meta">
+                <span>Gerado em</span>
+                <strong>{{ gerado_em|date:"d/m/Y H:i" }}</strong>
+            </div>
+        </header>
+
+        <section class="summary-grid">
+            <div class="summary-card">
+                <span>Total</span>
+                <strong>{{ total_movimentacoes }}</strong>
+            </div>
+
+            {% for item in resumo %}
+                <div class="summary-card {{ item.classe }}">
+                    <span>{{ item.rotulo }}</span>
+                    <strong>{{ item.total }}</strong>
+                    <small>Qtd.: {{ item.quantidade }}</small>
+                </div>
+            {% endfor %}
+        </section>
+
+        <section class="report-section">
+            <table>
+                <thead>
+                    <tr>
+                        <th class="col-num">#</th>
+                        <th>Data / hora</th>
+                        <th>Tipo</th>
+                        <th>Medicamento</th>
+                        <th>Qtd.</th>
+                        <th>Saldo</th>
+                        <th>Lote / validade</th>
+                        <th>Origem / destino</th>
+                        <th>Profissional</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for mov in movimentacoes %}
+                        <tr>
+                            <td class="col-num">{{ forloop.counter }}</td>
+                            <td>{{ mov.criado_em|date:"d/m/Y H:i" }}</td>
+                            <td>
+                                {% if mov.tipo == "ENTRADA" %}
+                                    <span class="tipo entrada">Entrada</span>
+                                {% elif mov.tipo == "SAIDA" %}
+                                    <span class="tipo saida">Saida</span>
+                                {% else %}
+                                    <span class="tipo ajuste">Ajuste</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <strong>{{ mov.medicamento.descricao_completa }}</strong>
+                                {% if mov.medicamento.principio_ativo %}
+                                    <small>{{ mov.medicamento.principio_ativo }}</small>
+                                {% endif %}
+                            </td>
+                            <td>{{ mov.quantidade|floatformat:0 }}</td>
+                            <td>{{ mov.saldo_anterior|floatformat:0 }} -> {{ mov.saldo_atual|floatformat:0 }}</td>
+                            <td>
+                                <strong>{{ mov.lote|default:"-" }}</strong>
+                                {% if mov.validade %}
+                                    <small>{{ mov.validade|date:"d/m/Y" }}</small>
+                                {% endif %}
+                            </td>
+                            <td>{{ mov.origem_destino|default:"-" }}</td>
+                            <td>
+                                <strong>{{ mov.profissional_nome }}</strong>
+                                {% if mov.profissional_registro %}
+                                    <small>{{ mov.profissional_registro }}</small>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="9" class="empty-row">
+                                Nenhuma movimentacao encontrada para este periodo.
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+
+        <footer class="signature-row">
+            <div>
+                <span>Responsavel pela conferencia</span>
+            </div>
+            <div>
+                <span>Assinatura / carimbo</span>
+            </div>
+        </footer>
+    </main>
+
+    <script src="{% static 'farmacia/js/imprimir_movimentacoes.js' %}?v=20260712-1"></script>
+</body>
+
+</html>

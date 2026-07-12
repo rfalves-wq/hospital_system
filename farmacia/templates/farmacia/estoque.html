@@ -10,7 +10,7 @@
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
-    <link rel="stylesheet" href="{% static 'farmacia/css/estoque.css' %}?v=20260712-1">
+    <link rel="stylesheet" href="{% static 'farmacia/css/estoque.css' %}?v=20260712-5">
 </head>
 
 <body>
@@ -58,6 +58,16 @@
                 <div class="metric-card danger">
                     <div class="metric-label">Zerados</div>
                     <div class="metric-value">{{ total_zerados }}</div>
+                </div>
+
+                <div class="metric-card validade">
+                    <div class="metric-label">Vencendo</div>
+                    <div class="metric-value">{{ total_vencendo }}</div>
+                </div>
+
+                <div class="metric-card danger">
+                    <div class="metric-label">Vencidos</div>
+                    <div class="metric-value">{{ total_vencidos }}</div>
                 </div>
             </div>
 
@@ -123,6 +133,8 @@
                         <option value="ativos" {% if status == "ativos" %}selected{% endif %}>Ativos</option>
                         <option value="baixos" {% if status == "baixos" %}selected{% endif %}>Estoque baixo</option>
                         <option value="zerados" {% if status == "zerados" %}selected{% endif %}>Zerados</option>
+                        <option value="vencendo" {% if status == "vencendo" %}selected{% endif %}>Vencendo em 30 dias</option>
+                        <option value="vencidos" {% if status == "vencidos" %}selected{% endif %}>Vencidos</option>
                         <option value="inativos" {% if status == "inativos" %}selected{% endif %}>Inativos</option>
                     </select>
 
@@ -194,6 +206,7 @@
                                 <th>Metodo</th>
                                 <th>Principio ativo</th>
                                 <th>Estoque</th>
+                                <th>Lote / validade</th>
                                 <th>Minimo</th>
                                 <th>Localizacao</th>
                                 <th>Status</th>
@@ -213,6 +226,10 @@
                                             data-medicamento-nome="{{ medicamento.descricao_completa }}"
                                             data-estoque-atual="{{ medicamento.estoque_atual|floatformat:0 }}"
                                             data-unidade="{{ medicamento.unidade_medida }}"
+                                            data-lote-atual="{{ medicamento.lote_atual }}"
+                                            data-validade-texto="{% if medicamento.validade %}{{ medicamento.validade|date:'d/m/Y' }}{% endif %}"
+                                            data-validade-iso="{% if medicamento.validade %}{{ medicamento.validade|date:'Y-m-d' }}{% endif %}"
+                                            data-validade-status="{{ medicamento.texto_dias_validade }}"
                                             aria-label="Selecionar {{ medicamento.descricao_completa }}">
                                     </td>
                                     <td>
@@ -244,6 +261,25 @@
                                     <td>
                                         <span class="estoque-numero">{{ medicamento.estoque_atual|floatformat:0 }}</span>
                                         <span class="estoque-unidade">{{ medicamento.unidade_medida }}</span>
+                                    </td>
+
+                                    <td>
+                                        <div class="lote-valor">
+                                            Lote: {{ medicamento.lote_atual|default:"-" }}
+                                        </div>
+
+                                        {% if medicamento.validade %}
+                                            <div class="validade-data">
+                                                Validade: {{ medicamento.validade|date:"d/m/Y" }}
+                                            </div>
+                                            <span class="validade-pill {{ medicamento.classe_validade }}">
+                                                {{ medicamento.texto_dias_validade }}
+                                            </span>
+                                        {% else %}
+                                            <span class="validade-pill sem-validade">
+                                                Sem validade
+                                            </span>
+                                        {% endif %}
                                     </td>
 
                                     <td>{{ medicamento.estoque_minimo|floatformat:0 }}</td>
@@ -300,7 +336,7 @@
                                 </tr>
                             {% empty %}
                                 <tr>
-                                    <td colspan="10" class="text-center text-muted fw-bold py-4">
+                                    <td colspan="11" class="text-center text-muted fw-bold py-4">
                                         Nenhum medicamento encontrado para os filtros informados.
                                     </td>
                                 </tr>
@@ -369,52 +405,112 @@
                     <span class="result-pill">20 mais recentes</span>
                 </div>
 
-                <div class="table-responsive">
-                    <table class="table table-bordered table-hover align-middle movimentacoes-table">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Data</th>
-                                <th>Tipo</th>
-                                <th>Medicamento</th>
-                                <th>Quantidade</th>
-                                <th>Saldo</th>
-                                <th>Profissional</th>
-                            </tr>
-                        </thead>
+                <div class="mov-print-panel">
+                    <form
+                        method="get"
+                        action="{% url 'farmacia_imprimir_movimentacoes' %}"
+                        target="_blank"
+                        class="mov-print-form">
+                        <input type="hidden" name="tipo" value="dia">
 
-                        <tbody>
-                            {% for mov in ultimas_movimentacoes %}
-                                <tr>
-                                    <td>{{ mov.criado_em|date:"d/m/Y H:i" }}</td>
-                                    <td>
-                                        {% if mov.tipo == "ENTRADA" %}
-                                            <span class="mov-tipo entrada">Entrada</span>
-                                        {% elif mov.tipo == "SAIDA" %}
-                                            <span class="mov-tipo saida">Saida</span>
-                                        {% else %}
-                                            <span class="mov-tipo ajuste">Ajuste</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>{{ mov.medicamento.descricao_completa }}</td>
-                                    <td>{{ mov.quantidade|floatformat:0 }}</td>
-                                    <td>{{ mov.saldo_anterior|floatformat:0 }} -> {{ mov.saldo_atual|floatformat:0 }}</td>
-                                    <td>
-                                        {{ mov.profissional_nome }}
+                        <label for="id_imprimir_mov_dia">Imprimir por dia</label>
+                        <input
+                            type="date"
+                            class="form-control"
+                            id="id_imprimir_mov_dia"
+                            name="data"
+                            value="{{ data_impressao_padrao }}">
+
+                        <button type="submit" class="btn btn-primary fw-bold">
+                            Imprimir dia
+                        </button>
+                    </form>
+
+                    <form
+                        method="get"
+                        action="{% url 'farmacia_imprimir_movimentacoes' %}"
+                        target="_blank"
+                        class="mov-print-form">
+                        <input type="hidden" name="tipo" value="mes">
+
+                        <label for="id_imprimir_mov_mes">Imprimir por mes</label>
+                        <input
+                            type="month"
+                            class="form-control"
+                            id="id_imprimir_mov_mes"
+                            name="mes"
+                            value="{{ mes_impressao_padrao }}">
+
+                        <button type="submit" class="btn btn-outline-primary fw-bold">
+                            Imprimir mes
+                        </button>
+                    </form>
+                </div>
+
+                <div class="movimentacoes-lista">
+                    {% for mov in ultimas_movimentacoes %}
+                        <article class="mov-card {% if mov.tipo == "ENTRADA" %}entrada{% elif mov.tipo == "SAIDA" %}saida{% else %}ajuste{% endif %}">
+                            <div class="mov-card-top">
+                                <div class="mov-identidade">
+                                    {% if mov.tipo == "ENTRADA" %}
+                                        <span class="mov-tipo entrada">Entrada</span>
+                                    {% elif mov.tipo == "SAIDA" %}
+                                        <span class="mov-tipo saida">Saida</span>
+                                    {% else %}
+                                        <span class="mov-tipo ajuste">Ajuste</span>
+                                    {% endif %}
+
+                                    <span class="mov-data">{{ mov.criado_em|date:"d/m/Y H:i" }}</span>
+                                </div>
+
+                                <div class="mov-saldo-resumo">
+                                    <span>Saldo</span>
+                                    <strong>{{ mov.saldo_anterior|floatformat:0 }} -> {{ mov.saldo_atual|floatformat:0 }}</strong>
+                                </div>
+                            </div>
+
+                            <div class="mov-card-body">
+                                <div class="mov-medicamento">
+                                    {{ mov.medicamento.descricao_completa }}
+                                </div>
+
+                                <div class="mov-info-grid">
+                                    <div class="mov-info">
+                                        <span>Quantidade</span>
+                                        <strong>{{ mov.quantidade|floatformat:0 }}</strong>
+                                    </div>
+
+                                    <div class="mov-info">
+                                        <span>Lote</span>
+                                        <strong>{{ mov.lote|default:"-" }}</strong>
+                                    </div>
+
+                                    <div class="mov-info">
+                                        <span>Validade</span>
+                                        <strong>
+                                            {% if mov.validade %}
+                                                {{ mov.validade|date:"d/m/Y" }}
+                                            {% else %}
+                                                -
+                                            {% endif %}
+                                        </strong>
+                                    </div>
+
+                                    <div class="mov-info mov-profissional">
+                                        <span>Profissional</span>
+                                        <strong>{{ mov.profissional_nome }}</strong>
                                         {% if mov.profissional_registro %}
-                                            <br>
-                                            <small class="text-muted">{{ mov.profissional_registro }}</small>
+                                            <small>{{ mov.profissional_registro }}</small>
                                         {% endif %}
-                                    </td>
-                                </tr>
-                            {% empty %}
-                                <tr>
-                                    <td colspan="6" class="text-center text-muted fw-bold py-4">
-                                        Nenhuma movimentacao registrada.
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </article>
+                    {% empty %}
+                        <div class="mov-empty">
+                            Nenhuma movimentacao registrada.
+                        </div>
+                    {% endfor %}
                 </div>
             </div>
         </div>
@@ -436,7 +532,7 @@
                         Movimentacao em lote
                     </h5>
                     <small class="text-muted" id="subtitulo-modal-movimentacao-lote">
-                        Informe a quantidade de cada item selecionado.
+                        Informe quantidade, lote e validade de cada item selecionado.
                     </small>
                 </div>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
@@ -455,14 +551,10 @@
 
                     <div class="bulk-fields-panel">
                         <div class="row g-3">
-                            <div class="col-md-6">
-                                <label for="id_lote_movimentacao" class="form-label">Lote</label>
-                                <input type="text" class="form-control" id="id_lote_movimentacao" name="lote" placeholder="Lote, se houver">
-                            </div>
-
-                            <div class="col-md-6">
-                                <label for="id_validade_movimentacao" class="form-label">Validade</label>
-                                <input type="date" class="form-control" id="id_validade_movimentacao" name="validade">
+                            <div class="col-12">
+                                <div class="bulk-fields-title">
+                                    Dados gerais da movimentacao
+                                </div>
                             </div>
 
                             <div class="col-12">
@@ -504,7 +596,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-<script src="{% static 'farmacia/js/estoque.js' %}?v=20260712-1"></script>
+<script src="{% static 'farmacia/js/estoque.js' %}?v=20260712-5"></script>
 
 </body>
 </html>

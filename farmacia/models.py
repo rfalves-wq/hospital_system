@@ -1,3 +1,5 @@
+from datetime import date
+
 from django.db import models
 
 from medico.models import ConsultaMedica
@@ -82,6 +84,8 @@ class MedicamentoEstoque(models.Model):
     )
     estoque_atual = models.PositiveIntegerField(default=0)
     estoque_minimo = models.PositiveIntegerField(default=0)
+    lote_atual = models.CharField(max_length=120, blank=True, default="")
+    validade = models.DateField(blank=True, null=True)
     localizacao = models.CharField(
         max_length=120,
         blank=True,
@@ -119,6 +123,46 @@ class MedicamentoEstoque(models.Model):
     @property
     def disponivel_para_prescricao(self):
         return self.ativo and self.estoque_atual > 0
+
+    @property
+    def dias_para_vencer(self):
+        if not self.validade:
+            return None
+
+        return (self.validade - date.today()).days
+
+    @property
+    def classe_validade(self):
+        dias = self.dias_para_vencer
+
+        if dias is None:
+            return "sem-validade"
+
+        if dias < 0:
+            return "vencido"
+
+        if dias <= 30:
+            return "vence-logo"
+
+        return "em-dia"
+
+    @property
+    def texto_dias_validade(self):
+        dias = self.dias_para_vencer
+
+        if dias is None:
+            return "Sem validade"
+
+        if dias < 0:
+            return f"Vencido ha {abs(dias)} dia(s)"
+
+        if dias == 0:
+            return "Vence hoje"
+
+        if dias == 1:
+            return "Falta 1 dia"
+
+        return f"Faltam {dias} dias"
 
 
 class MovimentacaoEstoque(models.Model):
