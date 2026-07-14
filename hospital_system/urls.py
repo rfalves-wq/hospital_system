@@ -29,4 +29,6 @@ urlpatterns = [
     path("internacao/", include("internacao.urls")),
 
     path("prontuario/", include("prontuario.urls")),
+
+    path("tecnologia/", include("tecnologia.urls")),
 ]

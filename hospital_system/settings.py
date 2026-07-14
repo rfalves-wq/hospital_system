@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     "farmacia",
     "internacao",
     "prontuario",
+    "tecnologia",
     
 ]
 

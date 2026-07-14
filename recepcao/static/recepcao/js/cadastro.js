@@ -275,44 +275,112 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    async function carregarNaturalidadesPorUf(ufInput, naturalidadeSelect) {
-        if (!ufInput || !naturalidadeSelect) {
+    function obterListaNaturalidades(naturalidadeInput) {
+        const listaId = naturalidadeInput.getAttribute("list");
+
+        if (!listaId) {
+            return null;
+        }
+
+        return document.getElementById(listaId);
+    }
+
+    function limparSugestoesNaturalidade(naturalidadeInput, placeholder) {
+        const lista = obterListaNaturalidades(naturalidadeInput);
+
+        if (lista) {
+            lista.innerHTML = "";
+        }
+
+        naturalidadeInput.placeholder = placeholder;
+    }
+
+    function preencherSugestoesNaturalidade(naturalidadeInput, cidades) {
+        const lista = obterListaNaturalidades(naturalidadeInput);
+
+        if (!lista) {
+            return;
+        }
+
+        lista.innerHTML = "";
+
+        cidades.forEach(function (cidade) {
+            if (!cidade.nome) {
+                return;
+            }
+
+            const option = document.createElement("option");
+            option.value = cidade.nome;
+            lista.appendChild(option);
+        });
+    }
+
+    async function buscarCidadesPorUf(uf) {
+        const urls = [
+            `/recepcao/api/cidades/${encodeURIComponent(uf)}/`,
+            `https://servicodados.ibge.gov.br/api/v1/localidades/estados/${encodeURIComponent(uf)}/municipios`
+        ];
+
+        for (const url of urls) {
+            try {
+                const resposta = await fetch(
+                    url,
+                    {
+                        headers: {
+                            "Accept": "application/json"
+                        }
+                    }
+                );
+
+                if (!resposta.ok) {
+                    continue;
+                }
+
+                const cidades = await resposta.json();
+
+                if (Array.isArray(cidades)) {
+                    return cidades;
+                }
+            } catch (erro) {
+                continue;
+            }
+        }
+
+        throw new Error("Falha ao carregar cidades.");
+    }
+
+    async function carregarNaturalidadesPorUf(ufInput, naturalidadeInput) {
+        if (!ufInput || !naturalidadeInput) {
             return;
         }
 
         const uf = ufInput.value;
-        const valorAtual = naturalidadeSelect.dataset.valorAtual || "";
+        const valorAtual = naturalidadeInput.dataset.valorAtual || naturalidadeInput.value || "";
 
-        naturalidadeSelect.innerHTML = '<option value="">Selecione a UF primeiro</option>';
+        limparSugestoesNaturalidade(
+            naturalidadeInput,
+            "Selecione a UF ou digite a cidade"
+        );
 
         if (!uf) {
             return;
         }
 
-        naturalidadeSelect.innerHTML = '<option value="">Carregando cidades...</option>';
+        naturalidadeInput.placeholder = "Carregando cidades...";
 
         try {
-            const resposta = await fetch(
-                `https://servicodados.ibge.gov.br/api/v1/localidades/estados/${uf}/municipios`
-            );
+            const cidades = await buscarCidadesPorUf(uf);
+            preencherSugestoesNaturalidade(naturalidadeInput, cidades);
+            naturalidadeInput.placeholder = "Digite ou selecione a naturalidade";
 
-            const cidades = await resposta.json();
-
-            naturalidadeSelect.innerHTML = '<option value="">Selecione a naturalidade</option>';
-
-            cidades.forEach(function (cidade) {
-                const option = document.createElement("option");
-                option.value = cidade.nome;
-                option.textContent = cidade.nome;
-
-                if (cidade.nome === valorAtual) {
-                    option.selected = true;
-                }
-
-                naturalidadeSelect.appendChild(option);
-            });
+            if (valorAtual && !naturalidadeInput.value) {
+                naturalidadeInput.value = valorAtual;
+            }
         } catch (erro) {
-            naturalidadeSelect.innerHTML = '<option value="">Erro ao carregar cidades</option>';
+            limparSugestoesNaturalidade(
+                naturalidadeInput,
+                "Nao foi possivel carregar. Digite a cidade"
+            );
         }
     }
 
@@ -345,7 +413,10 @@ document.addEventListener("DOMContentLoaded", function () {
             naturalidadeInput.required = false;
 
             ufNascimentoInput.value = "";
-            naturalidadeInput.innerHTML = '<option value="">Selecione a UF primeiro</option>';
+            limparSugestoesNaturalidade(
+                naturalidadeInput,
+                "Selecione a UF ou digite a cidade"
+            );
             naturalidadeInput.value = "";
         }
     }
@@ -467,6 +538,7 @@ document.addEventListener("DOMContentLoaded", function () {
         ufNascimentoInput.addEventListener("change", function () {
             if (naturalidadeInput) {
                 naturalidadeInput.dataset.valorAtual = "";
+                naturalidadeInput.value = "";
             }
 
             carregarNaturalidadesPorUf(ufNascimentoInput, naturalidadeInput);
@@ -479,6 +551,7 @@ document.addEventListener("DOMContentLoaded", function () {
         ufNascimentoResponsavelInput.addEventListener("change", function () {
             if (naturalidadeResponsavelInput) {
                 naturalidadeResponsavelInput.dataset.valorAtual = "";
+                naturalidadeResponsavelInput.value = "";
             }
 
             carregarNaturalidadesPorUf(

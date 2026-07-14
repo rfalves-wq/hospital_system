@@ -578,10 +578,15 @@
             text-align: center;
         }
 
+        .bulk-modal-dialog {
+            max-width: min(1500px, calc(100vw - 32px));
+            width: min(1500px, calc(100vw - 32px));
+        }
+
         .bulk-modal-grid {
             display: grid;
             gap: 16px;
-            grid-template-columns: minmax(560px, 1.25fr) minmax(320px, .85fr);
+            grid-template-columns: minmax(0, 1.35fr) minmax(360px, .85fr);
         }
 
         .bulk-items-panel,
@@ -629,8 +634,8 @@
             border: 1px solid #dce5ef;
             border-radius: 10px;
             display: grid;
-            gap: 10px;
-            grid-template-columns: minmax(170px, .9fr) minmax(320px, 1.25fr);
+            gap: 12px;
+            grid-template-columns: minmax(220px, .8fr) minmax(420px, 1.2fr);
             padding: 10px;
         }
 
@@ -655,7 +660,7 @@
         .bulk-item-fields {
             display: grid;
             gap: 8px;
-            grid-template-columns: minmax(95px, .55fr) minmax(120px, 1fr) minmax(135px, .9fr);
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
         }
 
         .bulk-item-field {
@@ -675,6 +680,7 @@
         .bulk-item-field input,
         .bulk-item-row input {
             font-weight: 900;
+            min-width: 0;
         }
 
         .bulk-fields-title {
@@ -702,6 +708,10 @@
 
             .filter-grid {
                 grid-template-columns: minmax(240px, 1fr) 1fr 1fr;
+            }
+
+            .bulk-item-row {
+                grid-template-columns: 1fr;
             }
         }
 

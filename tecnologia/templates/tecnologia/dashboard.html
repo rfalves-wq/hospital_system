@@ -1,0 +1,397 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'tecnologia/css/dashboard.css' %}?v=20260714-14">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid tecnologia-page my-3">
+    <div class="page-card">
+        <div class="page-header">
+            <div>
+                <h3>Tecnologia da Informa&ccedil;&atilde;o</h3>
+                <small>Monitoramento dos equipamentos de rede e esta&ccedil;&otilde;es cadastradas</small>
+            </div>
+
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="acao" value="verificar_todos">
+                <button type="submit" class="btn btn-light fw-bold">
+                    Verificar agora
+                </button>
+            </form>
+        </div>
+
+        <div class="page-body">
+            {% if messages %}
+                <div class="message-list">
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags|default:'info' }} mb-2">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <div class="metric-grid">
+                <div class="metric-card">
+                    <span>Total</span>
+                    <strong data-metric="total">{{ total_equipamentos }}</strong>
+                    <small>equipamento(s)</small>
+                </div>
+
+                <div class="metric-card online">
+                    <span>Online</span>
+                    <strong data-metric="online">{{ total_online }}</strong>
+                    <small>respondendo ao ping</small>
+                </div>
+
+                <div class="metric-card offline">
+                    <span>Offline</span>
+                    <strong data-metric="offline">{{ total_offline }}</strong>
+                    <small>sem resposta</small>
+                </div>
+
+                <div class="metric-card unknown">
+                    <span>N&atilde;o verificados</span>
+                    <strong data-metric="desconhecidos">{{ total_desconhecidos }}</strong>
+                    <small>aguardando leitura</small>
+                </div>
+            </div>
+
+            <div class="content-grid">
+                <section class="equipment-panel">
+                    <div class="section-head">
+                        <div>
+                            <h5>Equipamentos monitorados</h5>
+                            <small>Lista dos dispositivos cadastrados por tipo de equipamento</small>
+                        </div>
+                    </div>
+
+                    <nav class="equipment-tabs" aria-label="Filtrar equipamentos por tipo">
+                        {% for aba in abas_equipamentos %}
+                            <a href="?aba={{ aba.chave }}" class="equipment-tab {% if aba.ativa %}active{% endif %}">
+                                {{ aba.label }}
+                                <span>{{ aba.total }}</span>
+                            </a>
+                        {% endfor %}
+                    </nav>
+
+                    <div class="equipment-list">
+                        {% for equipamento in equipamentos %}
+                            <article class="equipment-card {{ equipamento.ultimo_status|lower }}" data-equipment-id="{{ equipamento.id }}">
+                                <div class="equipment-main">
+                                    <div class="equipment-visual type-{{ equipamento.tipo|lower }}">
+                                        <div class="equipment-icon">
+                                            {% include "tecnologia/partials/equipment_icon.html" with tipo=equipamento.tipo only %}
+                                        </div>
+                                        <div class="status-dot {{ equipamento.ultimo_status|lower }}"></div>
+                                    </div>
+
+                                    <div>
+                                        <h6 data-role="equipment-name">{{ equipamento.nome }}</h6>
+                                        <div class="equipment-meta">
+                                            {{ equipamento.get_tipo_display }}
+                                            {% if equipamento.setor %}
+                                                &bull; {{ equipamento.setor }}
+                                            {% endif %}
+                                        </div>
+                                        <div class="equipment-address">
+                                            <span>IP/host: {{ equipamento.endereco_rede }}</span>
+                                            <span data-role="mac-line" {% if not equipamento.mac_address %}hidden{% endif %}>MAC: <span data-role="mac-value">{{ equipamento.mac_address }}</span></span>
+                                            {% if equipamento.origem_ip != "DESCONHECIDO" %}
+                                                <span>Origem IP: {{ equipamento.get_origem_ip_display }}</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="equipment-status">
+                                    <span class="status-label {{ equipamento.ultimo_status|lower }}" data-role="status-label">
+                                        {{ equipamento.get_ultimo_status_display }}
+                                    </span>
+
+                                    <small data-role="last-check">
+                                        {% if equipamento.ultima_verificacao %}
+                                            {{ equipamento.ultima_verificacao|date:"d/m/Y H:i" }}
+                                            {% if equipamento.ultimo_tempo_ms %}
+                                                &bull; {{ equipamento.ultimo_tempo_ms }} ms
+                                            {% endif %}
+                                        {% else %}
+                                            Ainda nao verificado
+                                        {% endif %}
+                                    </small>
+
+                                    <div class="equipment-actions">
+                                        <form method="post">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="acao" value="verificar_um">
+                                            <input type="hidden" name="aba" value="{{ aba_equipamentos }}">
+                                            <input type="hidden" name="equipamento_id" value="{{ equipamento.id }}">
+                                            <button type="submit" class="btn btn-sm btn-outline-primary">
+                                                Verificar
+                                            </button>
+                                        </form>
+
+                                        <a href="?editar={{ equipamento.id }}&aba={{ aba_equipamentos }}" class="btn btn-sm btn-outline-secondary">
+                                            Editar
+                                        </a>
+
+                                        <form method="post" onsubmit="return confirm('Excluir este equipamento do monitoramento?');">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="acao" value="excluir">
+                                            <input type="hidden" name="aba" value="{{ aba_equipamentos }}">
+                                            <input type="hidden" name="equipamento_id" value="{{ equipamento.id }}">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                Excluir
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </article>
+                        {% empty %}
+                            <div class="empty-state">
+                                Nenhum equipamento nesta aba.
+                            </div>
+                        {% endfor %}
+                    </div>
+                </section>
+
+                <div class="side-stack">
+                    <aside class="scan-panel">
+                        <div class="section-head">
+                            <div>
+                                <h5>Rastrear rede</h5>
+                                <small>Informe uma faixa CIDR para descobrir IPs ativos</small>
+                            </div>
+                        </div>
+
+                        <form method="post" class="row g-2">
+                            {% csrf_token %}
+                            <input type="hidden" name="acao" value="rastrear_rede">
+
+                            <div class="col-12">
+                                <label for="{{ scan_form.rede.id_for_label }}" class="form-label">Faixa de rede</label>
+                                {{ scan_form.rede }}
+                                <div class="form-hint">
+                                    Pode usar uma faixa, como 192.168.3.0/24, ou um IP da rede, como 192.168.3.25.
+                                </div>
+                                {{ scan_form.rede.errors }}
+                            </div>
+
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-outline-primary fw-bold w-100">
+                                    Rastrear rede
+                                </button>
+                            </div>
+                        </form>
+
+                        {% if redes_sugeridas %}
+                            <div class="network-suggestions">
+                                <span>Redes detectadas neste servidor</span>
+
+                                {% for rede_sugerida in redes_sugeridas %}
+                                    <form method="post">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="acao" value="rastrear_rede">
+                                        <input type="hidden" name="rede" value="{{ rede_sugerida }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-secondary">
+                                            {{ rede_sugerida }}
+                                        </button>
+                                    </form>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+
+                        {% if resumo_rastreio %}
+                            <div class="scan-summary">
+                                <strong>{{ resumo_rastreio.online }}</strong>
+                                equipamento(s) online encontrados em {{ resumo_rastreio.rede }}
+                                {% if resumo_rastreio.mantido %}
+                                    <small>Lista mantida sem novo rastreio.</small>
+                                {% endif %}
+                                {% if resumo_rastreio.novos %}
+                                    <small>{{ resumo_rastreio.novos }} ainda nao cadastrado(s).</small>
+                                {% endif %}
+                            </div>
+
+                            <div class="scan-toolbar">
+                                {% if resumo_rastreio.novos %}
+                                    <form method="post">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="acao" value="cadastrar_todos_descobertos">
+                                        <button type="submit" class="btn btn-sm btn-success">
+                                            Cadastrar novos encontrados
+                                        </button>
+                                    </form>
+                                {% endif %}
+
+                                <form method="post">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="acao" value="limpar_rastreio">
+                                    <button type="submit" class="btn btn-sm btn-outline-secondary">
+                                        Limpar lista
+                                    </button>
+                                </form>
+                            </div>
+
+                            <div class="scan-results">
+                                {% for item in resultados_rastreio %}
+                                    <div class="scan-result online">
+                                        <div>
+                                            {% if item.nome_host %}
+                                                <strong>{{ item.nome_host }}</strong>
+                                            {% else %}
+                                                <strong>{{ item.ip }}</strong>
+                                            {% endif %}
+                                            <small>
+                                                IP {{ item.ip }} &bull; {{ item.tempo_ms }} ms
+                                                {% if item.mac %}
+                                                    &bull; MAC {{ item.mac }}
+                                                {% else %}
+                                                    &bull; MAC nao identificado
+                                                {% endif %}
+                                            </small>
+                                            <small>Tipo sugerido: {{ item.tipo_sugerido_label }}</small>
+                                        </div>
+
+                                        {% if item.cadastrado %}
+                                            <span class="scan-badge">Cadastrado</span>
+                                        {% else %}
+                                            <form method="post">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="acao" value="cadastrar_descoberto">
+                                                <input type="hidden" name="ip" value="{{ item.ip }}">
+                                                <input type="hidden" name="mac" value="{{ item.mac }}">
+                                                <input type="hidden" name="nome_host" value="{{ item.nome_host }}">
+                                                <input type="hidden" name="tipo_sugerido" value="{{ item.tipo_sugerido }}">
+                                                <button type="submit" class="btn btn-sm btn-success">
+                                                    Cadastrar
+                                                </button>
+                                            </form>
+                                        {% endif %}
+                                    </div>
+                                {% empty %}
+                                    <div class="empty-state">
+                                        Nenhum equipamento respondeu nesta faixa.
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </aside>
+
+                    <aside class="register-panel">
+                        <div class="section-head">
+                            <div>
+                                {% if equipamento_edicao %}
+                                    <h5>Editar equipamento</h5>
+                                    <small>Corrija nome, setor, IP, host ou MAC cadastrado</small>
+                                {% else %}
+                                    <h5>Cadastrar equipamento</h5>
+                                    <small>Informe o IP ou nome da maquina na rede</small>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <form method="post" class="row g-3">
+                            {% csrf_token %}
+                            <input type="hidden" name="aba" value="{{ aba_equipamentos }}">
+                            {% if equipamento_edicao %}
+                                <input type="hidden" name="acao" value="atualizar">
+                                <input type="hidden" name="equipamento_id" value="{{ equipamento_edicao.id }}">
+                            {% else %}
+                                <input type="hidden" name="acao" value="cadastrar">
+                            {% endif %}
+
+                            <div class="col-12">
+                                <label for="{{ form.nome.id_for_label }}" class="form-label">Nome</label>
+                                {{ form.nome }}
+                                {{ form.nome.errors }}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="{{ form.tipo.id_for_label }}" class="form-label">Tipo</label>
+                                {{ form.tipo }}
+                                {{ form.tipo.errors }}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="{{ form.setor.id_for_label }}" class="form-label">Setor</label>
+                                {{ form.setor }}
+                                {{ form.setor.errors }}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="{{ form.endereco_rede.id_for_label }}" class="form-label">IP ou nome da maquina</label>
+                                {{ form.endereco_rede }}
+                                {{ form.endereco_rede.errors }}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="{{ form.origem_ip.id_for_label }}" class="form-label">Origem do IP</label>
+                                {{ form.origem_ip }}
+                                <div class="form-hint">
+                                    Use quando souber se o IP vem do DHCP ou foi configurado fixo.
+                                </div>
+                                {{ form.origem_ip.errors }}
+                            </div>
+
+                            <div class="col-12">
+                                <label for="{{ form.mac_address.id_for_label }}" class="form-label">MAC</label>
+                                {{ form.mac_address }}
+                                <div class="form-hint">
+                                    Preenchido automaticamente quando o servidor conseguir identificar.
+                                </div>
+                                {{ form.mac_address.errors }}
+                            </div>
+
+                            <div class="col-12">
+                                <label for="{{ form.observacao.id_for_label }}" class="form-label">Observa&ccedil;&atilde;o</label>
+                                {{ form.observacao }}
+                                {{ form.observacao.errors }}
+                            </div>
+
+                            <div class="col-12">
+                                <div class="form-check">
+                                    {{ form.ativo }}
+                                    <label for="{{ form.ativo.id_for_label }}" class="form-check-label">
+                                        Monitorar equipamento
+                                    </label>
+                                    {{ form.ativo.errors }}
+                                </div>
+                            </div>
+
+                            <div class="col-12 action-stack">
+                                <button type="submit" class="btn btn-primary fw-bold w-100">
+                                    {% if equipamento_edicao %}
+                                        Salvar alteracoes
+                                    {% else %}
+                                        Salvar equipamento
+                                    {% endif %}
+                                </button>
+
+                                {% if equipamento_edicao %}
+                                    <a href="{% url 'tecnologia_dashboard' %}" class="btn btn-outline-secondary fw-bold w-100">
+                                        Cancelar edicao
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </form>
+                    </aside>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    window.tecnologiaAutoStatus = {
+        url: "{% url 'tecnologia_status' %}",
+        intervalMs: 30000
+    };
+</script>
+<script src="{% static 'tecnologia/js/dashboard.js' %}?v=20260714-1"></script>
+{% endblock %}

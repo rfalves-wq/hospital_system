@@ -280,6 +280,10 @@ body {
     background: #0dcaf0;
 }
 
+.tecnologia::before {
+    background: #2563eb;
+}
+
 .emergencia::before {
     background: #dc3545;
 }

@@ -506,7 +506,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 /* =========================
-   NATURALIDADE (IBGE)
+   NATURALIDADE
 ========================= */
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -515,21 +515,51 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (!uf || !cidade) return;
 
-    uf.addEventListener('change', function () {
+    const buscarCidades = async (valorUf) => {
+        const urls = [
+            `/recepcao/api/cidades/${encodeURIComponent(valorUf)}/`,
+            `https://servicodados.ibge.gov.br/api/v1/localidades/estados/${encodeURIComponent(valorUf)}/municipios`
+        ];
 
-        cidade.innerHTML = '<option>Carregando...</option>';
+        for (const url of urls) {
+            try {
+                const resposta = await fetch(
+                    url,
+                    {
+                        headers: {
+                            "Accept": "application/json"
+                        }
+                    }
+                );
 
-        fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${this.value}/municipios`)
-            .then(r => r.json())
-            .then(data => {
+                if (!resposta.ok) continue;
 
-                cidade.innerHTML = '<option value="">Selecione</option>';
+                const data = await resposta.json();
 
-                data.forEach(c => {
-                    cidade.innerHTML += `<option value="${c.nome}">${c.nome}</option>`;
-                });
+                if (Array.isArray(data)) return data;
+            } catch (erro) {
+                continue;
+            }
+        }
 
+        throw new Error("Falha ao carregar cidades.");
+    };
+
+    uf.addEventListener('change', async function () {
+
+        cidade.innerHTML = '<option value="">Carregando...</option>';
+
+        try {
+            const data = await buscarCidades(this.value);
+
+            cidade.innerHTML = '<option value="">Selecione</option>';
+
+            data.forEach(c => {
+                cidade.innerHTML += `<option value="${c.nome}">${c.nome}</option>`;
             });
+        } catch (erro) {
+            cidade.innerHTML = '<option value="">Digite a cidade manualmente</option>';
+        }
 
     });
 });

@@ -238,13 +238,16 @@
                     <div class="col-md-6 mb-3" id="campo-naturalidade">
                         <label for="id_naturalidade">Naturalidade</label>
 
-                        <select
+                        <input
+                            type="text"
                             name="naturalidade"
                             id="id_naturalidade"
                             class="form-control"
+                            list="lista_naturalidades"
+                            value="{{ form.naturalidade.value|default_if_none:'' }}"
+                            placeholder="Selecione a UF ou digite a cidade"
                             data-valor-atual="{{ form.naturalidade.value|default_if_none:'' }}">
-                            <option value="">Selecione a UF primeiro</option>
-                        </select>
+                        <datalist id="lista_naturalidades"></datalist>
 
                         {{ form.naturalidade.errors }}
                     </div>
@@ -333,13 +336,16 @@
 
                     <div class="col-md-5 mb-3">
                         <label for="id_naturalidade_responsavel">Naturalidade</label>
-                        <select
+                        <input
+                            type="text"
                             name="naturalidade_responsavel"
                             id="id_naturalidade_responsavel"
                             class="form-control"
+                            list="lista_naturalidades_responsavel"
+                            value="{{ form.naturalidade_responsavel.value|default_if_none:'' }}"
+                            placeholder="Selecione a UF ou digite a cidade"
                             data-valor-atual="{{ form.naturalidade_responsavel.value|default_if_none:'' }}">
-                            <option value="">Selecione a UF primeiro</option>
-                        </select>
+                        <datalist id="lista_naturalidades_responsavel"></datalist>
                         {{ form.naturalidade_responsavel.errors }}
                     </div>
                 </div>
@@ -436,7 +442,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="{% static 'recepcao/js/cadastro.js' %}?v=20260710-3"></script>
+<script src="{% static 'recepcao/js/cadastro.js' %}?v=20260714-3"></script>
 </body>
 
 </html>

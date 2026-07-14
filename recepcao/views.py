@@ -1,6 +1,11 @@
+import json
 from datetime import date
+from urllib import error as urlerror
+from urllib import request as urlrequest
 
 from django.contrib import messages
+from django.core.cache import cache
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
 from acolhimento.models import Acolhimento
@@ -8,6 +13,53 @@ from acolhimento.utils import anexar_passagens_do_dia, passagens_do_paciente_no_
 
 from .forms import RecepcaoForm
 from .models import Recepcao
+
+
+CIDADES_CACHE_TIMEOUT = 60 * 60 * 24
+IBGE_MUNICIPIOS_URL = (
+    "https://servicodados.ibge.gov.br/api/v1/localidades/estados/{uf}/municipios"
+)
+
+
+def cidades_por_uf(request, uf):
+    uf_normalizada = (uf or "").strip().upper()
+    ufs_validas = {codigo for codigo, _nome in Recepcao.UF_CHOICES}
+
+    if uf_normalizada not in ufs_validas:
+        return JsonResponse({"erro": "UF invalida."}, status=400)
+
+    cache_key = f"recepcao:cidades:{uf_normalizada}"
+    cidades = cache.get(cache_key)
+
+    if cidades is not None:
+        return JsonResponse(cidades, safe=False)
+
+    try:
+        with urlrequest.urlopen(
+            IBGE_MUNICIPIOS_URL.format(uf=uf_normalizada),
+            timeout=8
+        ) as resposta:
+            if resposta.status != 200:
+                return JsonResponse(
+                    {"erro": "Nao foi possivel consultar as cidades."}
+                )
+
+            dados = json.loads(resposta.read().decode("utf-8"))
+    except (TimeoutError, OSError, urlerror.URLError, json.JSONDecodeError):
+        return JsonResponse(
+            {"erro": "Nao foi possivel consultar as cidades."}
+        )
+
+    cidades = [
+        {"nome": cidade["nome"]}
+        for cidade in dados
+        if isinstance(cidade, dict) and cidade.get("nome")
+    ]
+    cidades.sort(key=lambda cidade: cidade["nome"])
+
+    cache.set(cache_key, cidades, CIDADES_CACHE_TIMEOUT)
+
+    return JsonResponse(cidades, safe=False)
 
 
 def recepcao_dashboard(request):

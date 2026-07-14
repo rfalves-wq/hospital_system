@@ -11,6 +11,12 @@ urlpatterns = [
     ),
 
     path(
+        "api/cidades/<str:uf>/",
+        views.cidades_por_uf,
+        name="recepcao_cidades_por_uf"
+    ),
+
+    path(
         "cadastrar/<int:acolhimento_id>/",
         views.cadastrar_paciente,
         name="cadastrar_paciente"
