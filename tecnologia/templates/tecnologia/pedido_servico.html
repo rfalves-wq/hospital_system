@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'tecnologia/css/dashboard.css' %}?v=20260714-17">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid tecnologia-page service-request-page my-3">
+    <div class="page-card">
+        <div class="page-header service-header">
+            <div>
+                <h3>Solicitar ajuda ao TI</h3>
+                <small>Chamado para conserto, suporte ou verifica&ccedil;&atilde;o de dispositivo</small>
+            </div>
+
+            <div class="page-header-actions">
+                <a href="{% url 'dashboard' %}" class="btn btn-outline-light fw-bold">
+                    In&iacute;cio
+                </a>
+            </div>
+        </div>
+
+        <div class="page-body service-desk-body">
+            {% if messages %}
+                <div class="message-list">
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags|default:'info' }} mb-2">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <section class="support-request-card">
+                <div class="support-request-head">
+                    <div>
+                        <h5>Novo chamado</h5>
+                        <small>Informe o dispositivo, setor e contato para retorno</small>
+                    </div>
+                    <span>TI</span>
+                </div>
+
+                <form method="post" class="support-form">
+                    {% csrf_token %}
+
+                    <div class="support-form-row span-2">
+                        <label for="{{ pedido_form.titulo.id_for_label }}" class="form-label">Dispositivo ou problema</label>
+                        {{ pedido_form.titulo }}
+                        {{ pedido_form.titulo.errors }}
+                    </div>
+
+                    <div class="support-form-row">
+                        <label for="{{ pedido_form.setor_solicitante.id_for_label }}" class="form-label">Setor</label>
+                        {{ pedido_form.setor_solicitante }}
+                        {{ pedido_form.setor_solicitante.errors }}
+                    </div>
+
+                    <div class="support-form-row">
+                        <label for="{{ pedido_form.contato.id_for_label }}" class="form-label">Contato / ramal</label>
+                        {{ pedido_form.contato }}
+                        {{ pedido_form.contato.errors }}
+                    </div>
+
+                    <div class="support-form-row">
+                        <label for="{{ pedido_form.tipo_servico.id_for_label }}" class="form-label">Categoria</label>
+                        {{ pedido_form.tipo_servico }}
+                        {{ pedido_form.tipo_servico.errors }}
+                    </div>
+
+                    <div class="support-form-row">
+                        <label for="{{ pedido_form.prioridade.id_for_label }}" class="form-label">Prioridade</label>
+                        {{ pedido_form.prioridade }}
+                        {{ pedido_form.prioridade.errors }}
+                    </div>
+
+                    <div class="support-form-row span-2">
+                        <label for="{{ pedido_form.equipamento.id_for_label }}" class="form-label">Equipamento cadastrado</label>
+                        {{ pedido_form.equipamento }}
+                        <div class="form-hint">
+                            Opcional quando o equipamento aparecer na lista.
+                        </div>
+                        {{ pedido_form.equipamento.errors }}
+                    </div>
+
+                    <div class="support-form-row span-2">
+                        <label for="{{ pedido_form.descricao.id_for_label }}" class="form-label">Detalhes</label>
+                        {{ pedido_form.descricao }}
+                        {{ pedido_form.descricao.errors }}
+                    </div>
+
+                    <div class="support-form-actions span-2">
+                        <button type="submit" class="btn btn-primary fw-bold">
+                            Abrir chamado
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="ticket-followup-panel">
+                <div class="section-head">
+                    <div>
+                        <h5>Minhas solicita&ccedil;&otilde;es</h5>
+                        <small>Acompanhe o status e a resposta enviada pelo TI</small>
+                    </div>
+                </div>
+
+                <div class="ticket-list">
+                    {% for chamado in chamados_usuario %}
+                        <article class="ticket-card status-{{ chamado.status|lower }} priority-{{ chamado.prioridade|lower }}">
+                            <div class="ticket-card-main">
+                                <div class="ticket-title-row">
+                                    <div>
+                                        <strong>{{ chamado.titulo }}</strong>
+                                        <small>
+                                            #{{ chamado.id }} &bull; {{ chamado.get_tipo_servico_display }}
+                                            &bull; {{ chamado.get_prioridade_display }}
+                                            &bull; {{ chamado.criado_em|date:"d/m/Y H:i" }}
+                                        </small>
+                                    </div>
+                                    <span class="ticket-status status-{{ chamado.status|lower }}">
+                                        {{ chamado.get_status_display }}
+                                    </span>
+                                </div>
+
+                                <div class="ticket-meta-grid">
+                                    <span>Setor: {{ chamado.setor_solicitante|default:"Nao informado" }}</span>
+                                    <span>Contato: {{ chamado.contato|default:"Nao informado" }}</span>
+                                    {% if chamado.equipamento %}
+                                        <span>Equipamento: {{ chamado.equipamento.nome }}</span>
+                                    {% endif %}
+                                </div>
+
+                                {% if chamado.descricao %}
+                                    <p>{{ chamado.descricao }}</p>
+                                {% endif %}
+                            </div>
+
+                            <div class="ticket-response-box">
+                                <strong>Retorno do TI</strong>
+                                {% if chamado.resposta_ti %}
+                                    <p>{{ chamado.resposta_ti }}</p>
+                                    <small>
+                                        {{ chamado.respondido_por|default:"TI" }}
+                                        {% if chamado.respondido_em %}
+                                            &bull; {{ chamado.respondido_em|date:"d/m/Y H:i" }}
+                                        {% endif %}
+                                    </small>
+                                {% else %}
+                                    <p>Aguardando resposta do TI.</p>
+                                {% endif %}
+                            </div>
+                        </article>
+                    {% empty %}
+                        <div class="empty-state">
+                            Nenhum chamado aberto por este usu&aacute;rio.
+                        </div>
+                    {% endfor %}
+                </div>
+            </section>
+        </div>
+    </div>
+</div>
+{% endblock %}

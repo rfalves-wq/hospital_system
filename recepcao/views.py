@@ -5,11 +5,22 @@ from urllib import request as urlrequest
 
 from django.contrib import messages
 from django.core.cache import cache
+from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
 from acolhimento.models import Acolhimento
 from acolhimento.utils import anexar_passagens_do_dia, passagens_do_paciente_no_dia
+from painel.models import ChamadaPainel
+from painel.services import (
+    anexar_status_chamadas,
+    marcar_acolhimento_ausente,
+    registrar_ausencia,
+    registrar_chamada_limitada,
+    registrar_retorno,
+    reativar_acolhimento_ausente,
+    total_chamadas_setor,
+)
 
 from .forms import RecepcaoForm
 from .models import Recepcao
@@ -80,16 +91,39 @@ def recepcao_dashboard(request):
         Acolhimento.objects
         .select_related("paciente")
         .filter(data_acolhimento__date=hoje)
-        .exclude(status="RECEPCAO")
+        .exclude(status__in=["RECEPCAO", "AUSENTE"])
         .order_by("-data_acolhimento")
     )
+
+    ausentes_recepcao = (
+        Acolhimento.objects
+        .select_related("paciente")
+        .filter(
+            data_acolhimento__date=hoje,
+            status="AUSENTE",
+        )
+        .filter(
+            Q(status_antes_ausencia="RECEPCAO")
+            | Q(
+                status_antes_ausencia="",
+                chamadas_painel__setor=ChamadaPainel.RECEPCAO,
+                chamadas_painel__tipo=ChamadaPainel.AUSENCIA,
+            )
+        )
+        .distinct()
+        .order_by("-data_ausente", "-data_acolhimento")
+    )
+
+    acolhimentos = anexar_passagens_do_dia(acolhimentos)
+    anexar_status_chamadas(acolhimentos, ChamadaPainel.RECEPCAO)
 
     return render(
         request,
         "recepcao/dashboard.html",
         {
-            "acolhimentos": anexar_passagens_do_dia(acolhimentos),
+            "acolhimentos": acolhimentos,
             "historico": anexar_passagens_do_dia(historico),
+            "ausentes_recepcao": anexar_passagens_do_dia(ausentes_recepcao),
             "dados_impressao_recepcao": dados_impressao,
         }
     )
@@ -248,5 +282,105 @@ def enviar_classificacao(request, acolhimento_id):
         acolhimento.status = "CLASSIFICACAO"
         acolhimento.save()
         request.session["recepcao_impressao_acolhimento_id"] = acolhimento.id
+
+    return redirect("recepcao_dashboard")
+
+
+def chamar_paciente_recepcao(request, acolhimento_id):
+    if request.method != "POST":
+        return redirect("recepcao_dashboard")
+
+    acolhimento = get_object_or_404(
+        Acolhimento.objects.select_related("paciente"),
+        id=acolhimento_id,
+        status="RECEPCAO",
+    )
+    chamada, total = registrar_chamada_limitada(
+        ChamadaPainel.RECEPCAO,
+        acolhimento,
+        request,
+        local_destino="Recepcao",
+    )
+
+    if not chamada:
+        messages.warning(
+            request,
+            f"BAM {acolhimento.numero_bam} ja foi chamado 4 vezes. Use Ausentar."
+        )
+        return redirect("recepcao_dashboard")
+
+    messages.success(
+        request,
+        f"Chamada {total}/4 registrada para o BAM {acolhimento.numero_bam} na recepcao."
+    )
+
+    return redirect("recepcao_dashboard")
+
+
+def ausentar_paciente_recepcao(request, acolhimento_id):
+    if request.method != "POST":
+        return redirect("recepcao_dashboard")
+
+    acolhimento = get_object_or_404(
+        Acolhimento.objects.select_related("paciente"),
+        id=acolhimento_id,
+        status="RECEPCAO",
+    )
+    total = total_chamadas_setor(ChamadaPainel.RECEPCAO, acolhimento)
+
+    if total < 4:
+        faltam = 4 - total
+        messages.warning(
+            request,
+            f"Para ausentar o BAM {acolhimento.numero_bam}, registre mais {faltam} chamada(s)."
+        )
+        return redirect("recepcao_dashboard")
+
+    registrar_ausencia(
+        ChamadaPainel.RECEPCAO,
+        acolhimento,
+        request,
+        local_destino="Recepcao",
+    )
+    marcar_acolhimento_ausente(acolhimento)
+
+    messages.warning(
+        request,
+        f"BAM {acolhimento.numero_bam} marcado como ausente na recepcao."
+    )
+
+    return redirect("recepcao_dashboard")
+
+
+def retornar_ausente_recepcao(request, acolhimento_id):
+    if request.method != "POST":
+        return redirect("recepcao_dashboard")
+
+    acolhimento = get_object_or_404(
+        Acolhimento.objects.select_related("paciente"),
+        id=acolhimento_id,
+        status="AUSENTE",
+    )
+    status_retorno = acolhimento.status_antes_ausencia or "RECEPCAO"
+
+    if status_retorno != "RECEPCAO":
+        messages.warning(
+            request,
+            f"BAM {acolhimento.numero_bam} esta ausente em outro setor."
+        )
+        return redirect("recepcao_dashboard")
+
+    registrar_retorno(
+        ChamadaPainel.RECEPCAO,
+        acolhimento,
+        request,
+        local_destino="Recepcao",
+    )
+    reativar_acolhimento_ausente(acolhimento, "RECEPCAO")
+
+    messages.success(
+        request,
+        f"BAM {acolhimento.numero_bam} retornou para a fila da recepcao."
+    )
 
     return redirect("recepcao_dashboard")

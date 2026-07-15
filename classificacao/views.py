@@ -8,6 +8,8 @@ from acolhimento.utils import (
     passagens_do_paciente_no_dia,
     periodo_do_dia,
 )
+from painel.models import ChamadaPainel
+from painel.services import registrar_ausencia, registrar_chamada, registrar_retorno
 
 from .forms import ClassificacaoForm
 from .models import ClassificacaoRisco
@@ -185,11 +187,15 @@ def classificar_paciente(request, acolhimento_id):
             acolhimento.status = "CONSULTA"
             acolhimento.ausente_classificacao = False
             acolhimento.data_ausente_classificacao = None
+            acolhimento.status_antes_ausencia = ""
+            acolhimento.data_ausente = None
             acolhimento.save(
                 update_fields=[
                     "status",
                     "ausente_classificacao",
                     "data_ausente_classificacao",
+                    "status_antes_ausencia",
+                    "data_ausente",
                 ]
             )
 
@@ -234,6 +240,13 @@ def chamar_paciente_classificacao(request, acolhimento_id):
         status="CLASSIFICACAO"
     )
 
+    if acolhimento.chamadas_classificacao >= 4:
+        messages.warning(
+            request,
+            f"BAM {acolhimento.numero_bam} ja foi chamado 4 vezes. Use Ausentar."
+        )
+        return redirect("classificacao_dashboard")
+
     acolhimento.chamadas_classificacao += 1
     acolhimento.data_ultima_chamada_classificacao = timezone.now()
     acolhimento.ausente_classificacao = False
@@ -245,6 +258,12 @@ def chamar_paciente_classificacao(request, acolhimento_id):
             "ausente_classificacao",
             "data_ausente_classificacao",
         ]
+    )
+    registrar_chamada(
+        ChamadaPainel.CLASSIFICACAO,
+        acolhimento,
+        request,
+        local_destino="Classificacao de risco",
     )
 
     messages.success(
@@ -273,18 +292,78 @@ def ausentar_paciente_classificacao(request, acolhimento_id):
         )
         return redirect("classificacao_dashboard")
 
+    if acolhimento.ausente_classificacao:
+        messages.info(
+            request,
+            f"BAM {acolhimento.numero_bam} ja esta ausente na classificacao."
+        )
+        return redirect("classificacao_dashboard")
+
+    agora = timezone.now()
     acolhimento.ausente_classificacao = True
-    acolhimento.data_ausente_classificacao = timezone.now()
+    acolhimento.data_ausente_classificacao = agora
+    acolhimento.status_antes_ausencia = "CLASSIFICACAO"
+    acolhimento.data_ausente = agora
     acolhimento.save(
         update_fields=[
             "ausente_classificacao",
             "data_ausente_classificacao",
+            "status_antes_ausencia",
+            "data_ausente",
         ]
+    )
+    registrar_ausencia(
+        ChamadaPainel.CLASSIFICACAO,
+        acolhimento,
+        request,
+        local_destino="Classificacao de risco",
     )
 
     messages.warning(
         request,
         f"BAM {acolhimento.numero_bam} marcado como ausente na classificação."
+    )
+
+    return redirect("classificacao_dashboard")
+
+
+def retornar_ausente_classificacao(request, acolhimento_id):
+    if request.method != "POST":
+        return redirect("classificacao_dashboard")
+
+    acolhimento = get_object_or_404(
+        Acolhimento,
+        id=acolhimento_id,
+        status="CLASSIFICACAO",
+        ausente_classificacao=True,
+    )
+
+    registrar_retorno(
+        ChamadaPainel.CLASSIFICACAO,
+        acolhimento,
+        request,
+        local_destino="Classificacao de risco",
+    )
+    acolhimento.ausente_classificacao = False
+    acolhimento.data_ausente_classificacao = None
+    acolhimento.chamadas_classificacao = 0
+    acolhimento.data_ultima_chamada_classificacao = None
+    acolhimento.status_antes_ausencia = ""
+    acolhimento.data_ausente = None
+    acolhimento.save(
+        update_fields=[
+            "ausente_classificacao",
+            "data_ausente_classificacao",
+            "chamadas_classificacao",
+            "data_ultima_chamada_classificacao",
+            "status_antes_ausencia",
+            "data_ausente",
+        ]
+    )
+
+    messages.success(
+        request,
+        f"BAM {acolhimento.numero_bam} retornou para a fila da classificacao."
     )
 
     return redirect("classificacao_dashboard")

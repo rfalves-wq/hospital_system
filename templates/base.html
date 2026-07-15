@@ -97,9 +97,17 @@
                     </a>
                 </li>
 
+                {% if request.user.is_staff or request.user.is_superuser %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'tecnologia_dashboard' %}">
+                            TI
+                        </a>
+                    </li>
+                {% endif %}
+
                 <li class="nav-item">
-                    <a class="nav-link" href="{% url 'tecnologia_dashboard' %}">
-                        TI
+                    <a class="nav-link" href="{% url 'tecnologia_pedido_servico' %}">
+                        Solicitar TI
                     </a>
                 </li>
 
@@ -126,6 +134,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 {% block extra_js %}{% endblock %}
+{% include "includes/panico_medico.html" %}
 
 </body>
 </html>

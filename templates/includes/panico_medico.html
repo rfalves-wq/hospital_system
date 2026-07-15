@@ -1,0 +1,13 @@
+{% load static %}
+<form id="panico-medico-csrf" hidden>
+    {% csrf_token %}
+</form>
+<link rel="stylesheet" href="{% static 'css/panico-medico.css' %}?v=20260714-1">
+<script>
+    window.PanicoMedicoConfig = {
+        statusUrl: "{% url 'status_panico_medico' %}",
+        encerrarUrl: "{% url 'encerrar_panico_medico' %}",
+        intervalo: 3000
+    };
+</script>
+<script src="{% static 'js/panico-medico.js' %}?v=20260714-1"></script>

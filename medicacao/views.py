@@ -1,8 +1,19 @@
 from django.contrib import messages
+from django.db.models import Q
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
 
 from medico.models import ConsultaMedica
+from painel.models import ChamadaPainel
+from painel.services import (
+    anexar_status_chamadas,
+    marcar_acolhimento_ausente,
+    registrar_ausencia,
+    registrar_chamada_limitada,
+    registrar_retorno,
+    reativar_acolhimento_ausente,
+    total_chamadas_setor,
+)
 
 from .forms import MedicacaoForm
 
@@ -35,7 +46,7 @@ def medicacao_dashboard(request):
             farmacia_liberada=True,
             medicacao_realizada=False,
         )
-        .exclude(acolhimento__status="FINALIZADO")
+        .exclude(acolhimento__status__in=["FINALIZADO", "AUSENTE"])
         .order_by("data_consulta")
     )
 
@@ -48,6 +59,33 @@ def medicacao_dashboard(request):
         )
         .order_by("-data_medicacao")
     )
+    ausentes_medicacao = (
+        ConsultaMedica.objects
+        .select_related("acolhimento", "acolhimento__paciente")
+        .filter(
+            solicita_medicacao=True,
+            farmacia_liberada=True,
+            medicacao_realizada=False,
+            acolhimento__status="AUSENTE",
+        )
+        .filter(
+            Q(acolhimento__status_antes_ausencia="PROCEDIMENTOS")
+            | Q(
+                acolhimento__status_antes_ausencia="",
+                acolhimento__chamadas_painel__setor=ChamadaPainel.MEDICACAO,
+                acolhimento__chamadas_painel__tipo=ChamadaPainel.AUSENCIA,
+            )
+        )
+        .distinct()
+        .order_by("-acolhimento__data_ausente", "data_consulta")
+    )
+
+    medicacoes_pendentes = list(medicacoes_pendentes)
+    anexar_status_chamadas(
+        medicacoes_pendentes,
+        ChamadaPainel.MEDICACAO,
+        attr_acolhimento="acolhimento",
+    )
 
     return render(
         request,
@@ -55,8 +93,10 @@ def medicacao_dashboard(request):
         {
             "medicacoes_pendentes": medicacoes_pendentes,
             "medicacoes_realizadas": medicacoes_realizadas,
-            "total_pendentes": medicacoes_pendentes.count(),
+            "total_pendentes": len(medicacoes_pendentes),
             "total_realizadas": medicacoes_realizadas.count(),
+            "ausentes_medicacao": ausentes_medicacao,
+            "total_ausentes_medicacao": ausentes_medicacao.count(),
         }
     )
 
@@ -113,3 +153,112 @@ def administrar_medicacao(request, consulta_id):
             "acolhimento": consulta.acolhimento,
         }
     )
+
+
+def chamar_paciente_medicacao(request, consulta_id):
+    if request.method != "POST":
+        return redirect("medicacao_dashboard")
+
+    consulta = get_object_or_404(
+        ConsultaMedica.objects.select_related("acolhimento", "acolhimento__paciente"),
+        id=consulta_id,
+        solicita_medicacao=True,
+        farmacia_liberada=True,
+        medicacao_realizada=False,
+    )
+    chamada, total = registrar_chamada_limitada(
+        ChamadaPainel.MEDICACAO,
+        consulta.acolhimento,
+        request,
+        local_destino="Sala de medicacao",
+    )
+
+    if not chamada:
+        messages.warning(
+            request,
+            f"BAM {consulta.acolhimento.numero_bam} ja foi chamado 4 vezes. Use Ausentar."
+        )
+        return redirect("medicacao_dashboard")
+
+    messages.success(
+        request,
+        f"Chamada {total}/4 registrada para o BAM {consulta.acolhimento.numero_bam} na medicacao."
+    )
+
+    return redirect("medicacao_dashboard")
+
+
+def ausentar_paciente_medicacao(request, consulta_id):
+    if request.method != "POST":
+        return redirect("medicacao_dashboard")
+
+    consulta = get_object_or_404(
+        ConsultaMedica.objects.select_related("acolhimento", "acolhimento__paciente"),
+        id=consulta_id,
+        solicita_medicacao=True,
+        farmacia_liberada=True,
+        medicacao_realizada=False,
+    )
+    acolhimento = consulta.acolhimento
+    total = total_chamadas_setor(ChamadaPainel.MEDICACAO, acolhimento)
+
+    if total < 4:
+        faltam = 4 - total
+        messages.warning(
+            request,
+            f"Para ausentar o BAM {acolhimento.numero_bam}, registre mais {faltam} chamada(s)."
+        )
+        return redirect("medicacao_dashboard")
+
+    registrar_ausencia(
+        ChamadaPainel.MEDICACAO,
+        acolhimento,
+        request,
+        local_destino="Sala de medicacao",
+    )
+    marcar_acolhimento_ausente(acolhimento)
+
+    messages.warning(
+        request,
+        f"BAM {acolhimento.numero_bam} marcado como ausente na medicacao."
+    )
+
+    return redirect("medicacao_dashboard")
+
+
+def retornar_ausente_medicacao(request, consulta_id):
+    if request.method != "POST":
+        return redirect("medicacao_dashboard")
+
+    consulta = get_object_or_404(
+        ConsultaMedica.objects.select_related("acolhimento", "acolhimento__paciente"),
+        id=consulta_id,
+        solicita_medicacao=True,
+        farmacia_liberada=True,
+        medicacao_realizada=False,
+        acolhimento__status="AUSENTE",
+    )
+    acolhimento = consulta.acolhimento
+    status_retorno = acolhimento.status_antes_ausencia or "PROCEDIMENTOS"
+
+    if status_retorno != "PROCEDIMENTOS":
+        messages.warning(
+            request,
+            f"BAM {acolhimento.numero_bam} esta ausente em outro setor."
+        )
+        return redirect("medicacao_dashboard")
+
+    registrar_retorno(
+        ChamadaPainel.MEDICACAO,
+        acolhimento,
+        request,
+        local_destino="Sala de medicacao",
+    )
+    reativar_acolhimento_ausente(acolhimento, "PROCEDIMENTOS")
+
+    messages.success(
+        request,
+        f"BAM {acolhimento.numero_bam} retornou para a fila de medicacao."
+    )
+
+    return redirect("medicacao_dashboard")

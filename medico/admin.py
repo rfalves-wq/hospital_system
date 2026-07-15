@@ -1,6 +1,11 @@
 from django.contrib import admin
 
-from .models import ConsultaMedica, CID, TransferenciaConsultaMedica
+from .models import (
+    AlertaPanicoMedico,
+    ConsultaMedica,
+    CID,
+    TransferenciaConsultaMedica,
+)
 
 
 @admin.register(CID)
@@ -64,4 +69,32 @@ class TransferenciaConsultaMedicaAdmin(admin.ModelAdmin):
     list_filter = [
         "motivo",
         "data_transferencia",
+    ]
+
+
+@admin.register(AlertaPanicoMedico)
+class AlertaPanicoMedicoAdmin(admin.ModelAdmin):
+    list_display = [
+        "criado_em",
+        "medico_nome",
+        "consultorio",
+        "paciente_nome",
+        "numero_bam",
+        "ativo",
+        "encerrado_em",
+        "encerrado_por",
+    ]
+
+    search_fields = [
+        "medico_nome",
+        "consultorio",
+        "paciente_nome",
+        "numero_bam",
+        "mensagem",
+    ]
+
+    list_filter = [
+        "ativo",
+        "criado_em",
+        "encerrado_em",
     ]

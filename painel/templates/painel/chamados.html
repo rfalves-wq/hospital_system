@@ -1,0 +1,89 @@
+{% load static %}
+<!doctype html>
+<html lang="pt-br">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Painel de Chamados</title>
+    <link rel="stylesheet" href="{% static 'painel/css/chamados.css' %}?v=20260714-5">
+</head>
+<body>
+    <button type="button" class="voice-toggle" id="botaoVozPainel">
+        Ativar voz
+    </button>
+
+    <main class="call-screen">
+        <section class="current-call" id="ultimaChamada">
+            {% if ultima_chamada %}
+                <div class="call-sector {% if ultima_chamada.tipo == 'AUSENCIA' %}call-sector-absence{% endif %}">
+                    {% if ultima_chamada.tipo == 'AUSENCIA' %}
+                        Paciente ausente
+                    {% else %}
+                        {{ ultima_chamada.get_setor_display }}
+                    {% endif %}
+                </div>
+                <h1>{{ ultima_chamada.paciente_nome }}</h1>
+                <div class="call-details">
+                    <span>BAM {{ ultima_chamada.numero_bam|default:"-" }}</span>
+                    {% if ultima_chamada.tipo == 'AUSENCIA' %}
+                        <span>{{ ultima_chamada.get_setor_display }}</span>
+                    {% endif %}
+                    {% if ultima_chamada.local_destino %}
+                        <span>{{ ultima_chamada.local_destino }}</span>
+                    {% endif %}
+                </div>
+            {% else %}
+                <div class="call-sector">Sistema Hospitalar</div>
+                <h1>Aguardando chamada</h1>
+                <div class="call-details">
+                    <span>Recep&ccedil;&atilde;o</span>
+                    <span>Classifica&ccedil;&atilde;o</span>
+                    <span>M&eacute;dico</span>
+                    <span>Medica&ccedil;&atilde;o</span>
+                </div>
+            {% endif %}
+        </section>
+
+        <section class="history-panel">
+            <div class="history-head">
+                <div>
+                    <h2>&Uacute;ltimas chamadas</h2>
+                    <span>Atualiza automaticamente</span>
+                </div>
+                <div class="clock" id="painelRelogio">--:--</div>
+            </div>
+
+            <div class="history-list" id="listaChamadas">
+                {% for chamada in chamadas %}
+                    <article class="history-item setor-{{ chamada.setor|lower }} tipo-{{ chamada.tipo|lower }}">
+                        <strong>{{ chamada.paciente_nome }}</strong>
+                        <span>
+                            {% if chamada.tipo == 'AUSENCIA' %}
+                                Paciente ausente - {{ chamada.get_setor_display }}
+                            {% else %}
+                                {{ chamada.get_setor_display }}
+                            {% endif %}
+                        </span>
+                        <small>
+                            BAM {{ chamada.numero_bam|default:"-" }}
+                            {% if chamada.local_destino %}
+                                &bull; {{ chamada.local_destino }}
+                            {% endif %}
+                            &bull; {{ chamada.criado_em|date:"H:i" }}
+                        </small>
+                    </article>
+                {% empty %}
+                    <div class="empty-call">Nenhuma chamada registrada.</div>
+                {% endfor %}
+            </div>
+        </section>
+    </main>
+
+    <script>
+        window.painelChamadosConfig = {
+            dadosUrl: "{% url 'painel_chamados_dados' %}"
+        };
+    </script>
+    <script src="{% static 'painel/js/chamados.js' %}?v=20260714-8"></script>
+</body>
+</html>

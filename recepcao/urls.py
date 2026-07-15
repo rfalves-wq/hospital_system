@@ -28,4 +28,22 @@ urlpatterns = [
         name="enviar_classificacao"
     ),
 
+    path(
+        "chamar/<int:acolhimento_id>/",
+        views.chamar_paciente_recepcao,
+        name="chamar_paciente_recepcao"
+    ),
+
+    path(
+        "ausentar/<int:acolhimento_id>/",
+        views.ausentar_paciente_recepcao,
+        name="ausentar_paciente_recepcao"
+    ),
+
+    path(
+        "retornar-ausente/<int:acolhimento_id>/",
+        views.retornar_ausente_recepcao,
+        name="retornar_ausente_recepcao"
+    ),
+
 ]

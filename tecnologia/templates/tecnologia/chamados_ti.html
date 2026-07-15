@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'tecnologia/css/dashboard.css' %}?v=20260714-17">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid tecnologia-page ti-ticket-page my-3">
+    <div class="page-card">
+        <div class="page-header">
+            <div>
+                <h3>Chamados TI</h3>
+                <small>Fila de solicita&ccedil;&otilde;es abertas pelos funcion&aacute;rios</small>
+            </div>
+
+            <div class="page-header-actions">
+                <a href="{% url 'tecnologia_pedido_servico' %}" class="btn btn-outline-light fw-bold">
+                    Solicitar TI
+                </a>
+                <a href="{% url 'tecnologia_dashboard' %}" class="btn btn-light fw-bold">
+                    Equipamentos
+                </a>
+            </div>
+        </div>
+
+        <div class="page-body">
+            {% if messages %}
+                <div class="message-list">
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags|default:'info' }} mb-2">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <div class="ticket-metric-grid">
+                <div class="metric-card">
+                    <span>Ativos</span>
+                    <strong>{{ total_ativos }}</strong>
+                    <small>abertos ou em andamento</small>
+                </div>
+                <div class="metric-card unknown">
+                    <span>Abertos</span>
+                    <strong>{{ total_abertos }}</strong>
+                    <small>aguardando atendimento</small>
+                </div>
+                <div class="metric-card online">
+                    <span>Em andamento</span>
+                    <strong>{{ total_andamento }}</strong>
+                    <small>com retorno do TI</small>
+                </div>
+                <div class="metric-card">
+                    <span>Conclu&iacute;dos</span>
+                    <strong>{{ total_concluidos }}</strong>
+                    <small>finalizados</small>
+                </div>
+            </div>
+
+            <nav class="equipment-tabs ticket-tabs" aria-label="Filtrar chamados por status">
+                {% for filtro in filtros_chamados %}
+                    <a href="?status={{ filtro.chave }}" class="equipment-tab {% if filtro.ativo %}active{% endif %}">
+                        {{ filtro.label }}
+                        <span>{{ filtro.total }}</span>
+                    </a>
+                {% endfor %}
+            </nav>
+
+            <section class="ti-ticket-list">
+                {% for chamado in chamados %}
+                    <article class="ti-ticket-card status-{{ chamado.status|lower }} priority-{{ chamado.prioridade|lower }}">
+                        <div class="ti-ticket-info">
+                            <div class="ticket-title-row">
+                                <div>
+                                    <strong>#{{ chamado.id }} - {{ chamado.titulo }}</strong>
+                                    <small>
+                                        {{ chamado.get_tipo_servico_display }}
+                                        &bull; {{ chamado.get_prioridade_display }}
+                                        &bull; {{ chamado.criado_em|date:"d/m/Y H:i" }}
+                                    </small>
+                                </div>
+                                <span class="ticket-status status-{{ chamado.status|lower }}">
+                                    {{ chamado.get_status_display }}
+                                </span>
+                            </div>
+
+                            <div class="ticket-meta-grid">
+                                <span>Solicitante: {{ chamado.solicitado_por|default:"Nao informado" }}</span>
+                                <span>Setor: {{ chamado.setor_solicitante|default:"Nao informado" }}</span>
+                                <span>Contato: {{ chamado.contato|default:"Nao informado" }}</span>
+                                {% if chamado.equipamento %}
+                                    <span>Equipamento: {{ chamado.equipamento.nome }}</span>
+                                {% endif %}
+                            </div>
+
+                            {% if chamado.descricao %}
+                                <p>{{ chamado.descricao }}</p>
+                            {% endif %}
+
+                            {% if chamado.resposta_ti %}
+                                <div class="ticket-response-box">
+                                    <strong>Resposta enviada ao usu&aacute;rio</strong>
+                                    <p>{{ chamado.resposta_ti }}</p>
+                                    <small>
+                                        {{ chamado.respondido_por|default:"TI" }}
+                                        {% if chamado.respondido_em %}
+                                            &bull; {{ chamado.respondido_em|date:"d/m/Y H:i" }}
+                                        {% endif %}
+                                    </small>
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <form method="post" action="{% url 'tecnologia_chamados' %}?status={{ filtro_status }}" class="ti-response-form">
+                            {% csrf_token %}
+                            <input type="hidden" name="chamado_id" value="{{ chamado.id }}">
+
+                            <div class="row g-2">
+                                <div class="col-md-6">
+                                    <label class="form-label" for="status-{{ chamado.id }}">Status</label>
+                                    <select class="form-select" id="status-{{ chamado.id }}" name="status">
+                                        {% for valor, label in status_choices %}
+                                            <option value="{{ valor }}" {% if chamado.status == valor %}selected{% endif %}>{{ label }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label" for="prioridade-{{ chamado.id }}">Prioridade</label>
+                                    <select class="form-select" id="prioridade-{{ chamado.id }}" name="prioridade">
+                                        {% for valor, label in prioridade_choices %}
+                                            <option value="{{ valor }}" {% if chamado.prioridade == valor %}selected{% endif %}>{{ label }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+
+                                <div class="col-12">
+                                    <label class="form-label" for="resposta-{{ chamado.id }}">Resposta para o usu&aacute;rio</label>
+                                    <textarea class="form-control" id="resposta-{{ chamado.id }}" name="resposta_ti" rows="4" placeholder="Informe o andamento ou a solucao">{{ chamado.resposta_ti }}</textarea>
+                                </div>
+
+                                <div class="col-12">
+                                    <button type="submit" class="btn btn-primary fw-bold w-100">
+                                        Atualizar chamado
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </article>
+                {% empty %}
+                    <div class="empty-state">
+                        Nenhum chamado neste filtro.
+                    </div>
+                {% endfor %}
+            </section>
+        </div>
+    </div>
+</div>
+{% endblock %}

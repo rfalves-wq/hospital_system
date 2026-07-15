@@ -39,7 +39,7 @@ def laboratorio_dashboard(request):
             solicita_exames_laboratoriais=True,
             exames_laboratoriais_realizados=False,
         )
-        .exclude(acolhimento__status="FINALIZADO")
+        .exclude(acolhimento__status__in=["FINALIZADO", "AUSENTE"])
         .order_by("data_consulta")
     )
 

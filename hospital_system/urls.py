@@ -31,4 +31,6 @@ urlpatterns = [
     path("prontuario/", include("prontuario.urls")),
 
     path("tecnologia/", include("tecnologia.urls")),
+
+    path("painel/", include("painel.urls")),
 ]

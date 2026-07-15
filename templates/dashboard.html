@@ -81,14 +81,16 @@
                 </div>
 
                 <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
-                    <div class="card module-card painel disabled">
-                        <span class="module-status status-soon">Em breve</span>
+                    <a href="{% url 'painel_chamados' %}" class="text-decoration-none">
+                    <div class="card module-card painel">
+                        <span class="module-status status-active">Ativo</span>
                         <div class="card-body">
                             <div class="module-icon">&#128226;</div>
                             <h5>Painel de Chamados</h5>
                             <small>Chamadas públicas</small>
                         </div>
                     </div>
+                    </a>
                 </div>
 
             </div>
@@ -202,18 +204,48 @@
 
             <div class="row g-4">
 
+                {% if request.user.is_staff or request.user.is_superuser %}
+                    <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
+                        <a href="{% url 'tecnologia_dashboard' %}" class="text-decoration-none">
+                            <div class="card module-card tecnologia">
+                                <span class="module-status status-active">Ativo</span>
+                                <div class="card-body">
+                                    <div class="module-icon">&#128187;</div>
+                                    <h5>Tecnologia da Informa&ccedil;&atilde;o</h5>
+                                    <small>Equipamentos online</small>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                {% endif %}
+
                 <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
-                    <a href="{% url 'tecnologia_dashboard' %}" class="text-decoration-none">
-                        <div class="card module-card tecnologia">
+                    <a href="{% url 'tecnologia_pedido_servico' %}" class="text-decoration-none">
+                        <div class="card module-card suporte-ti">
                             <span class="module-status status-active">Ativo</span>
                             <div class="card-body">
-                                <div class="module-icon">&#128187;</div>
-                                <h5>Tecnologia da Informa&ccedil;&atilde;o</h5>
-                                <small>Equipamentos online</small>
+                                <div class="module-icon">&#128736;</div>
+                                <h5>Solicitar TI</h5>
+                                <small>Abrir chamado</small>
                             </div>
                         </div>
                     </a>
                 </div>
+
+                {% if request.user.is_staff or request.user.is_superuser %}
+                    <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
+                        <a href="{% url 'tecnologia_chamados' %}" class="text-decoration-none">
+                            <div class="card module-card chamados-ti">
+                                <span class="module-status status-active">Ativo</span>
+                                <div class="card-body">
+                                    <div class="module-icon">&#128203;</div>
+                                    <h5>Chamados TI</h5>
+                                    <small>Atendimento</small>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                {% endif %}
 
             </div>
         </div>

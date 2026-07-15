@@ -27,4 +27,10 @@ urlpatterns = [
         name="ausentar_paciente_classificacao"
     ),
 
+    path(
+        "retornar-ausente/<int:acolhimento_id>/",
+        views.retornar_ausente_classificacao,
+        name="retornar_ausente_classificacao"
+    ),
+
 ]

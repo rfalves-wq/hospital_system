@@ -52,7 +52,7 @@ def farmacia_dashboard(request):
     pendentes_base = (
         base
         .filter(farmacia_liberada=False)
-        .exclude(acolhimento__status="FINALIZADO")
+        .exclude(acolhimento__status__in=["FINALIZADO", "AUSENTE"])
         .order_by("data_consulta")
     )
 
@@ -71,7 +71,7 @@ def farmacia_dashboard(request):
     total_aguardando_enfermagem = (
         liberadas_base
         .filter(medicacao_realizada=False)
-        .exclude(acolhimento__status="FINALIZADO")
+        .exclude(acolhimento__status__in=["FINALIZADO", "AUSENTE"])
         .count()
     )
 
@@ -276,7 +276,7 @@ def liberar_medicacao(request, consulta_id):
 
                     acolhimento = consulta.acolhimento
 
-                    if acolhimento.status != "FINALIZADO":
+                    if acolhimento.status not in ["FINALIZADO", "AUSENTE"]:
                         acolhimento.status = "PROCEDIMENTOS"
                         acolhimento.save(update_fields=["status"])
 

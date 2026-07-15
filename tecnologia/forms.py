@@ -1,6 +1,6 @@
 from django import forms
 
-from .models import EquipamentoTI, normalizar_mac
+from .models import ChamadoManutencaoTI, EquipamentoTI, normalizar_mac
 
 
 class RedeScanForm(forms.Form):
@@ -64,3 +64,70 @@ class EquipamentoTIForm(forms.ModelForm):
             )
 
         return mac
+
+
+class PedidoServicoTIForm(forms.ModelForm):
+    class Meta:
+        model = ChamadoManutencaoTI
+        fields = [
+            "titulo",
+            "setor_solicitante",
+            "contato",
+            "tipo_servico",
+            "equipamento",
+            "prioridade",
+            "descricao",
+        ]
+        widgets = {
+            "tipo_servico": forms.Select(attrs={"class": "form-select"}),
+            "titulo": forms.TextInput(attrs={
+                "class": "form-control",
+                "placeholder": "Ex: Computador da recepcao desligando"
+            }),
+            "setor_solicitante": forms.TextInput(attrs={
+                "class": "form-control",
+                "placeholder": "Ex: Recepcao, farmacia, laboratorio"
+            }),
+            "contato": forms.TextInput(attrs={
+                "class": "form-control",
+                "placeholder": "Ramal, telefone, WhatsApp ou e-mail"
+            }),
+            "equipamento": forms.Select(attrs={"class": "form-select"}),
+            "prioridade": forms.Select(attrs={"class": "form-select"}),
+            "descricao": forms.Textarea(attrs={
+                "class": "form-control",
+                "rows": 4,
+                "placeholder": "Descreva o que aconteceu, onde fica o dispositivo e desde quando ocorre"
+            }),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["equipamento"].queryset = EquipamentoTI.objects.filter(
+            ativo=True
+        ).order_by("nome")
+        self.fields["equipamento"].required = False
+        self.fields["equipamento"].empty_label = "Sem equipamento especifico"
+        self.fields["tipo_servico"].initial = ChamadoManutencaoTI.MANUTENCAO
+        self.fields["setor_solicitante"].required = True
+        self.fields["contato"].required = True
+        self.fields["descricao"].required = True
+
+
+class AtendimentoTIForm(forms.ModelForm):
+    class Meta:
+        model = ChamadoManutencaoTI
+        fields = [
+            "status",
+            "prioridade",
+            "resposta_ti",
+        ]
+        widgets = {
+            "status": forms.Select(attrs={"class": "form-select"}),
+            "prioridade": forms.Select(attrs={"class": "form-select"}),
+            "resposta_ti": forms.Textarea(attrs={
+                "class": "form-control",
+                "rows": 3,
+                "placeholder": "Informe ao usuario o andamento ou a solucao"
+            }),
+        }

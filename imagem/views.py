@@ -177,7 +177,7 @@ def imagem_dashboard(request):
         ConsultaMedica.objects
         .select_related("acolhimento", "acolhimento__paciente")
         .filter(solicita_exames_imagem=True)
-        .exclude(acolhimento__status="FINALIZADO")
+        .exclude(acolhimento__status__in=["FINALIZADO", "AUSENTE"])
         .order_by("data_consulta")
     )
 

@@ -284,6 +284,14 @@ body {
     background: #2563eb;
 }
 
+.suporte-ti::before {
+    background: #0f766e;
+}
+
+.chamados-ti::before {
+    background: #7c3aed;
+}
+
 .emergencia::before {
     background: #dc3545;
 }

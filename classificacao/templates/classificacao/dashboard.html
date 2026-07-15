@@ -230,12 +230,14 @@
 
                         <td class="text-end">
                             <div class="acoes-classificacao">
-                                <form method="post" action="{% url 'chamar_paciente_classificacao' acolhimento.id %}">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn btn-outline-primary btn-sm">
-                                        Chamar
-                                    </button>
-                                </form>
+                                {% if acolhimento.chamadas_classificacao < 4 %}
+                                    <form method="post" action="{% url 'chamar_paciente_classificacao' acolhimento.id %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-outline-primary btn-sm">
+                                            Chamar
+                                        </button>
+                                    </form>
+                                {% endif %}
 
                                 {% if acolhimento.chamadas_classificacao >= 4 %}
                                     <form method="post" action="{% url 'ausentar_paciente_classificacao' acolhimento.id %}">
@@ -364,10 +366,10 @@
 
                                     <td class="text-end">
                                         <div class="acoes-classificacao">
-                                            <form method="post" action="{% url 'chamar_paciente_classificacao' acolhimento.id %}">
+                                            <form method="post" action="{% url 'retornar_ausente_classificacao' acolhimento.id %}">
                                                 {% csrf_token %}
-                                                <button type="submit" class="btn btn-outline-primary btn-sm">
-                                                    Chamar novamente
+                                                <button type="submit" class="btn btn-outline-success btn-sm">
+                                                    Retornar para fila
                                                 </button>
                                             </form>
 
@@ -514,5 +516,6 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="{% static 'classificacao/js/dashboard.js' %}?v=20260711-1"></script>
 
+{% include "includes/panico_medico.html" %}
 </body>
 </html>

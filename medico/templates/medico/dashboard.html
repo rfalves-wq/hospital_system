@@ -10,7 +10,7 @@
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
-    <link rel="stylesheet" href="{% static 'medico/css/dashboard.css' %}?v=20260711-2">
+    <link rel="stylesheet" href="{% static 'medico/css/dashboard.css' %}?v=20260714-2">
 </head>
 
 <body>
@@ -24,13 +24,25 @@
                 <h3 class="mb-0">Fila Médica</h3>
                 <small>Pacientes aguardando consulta ou retorno médico</small>
             </div>
+
+            <form method="post"
+                  action="{% url 'acionar_panico_medico' %}"
+                  class="panico-medico-form">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                <button type="submit"
+                        class="btn btn-danger fw-bold"
+                        data-confirm-submit="Acionar alerta de pânico para todos os computadores?">
+                    Botão do pânico
+                </button>
+            </form>
         </div>
 
         <div class="card-body">
 
             {% if messages %}
                 {% for message in messages %}
-                    <div class="alert alert-success">
+                    <div class="alert alert-{{ message.tags|default:'success' }}">
                         {{ message }}
                     </div>
                 {% endfor %}
@@ -84,6 +96,41 @@
                 </div>
             {% endif %}
 
+            <section class="consultorio-medico-card {% if not consultorio_medico_atual %}consultorio-pendente{% endif %}">
+                <div class="consultorio-medico-status">
+                    <strong>Consultório do atendimento</strong>
+                    <span>
+                        {% if consultorio_medico_atual %}
+                            Chamadas saindo para {{ consultorio_medico_atual }}.
+                        {% else %}
+                            Informe o consultório antes de começar a chamar os pacientes.
+                        {% endif %}
+                    </span>
+                </div>
+
+                <form method="post"
+                      action="{% url 'definir_consultorio_medico' %}"
+                      class="consultorio-medico-form">
+                    {% csrf_token %}
+                    <input
+                        type="text"
+                        name="consultorio"
+                        class="form-control form-control-sm"
+                        list="consultoriosMedicos"
+                        value="{{ consultorio_medico_atual }}"
+                        placeholder="Ex: Consultório 2"
+                        aria-label="Consultório do médico"
+                        required>
+                    <button type="submit" class="btn btn-primary btn-sm">
+                        {% if consultorio_medico_atual %}
+                            Atualizar consultório
+                        {% else %}
+                            Iniciar atendimento
+                        {% endif %}
+                    </button>
+                </form>
+            </section>
+
             <ul class="nav nav-tabs mb-3" id="abasMedico" role="tablist">
 
                 <li class="nav-item" role="presentation">
@@ -97,6 +144,21 @@
                         Fila Médica
                         <span class="badge bg-primary ms-1">
                             {{ total_consulta }}
+                        </span>
+                    </button>
+                </li>
+
+                <li class="nav-item" role="presentation">
+                    <button
+                        class="nav-link"
+                        id="ausentes-tab"
+                        data-bs-toggle="tab"
+                        data-bs-target="#ausentes"
+                        type="button"
+                        role="tab">
+                        Ausentes
+                        <span class="badge bg-warning text-dark ms-1">
+                            {{ total_ausentes_medico }}
                         </span>
                     </button>
                 </li>
@@ -132,6 +194,17 @@
                 </li>
 
             </ul>
+
+            <datalist id="consultoriosMedicos">
+                <option value="Consultório 1"></option>
+                <option value="Consultório 2"></option>
+                <option value="Consultório 3"></option>
+                <option value="Consultório 4"></option>
+                <option value="Consultório 5"></option>
+                <option value="Consultório 6"></option>
+                <option value="Sala de emergência"></option>
+                <option value="Sala de observação"></option>
+            </datalist>
 
             <div class="tab-content" id="conteudoAbasMedico">
 
@@ -289,6 +362,39 @@
 
                                         <td>
                                             <div class="acao-medica">
+                                                <span class="badge {% if acolhimento.painel_pode_ausentar %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
+                                                    {{ acolhimento.painel_chamadas|default:0 }}/4
+                                                </span>
+
+                                                {% if acolhimento.painel_pode_chamar %}
+                                                    {% if consultorio_medico_atual %}
+                                                        <form method="post" action="{% url 'chamar_paciente_medico' acolhimento.id %}" class="form-chamada-medica">
+                                                            {% csrf_token %}
+                                                            <button type="submit"
+                                                                    class="btn btn-outline-primary btn-sm"
+                                                                    title="Chamar para {{ consultorio_medico_atual }}">
+                                                                Chamar
+                                                            </button>
+                                                        </form>
+                                                    {% else %}
+                                                        <button type="button"
+                                                                class="btn btn-outline-secondary btn-sm"
+                                                                disabled
+                                                                title="Informe o consultório antes de chamar">
+                                                            Chamar
+                                                        </button>
+                                                    {% endif %}
+                                                {% endif %}
+
+                                                {% if acolhimento.painel_pode_ausentar %}
+                                                    <form method="post" action="{% url 'ausentar_paciente_medico' acolhimento.id %}" class="d-inline">
+                                                        {% csrf_token %}
+                                                        <button type="submit" class="btn btn-outline-warning btn-sm">
+                                                            Ausentar
+                                                        </button>
+                                                    </form>
+                                                {% endif %}
+
                                                 <a href="{% url 'atender_paciente' acolhimento.id %}"
                                                    class="btn btn-primary btn-sm">
                                                     Atender
@@ -315,6 +421,79 @@
                                     <tr>
                                         <td colspan="10" class="text-center text-muted py-4">
                                             Nenhum paciente aguardando consulta médica.
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                </div>
+
+                <div class="tab-pane fade" id="ausentes" role="tabpanel">
+
+                    <div class="table-responsive">
+
+                        <table class="table table-bordered table-hover align-middle">
+
+                            <thead class="table-warning">
+                                <tr>
+                                    <th>BAM</th>
+                                    <th>Paciente</th>
+                                    <th>Status anterior</th>
+                                    <th>Ausente em</th>
+                                    <th>Ação</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+
+                                {% for acolhimento in ausentes_medico %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ acolhimento.numero_bam }}</strong>
+                                        </td>
+
+                                        <td>
+                                            {% if acolhimento.paciente %}
+                                                {{ acolhimento.paciente.nome_completo }}
+                                            {% else %}
+                                                {{ acolhimento.nome_paciente }}
+                                            {% endif %}
+                                        </td>
+
+                                        <td>
+                                            {% if acolhimento.status_antes_ausencia == "RETORNO_MEDICO" %}
+                                                <span class="badge bg-warning text-dark">Retorno ao Médico</span>
+                                            {% else %}
+                                                <span class="badge bg-primary">Consulta</span>
+                                            {% endif %}
+                                        </td>
+
+                                        <td>
+                                            {% if acolhimento.data_ausente %}
+                                                {{ acolhimento.data_ausente|date:"H:i" }}
+                                            {% else %}
+                                                -
+                                            {% endif %}
+                                        </td>
+
+                                        <td>
+                                            <form method="post" action="{% url 'retornar_ausente_medico' acolhimento.id %}" class="d-inline">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-outline-success btn-sm">
+                                                    Retornar para fila
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="5" class="text-center text-muted py-4">
+                                            Nenhum paciente ausente na fila médica.
                                         </td>
                                     </tr>
                                 {% endfor %}
@@ -431,6 +610,10 @@
                                                 <span class="badge bg-success">
                                                     Finalizado
                                                 </span>
+                                            {% elif consulta.acolhimento.status == "AUSENTE" %}
+                                                <span class="badge bg-warning text-dark">
+                                                    Ausente
+                                                </span>
                                             {% else %}
                                                 <span class="badge bg-secondary">
                                                     {{ consulta.acolhimento.get_status_display }}
@@ -443,7 +626,7 @@
                                         </td>
 
                                         <td>
-                                            {% if consulta.acolhimento.status == "FINALIZADO" %}
+                                            {% if consulta.acolhimento.status == "FINALIZADO" or consulta.acolhimento.status == "AUSENTE" %}
                                                 <button type="button"
                                                         class="btn btn-outline-secondary btn-sm"
                                                         disabled>
@@ -460,7 +643,7 @@
                                 {% empty %}
                                     <tr>
                                         <td colspan="8" class="text-center text-muted py-4">
-                                            Nenhum paciente atendido por você ainda.
+                                            Nenhum paciente atendido por você hoje.
                                         </td>
                                     </tr>
                                 {% endfor %}
@@ -609,5 +792,6 @@
 
 <script src="{% static 'medico/js/dashboard.js' %}?v=20260711-2"></script>
 
+{% include "includes/panico_medico.html" %}
 </body>
 </html>

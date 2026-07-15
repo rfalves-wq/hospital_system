@@ -9,14 +9,20 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.db.models import Count, Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
-from .forms import EquipamentoTIForm, RedeScanForm
-from .models import EquipamentoTI, normalizar_mac
+from .forms import (
+    AtendimentoTIForm,
+    EquipamentoTIForm,
+    PedidoServicoTIForm,
+    RedeScanForm,
+)
+from .models import ChamadoManutencaoTI, EquipamentoTI, normalizar_mac
 
 
 ALVO_REDE_RE = re.compile(r"^[A-Za-z0-9_.:-]{1,180}$")
@@ -47,6 +53,15 @@ ABAS_EQUIPAMENTOS_TIPO = (
     ("outros", "Outros", EquipamentoTI.OUTRO),
 )
 ABAS_EQUIPAMENTOS_VALIDAS = {chave for chave, _, _ in ABAS_EQUIPAMENTOS_TIPO}
+FILTROS_CHAMADOS_TI = (
+    ("ativos", "Ativos", ChamadoManutencaoTI.STATUS_ATIVOS),
+    ("abertos", "Abertos", (ChamadoManutencaoTI.ABERTO,)),
+    ("andamento", "Em andamento", (ChamadoManutencaoTI.EM_ANDAMENTO,)),
+    ("concluidos", "Concluidos", (ChamadoManutencaoTI.CONCLUIDO,)),
+    ("cancelados", "Cancelados", (ChamadoManutencaoTI.CANCELADO,)),
+    ("todos", "Todos", None),
+)
+FILTROS_CHAMADOS_VALIDOS = {chave for chave, _, _ in FILTROS_CHAMADOS_TI}
 
 TIPO_HINTS = (
     (
@@ -681,6 +696,30 @@ def redirect_dashboard_aba(request):
     return redirect("tecnologia_dashboard")
 
 
+def nome_usuario_chamado(request):
+    if not request.user.is_authenticated:
+        return ""
+
+    return request.user.get_full_name() or request.user.username
+
+
+def usuario_equipe_ti(user):
+    if not user.is_authenticated:
+        return False
+
+    if user.is_staff or user.is_superuser:
+        return True
+
+    return user.groups.filter(
+        name__in=[
+            "TI",
+            "Tecnologia",
+            "Tecnologia da Informacao",
+            "Tecnologia da Informação",
+        ]
+    ).exists()
+
+
 def criar_equipamento_descoberto(
     ip_encontrado,
     mac_encontrado="",
@@ -744,6 +783,9 @@ def totais_status_payload():
 @login_required
 @require_POST
 def tecnologia_status(request):
+    if not usuario_equipe_ti(request.user):
+        return JsonResponse({"erro": "Acesso restrito ao TI."}, status=403)
+
     try:
         dados = json.loads(request.body.decode("utf-8") or "{}")
     except json.JSONDecodeError:
@@ -778,7 +820,164 @@ def tecnologia_status(request):
 
 
 @login_required
+def pedido_servico_ti(request):
+    solicitante = nome_usuario_chamado(request)
+    contato_inicial = getattr(request.user, "email", "") or ""
+
+    if request.method == "POST":
+        pedido_form = PedidoServicoTIForm(request.POST)
+
+        if pedido_form.is_valid():
+            chamado = pedido_form.save(commit=False)
+            chamado.solicitado_por = solicitante
+            chamado.solicitante = request.user
+            chamado.status = ChamadoManutencaoTI.ABERTO
+            chamado.save()
+            messages.success(
+                request,
+                f"Pedido de servico #{chamado.id} aberto para a area de TI."
+            )
+            return redirect("tecnologia_pedido_servico")
+    else:
+        pedido_form = PedidoServicoTIForm(initial={"contato": contato_inicial})
+
+    chamados_usuario = ChamadoManutencaoTI.objects.select_related(
+        "equipamento",
+        "solicitante",
+    ).none()
+
+    if solicitante:
+        chamados_usuario = ChamadoManutencaoTI.objects.select_related(
+            "equipamento",
+            "solicitante",
+        ).filter(
+            Q(solicitante=request.user)
+            | Q(solicitante__isnull=True, solicitado_por=solicitante)
+        )[:8]
+
+    return render(
+        request,
+        "tecnologia/pedido_servico.html",
+        {
+            "pedido_form": pedido_form,
+            "chamados_usuario": chamados_usuario,
+        }
+    )
+
+
+@login_required
+def tecnologia_chamados(request):
+    if not usuario_equipe_ti(request.user):
+        messages.error(
+            request,
+            "A tela de chamados do TI e restrita. Voce pode acompanhar somente suas solicitacoes."
+        )
+        return redirect("tecnologia_pedido_servico")
+
+    filtro_status = request.GET.get("status", "ativos")
+
+    if filtro_status not in FILTROS_CHAMADOS_VALIDOS:
+        filtro_status = "ativos"
+
+    if request.method == "POST":
+        chamado = get_object_or_404(
+            ChamadoManutencaoTI,
+            id=request.POST.get("chamado_id")
+        )
+        resposta_anterior = (chamado.resposta_ti or "").strip()
+        form = AtendimentoTIForm(request.POST, instance=chamado)
+
+        if form.is_valid():
+            chamado_atualizado = form.save(commit=False)
+            nova_resposta = (form.cleaned_data.get("resposta_ti") or "").strip()
+
+            if nova_resposta and nova_resposta != resposta_anterior:
+                chamado_atualizado.respondido_por = nome_usuario_chamado(request)
+                chamado_atualizado.respondido_em = timezone.now()
+
+            if chamado_atualizado.status in (
+                ChamadoManutencaoTI.CONCLUIDO,
+                ChamadoManutencaoTI.CANCELADO,
+            ):
+                chamado_atualizado.concluido_em = timezone.now()
+            else:
+                chamado_atualizado.concluido_em = None
+
+            chamado_atualizado.save()
+            messages.success(
+                request,
+                f"Chamado #{chamado_atualizado.id} atualizado."
+            )
+        else:
+            messages.error(request, "Nao foi possivel atualizar este chamado.")
+
+        return redirect(f"{reverse('tecnologia_chamados')}?status={filtro_status}")
+
+    chamados_base = ChamadoManutencaoTI.objects.select_related(
+        "equipamento",
+        "solicitante",
+    ).all()
+    status_por_filtro = {
+        chave: status
+        for chave, _, status in FILTROS_CHAMADOS_TI
+    }
+    status_filtrados = status_por_filtro.get(filtro_status)
+    chamados = chamados_base
+
+    if status_filtrados:
+        chamados = chamados.filter(status__in=status_filtrados)
+
+    filtros_chamados = []
+
+    for chave, label, status_lista in FILTROS_CHAMADOS_TI:
+        total = (
+            chamados_base.count()
+            if status_lista is None
+            else chamados_base.filter(status__in=status_lista).count()
+        )
+        filtros_chamados.append(
+            {
+                "chave": chave,
+                "label": label,
+                "total": total,
+                "ativo": filtro_status == chave,
+            }
+        )
+
+    return render(
+        request,
+        "tecnologia/chamados_ti.html",
+        {
+            "chamados": chamados[:30],
+            "filtro_status": filtro_status,
+            "filtros_chamados": filtros_chamados,
+            "status_choices": ChamadoManutencaoTI.STATUS_CHOICES,
+            "prioridade_choices": ChamadoManutencaoTI.PRIORIDADE_CHOICES,
+            "total_ativos": chamados_base.filter(
+                status__in=ChamadoManutencaoTI.STATUS_ATIVOS
+            ).count(),
+            "total_abertos": chamados_base.filter(
+                status=ChamadoManutencaoTI.ABERTO
+            ).count(),
+            "total_andamento": chamados_base.filter(
+                status=ChamadoManutencaoTI.EM_ANDAMENTO
+            ).count(),
+            "total_concluidos": chamados_base.filter(
+                status=ChamadoManutencaoTI.CONCLUIDO
+            ).count(),
+        }
+    )
+
+
+@login_required
 def tecnologia_dashboard(request):
+    if not usuario_equipe_ti(request.user):
+        messages.error(
+            request,
+            "A area de Tecnologia e restrita. Use a tela de solicitacao para abrir ou acompanhar seu chamado."
+        )
+        return redirect("tecnologia_pedido_servico")
+
     equipamento_edicao = None
     resultados_rastreio = None
     resumo_rastreio = None
@@ -1000,7 +1199,14 @@ def tecnologia_dashboard(request):
     if aba_equipamentos not in ABAS_EQUIPAMENTOS_VALIDAS:
         aba_equipamentos = "todos"
 
-    equipamentos = equipamentos_base
+    equipamentos = equipamentos_base.annotate(
+        chamados_abertos=Count(
+            "chamados_manutencao",
+            filter=Q(
+                chamados_manutencao__status__in=ChamadoManutencaoTI.STATUS_ATIVOS
+            )
+        )
+    )
     tipo_por_aba = {
         chave: tipo
         for chave, _, tipo in ABAS_EQUIPAMENTOS_TIPO

@@ -58,6 +58,21 @@
             font-weight: 800;
         }
 
+        .page-header-actions {
+            align-items: center;
+            display: flex;
+            gap: 10px;
+        }
+
+        .panico-medico-form {
+            margin: 0;
+        }
+
+        .panico-medico-form .btn {
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, .18);
+            white-space: nowrap;
+        }
+
         .paciente-bar {
             background: #fff;
             border: 1px solid var(--borda);
@@ -137,6 +152,20 @@
             color: var(--muted);
             font-size: 13px;
             font-weight: 700;
+        }
+
+        @media (max-width: 768px) {
+            .page-header {
+                align-items: flex-start !important;
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .page-header-actions {
+                align-items: stretch;
+                flex-direction: column;
+                width: 100%;
+            }
         }
 
         .passagens-dia-badge {

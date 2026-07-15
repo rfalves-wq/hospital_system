@@ -27,6 +27,7 @@ class Acolhimento(models.Model):
     ('RETORNO_MEDICO', 'Retorno ao Médico'),
     ('OBSERVACAO', 'Em Observação'),
     ('INTERNACAO', 'Internação'),
+    ('AUSENTE', 'Ausente'),
     ('FINALIZADO', 'Finalizado'),
 ]
 
@@ -105,6 +106,20 @@ class Acolhimento(models.Model):
         max_length=20,
         choices=STATUS_CHOICES,
         default='RECEPCAO'
+    )
+
+    status_antes_ausencia = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        blank=True,
+        default='',
+        verbose_name='Status antes da ausÃªncia'
+    )
+
+    data_ausente = models.DateTimeField(
+        blank=True,
+        null=True,
+        verbose_name='Data da ausÃªncia'
     )
 
     hora_chegada = models.TimeField(

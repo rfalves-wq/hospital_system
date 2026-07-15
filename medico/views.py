@@ -4,14 +4,30 @@ from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
-from django.views.decorators.http import require_POST
+from django.utils.http import url_has_allowed_host_and_scheme
+from django.views.decorators.http import require_GET, require_POST
 
 from acolhimento.models import Acolhimento
 from acolhimento.utils import passagens_do_paciente_no_dia
 from farmacia.models import MedicamentoEstoque
+from painel.models import ChamadaPainel
+from painel.services import (
+    anexar_status_chamadas,
+    marcar_acolhimento_ausente,
+    registrar_ausencia,
+    registrar_chamada_limitada,
+    registrar_retorno,
+    reativar_acolhimento_ausente,
+    total_chamadas_setor,
+)
 
 from .forms import ConsultaMedicaForm
-from .models import ConsultaMedica, CID, TransferenciaConsultaMedica
+from .models import (
+    AlertaPanicoMedico,
+    ConsultaMedica,
+    CID,
+    TransferenciaConsultaMedica,
+)
 
 
 def nome_usuario(request):
@@ -19,6 +35,86 @@ def nome_usuario(request):
         return request.user.get_full_name() or request.user.username
 
     return ""
+
+
+def chave_consultorio_medico(request):
+    if request.user.is_authenticated:
+        return f"medico_consultorio_atual_{request.user.pk}"
+
+    return "medico_consultorio_atual"
+
+
+def normalizar_consultorio_medico(consultorio):
+    consultorio = (consultorio or "").strip()
+    consultorio = " ".join(consultorio.split())
+
+    if consultorio.isdigit():
+        consultorio = f"Consultorio {consultorio}"
+
+    return consultorio[:80]
+
+
+def consultorio_medico_atual(request):
+    return request.session.get(chave_consultorio_medico(request), "")
+
+
+def consultorio_medico_informado(request):
+    return normalizar_consultorio_medico(request.POST.get("consultorio"))
+
+
+def dados_paciente_panico(acolhimento):
+    if not acolhimento:
+        return "", ""
+
+    paciente_nome = (
+        acolhimento.paciente.nome_completo
+        if acolhimento.paciente
+        else acolhimento.nome_paciente
+    )
+    return paciente_nome or "", acolhimento.numero_bam or ""
+
+
+def mensagem_panico_medico(medico_nome, consultorio, paciente_nome, numero_bam):
+    partes = [
+        f"{medico_nome} solicitou ajuda imediata",
+        f"Local: {consultorio or 'Consultorio nao informado'}",
+    ]
+
+    if paciente_nome:
+        paciente = paciente_nome
+        if numero_bam:
+            paciente = f"{paciente} - BAM {numero_bam}"
+        partes.append(f"Paciente: {paciente}")
+
+    return " | ".join(partes)
+
+
+def redirecionamento_seguro(request, padrao):
+    destino = request.POST.get("next") or ""
+
+    if destino and url_has_allowed_host_and_scheme(
+        destino,
+        allowed_hosts={request.get_host()},
+    ):
+        return destino
+
+    return padrao
+
+
+def ultimo_consultorio_chamado(acolhimento):
+    chamada = (
+        ChamadaPainel.objects
+        .filter(
+            acolhimento=acolhimento,
+            setor=ChamadaPainel.MEDICO,
+            tipo=ChamadaPainel.CHAMADA,
+        )
+        .exclude(local_destino="")
+        .order_by("-id")
+        .first()
+    )
+
+    return chamada.local_destino if chamada else "Consultorio medico"
 
 
 def registrar_transferencia_medico(
@@ -52,11 +148,16 @@ def registrar_transferencia_medico(
 def medico_dashboard(request):
     dados_impressao = buscar_dados_impressao_medico(request)
     nome_medico = nome_usuario(request)
+    hoje = timezone.now().date()
+    consultorio_atual = consultorio_medico_atual(request)
 
     acolhimentos = (
         Acolhimento.objects
         .select_related("paciente", "classificacao", "consulta_medica")
-        .filter(status__in=["CONSULTA", "RETORNO_MEDICO"])
+        .filter(
+            data_acolhimento__date=hoje,
+            status__in=["CONSULTA", "RETORNO_MEDICO"],
+        )
         .order_by("data_acolhimento")
     )
 
@@ -67,7 +168,10 @@ def medico_dashboard(request):
             "acolhimento__paciente",
             "acolhimento__classificacao"
         )
-        .filter(medico_responsavel=nome_medico)
+        .filter(
+            acolhimento__data_acolhimento__date=hoje,
+            medico_responsavel=nome_medico,
+        )
         .order_by("-data_consulta")
     )
 
@@ -78,24 +182,262 @@ def medico_dashboard(request):
             "acolhimento__paciente",
             "acolhimento__classificacao"
         )
-        .exclude(acolhimento__status="FINALIZADO")
+        .filter(acolhimento__data_acolhimento__date=hoje)
+        .exclude(acolhimento__status__in=["FINALIZADO", "AUSENTE"])
         .order_by("-data_consulta")
     )
+    ausentes_medico = (
+        Acolhimento.objects
+        .select_related("paciente", "classificacao", "consulta_medica")
+        .filter(
+            data_acolhimento__date=hoje,
+            status="AUSENTE",
+        )
+        .filter(
+            Q(status_antes_ausencia__in=["CONSULTA", "RETORNO_MEDICO"])
+            | Q(
+                status_antes_ausencia="",
+                chamadas_painel__setor=ChamadaPainel.MEDICO,
+                chamadas_painel__tipo=ChamadaPainel.AUSENCIA,
+            )
+        )
+        .distinct()
+        .order_by("-data_ausente", "data_acolhimento")
+    )
+    acolhimentos = list(acolhimentos)
+    anexar_status_chamadas(acolhimentos, ChamadaPainel.MEDICO)
 
     return render(
         request,
         "medico/dashboard.html",
         {
             "acolhimentos": acolhimentos,
-            "total_consulta": acolhimentos.count(),
+            "total_consulta": len(acolhimentos),
             "minhas_consultas": minhas_consultas,
             "total_minhas_consultas": minhas_consultas.count(),
             "consultas_ativas": consultas_ativas,
             "total_consultas_ativas": consultas_ativas.count(),
+            "ausentes_medico": ausentes_medico,
+            "total_ausentes_medico": ausentes_medico.count(),
             "dados_impressao_medico": dados_impressao,
             "medico_atual": nome_medico,
+            "consultorio_medico_atual": consultorio_atual,
         }
     )
+
+
+@require_POST
+def definir_consultorio_medico(request):
+    consultorio = consultorio_medico_informado(request)
+
+    if not consultorio:
+        messages.warning(
+            request,
+            "Informe o consultorio antes de iniciar as chamadas."
+        )
+        return redirect("medico_dashboard")
+
+    request.session[chave_consultorio_medico(request)] = consultorio
+    request.session.modified = True
+
+    messages.success(
+        request,
+        f"Consultorio medico definido como {consultorio}."
+    )
+
+    return redirect("medico_dashboard")
+
+
+@require_POST
+def acionar_panico_medico(request):
+    acolhimento = None
+    acolhimento_id = request.POST.get("acolhimento_id")
+
+    if acolhimento_id:
+        acolhimento = (
+            Acolhimento.objects
+            .select_related("paciente")
+            .filter(id=acolhimento_id)
+            .first()
+        )
+
+    medico = request.user if request.user.is_authenticated else None
+    medico_nome = nome_usuario(request) or "Medico"
+    consultorio = consultorio_medico_atual(request) or "Consultorio nao informado"
+    paciente_nome, numero_bam = dados_paciente_panico(acolhimento)
+    mensagem = mensagem_panico_medico(
+        medico_nome,
+        consultorio,
+        paciente_nome,
+        numero_bam,
+    )
+
+    AlertaPanicoMedico.objects.create(
+        medico=medico,
+        acolhimento=acolhimento,
+        medico_nome=medico_nome,
+        consultorio=consultorio,
+        paciente_nome=paciente_nome,
+        numero_bam=numero_bam,
+        mensagem=mensagem,
+    )
+
+    messages.warning(
+        request,
+        "Alerta de panico enviado para as telas do sistema."
+    )
+
+    return redirect(redirecionamento_seguro(request, "medico_dashboard"))
+
+
+@require_GET
+def status_panico_medico(request):
+    alertas_ativos = AlertaPanicoMedico.objects.filter(ativo=True)
+    alerta = alertas_ativos.order_by("-criado_em").first()
+
+    if not alerta:
+        return JsonResponse({"ativo": False})
+
+    return JsonResponse({
+        "ativo": True,
+        "id": alerta.id,
+        "total": alertas_ativos.count(),
+        "medico": alerta.medico_nome,
+        "consultorio": alerta.consultorio or "Consultorio nao informado",
+        "paciente": alerta.paciente_nome,
+        "bam": alerta.numero_bam,
+        "mensagem": alerta.mensagem,
+        "criado_em": alerta.criado_em.strftime("%d/%m/%Y %H:%M:%S"),
+    })
+
+
+@require_POST
+def encerrar_panico_medico(request):
+    encerrado_por = nome_usuario(request) or "Usuario do sistema"
+    agora = timezone.now()
+    total = (
+        AlertaPanicoMedico.objects
+        .filter(ativo=True)
+        .update(
+            ativo=False,
+            encerrado_em=agora,
+            encerrado_por=encerrado_por,
+        )
+    )
+
+    return JsonResponse({
+        "ok": True,
+        "encerrados": total,
+    })
+
+
+def chamar_paciente_medico(request, acolhimento_id):
+    if request.method != "POST":
+        return redirect("medico_dashboard")
+
+    acolhimento = get_object_or_404(
+        Acolhimento.objects.select_related("paciente"),
+        id=acolhimento_id,
+        status__in=["CONSULTA", "RETORNO_MEDICO"],
+    )
+    consultorio = consultorio_medico_atual(request)
+
+    if not consultorio:
+        messages.warning(
+            request,
+            "Antes de chamar pacientes, informe o consultorio onde voce esta atendendo."
+        )
+        return redirect("medico_dashboard")
+
+    chamada, total = registrar_chamada_limitada(
+        ChamadaPainel.MEDICO,
+        acolhimento,
+        request,
+        local_destino=consultorio,
+    )
+
+    if not chamada:
+        messages.warning(
+            request,
+            f"BAM {acolhimento.numero_bam} ja foi chamado 4 vezes. Use Ausentar."
+        )
+        return redirect("medico_dashboard")
+
+    messages.success(
+        request,
+        f"Chamada {total}/4 registrada para o BAM {acolhimento.numero_bam} no {consultorio}."
+    )
+
+    return redirect("medico_dashboard")
+
+
+def ausentar_paciente_medico(request, acolhimento_id):
+    if request.method != "POST":
+        return redirect("medico_dashboard")
+
+    acolhimento = get_object_or_404(
+        Acolhimento.objects.select_related("paciente"),
+        id=acolhimento_id,
+        status__in=["CONSULTA", "RETORNO_MEDICO"],
+    )
+    total = total_chamadas_setor(ChamadaPainel.MEDICO, acolhimento)
+
+    if total < 4:
+        faltam = 4 - total
+        messages.warning(
+            request,
+            f"Para ausentar o BAM {acolhimento.numero_bam}, registre mais {faltam} chamada(s)."
+        )
+        return redirect("medico_dashboard")
+
+    registrar_ausencia(
+        ChamadaPainel.MEDICO,
+        acolhimento,
+        request,
+        local_destino=ultimo_consultorio_chamado(acolhimento),
+    )
+    marcar_acolhimento_ausente(acolhimento)
+
+    messages.warning(
+        request,
+        f"BAM {acolhimento.numero_bam} marcado como ausente no medico."
+    )
+
+    return redirect("medico_dashboard")
+
+
+def retornar_ausente_medico(request, acolhimento_id):
+    if request.method != "POST":
+        return redirect("medico_dashboard")
+
+    acolhimento = get_object_or_404(
+        Acolhimento.objects.select_related("paciente"),
+        id=acolhimento_id,
+        status="AUSENTE",
+    )
+    status_retorno = acolhimento.status_antes_ausencia or "CONSULTA"
+
+    if status_retorno not in ["CONSULTA", "RETORNO_MEDICO"]:
+        messages.warning(
+            request,
+            f"BAM {acolhimento.numero_bam} esta ausente em outro setor."
+        )
+        return redirect("medico_dashboard")
+
+    registrar_retorno(
+        ChamadaPainel.MEDICO,
+        acolhimento,
+        request,
+        local_destino=ultimo_consultorio_chamado(acolhimento),
+    )
+    reativar_acolhimento_ausente(acolhimento, "CONSULTA")
+
+    messages.success(
+        request,
+        f"BAM {acolhimento.numero_bam} retornou para a fila medica."
+    )
+
+    return redirect("medico_dashboard")
 
 
 def buscar_dados_impressao_medico(request):
@@ -478,7 +820,7 @@ def atender_paciente(request, acolhimento_id):
     )
     pode_assumir_consulta = bool(
         consulta
-        and acolhimento.status != "FINALIZADO"
+        and acolhimento.status not in ["FINALIZADO", "AUSENTE"]
         and (not medico_atual or consulta.medico_responsavel != medico_atual)
     )
 
@@ -528,10 +870,10 @@ def assumir_paciente(request, acolhimento_id):
         )
         return redirect("atender_paciente", acolhimento_id=acolhimento.id)
 
-    if acolhimento.status == "FINALIZADO":
+    if acolhimento.status in ["FINALIZADO", "AUSENTE"]:
         messages.warning(
             request,
-            "Paciente finalizado não pode ser assumido por outro médico."
+            "Paciente finalizado ou ausente nao pode ser assumido por outro medico."
         )
         return redirect("medico_dashboard")
 

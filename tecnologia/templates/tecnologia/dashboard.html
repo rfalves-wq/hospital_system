@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'tecnologia/css/dashboard.css' %}?v=20260714-14">
+<link rel="stylesheet" href="{% static 'tecnologia/css/dashboard.css' %}?v=20260714-17">
 {% endblock %}
 
 {% block content %}
@@ -14,13 +14,23 @@
                 <small>Monitoramento dos equipamentos de rede e esta&ccedil;&otilde;es cadastradas</small>
             </div>
 
-            <form method="post">
-                {% csrf_token %}
-                <input type="hidden" name="acao" value="verificar_todos">
-                <button type="submit" class="btn btn-light fw-bold">
-                    Verificar agora
-                </button>
-            </form>
+            <div class="page-header-actions">
+                <a href="{% url 'tecnologia_pedido_servico' %}" class="btn btn-outline-light fw-bold">
+                    Solicitar TI
+                </a>
+
+                <a href="{% url 'tecnologia_chamados' %}" class="btn btn-outline-light fw-bold">
+                    Chamados TI
+                </a>
+
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="acao" value="verificar_todos">
+                    <button type="submit" class="btn btn-light fw-bold">
+                        Verificar agora
+                    </button>
+                </form>
+            </div>
         </div>
 
         <div class="page-body">
@@ -95,6 +105,9 @@
                                             {{ equipamento.get_tipo_display }}
                                             {% if equipamento.setor %}
                                                 &bull; {{ equipamento.setor }}
+                                            {% endif %}
+                                            {% if equipamento.chamados_abertos %}
+                                                &bull; {{ equipamento.chamados_abertos }} chamado(s)
                                             {% endif %}
                                         </div>
                                         <div class="equipment-address">
