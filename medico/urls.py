@@ -29,24 +29,6 @@ urlpatterns = [
     ),
 
     path(
-        "panico/acionar/",
-        views.acionar_panico_medico,
-        name="acionar_panico_medico"
-    ),
-
-    path(
-        "panico/status/",
-        views.status_panico_medico,
-        name="status_panico_medico"
-    ),
-
-    path(
-        "panico/encerrar/",
-        views.encerrar_panico_medico,
-        name="encerrar_panico_medico"
-    ),
-
-    path(
         "atender/<int:acolhimento_id>/",
         views.atender_paciente,
         name="atender_paciente"

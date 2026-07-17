@@ -1,0 +1,197 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/seguranca.css' %}?v=20260717-2">
+{% endblock %}
+
+{% block content %}
+<div class="security-page">
+    <div class="security-shell">
+
+        <section class="security-header">
+            <div>
+                <span class="security-kicker">Login e Seguran&ccedil;a</span>
+                <h1>{{ titulo }}</h1>
+                <p>{{ subtitulo }}</p>
+            </div>
+
+            <div class="security-actions">
+                <a href="{% url 'seguranca_usuarios' %}" class="btn-security">
+                    Usu&aacute;rios
+                </a>
+                <a href="{% url 'seguranca_dashboard' %}" class="btn-security">
+                    Resumo
+                </a>
+            </div>
+        </section>
+
+        {% if messages %}
+            <div class="security-messages">
+                {% for message in messages %}
+                    <div class="security-message {{ message.tags }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <form method="post" class="security-form">
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+                <div class="form-errors">
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
+
+            <section class="security-card">
+                <div class="security-card-head">
+                    <div>
+                        <h2>Dados do usu&aacute;rio</h2>
+                        <p>Identifica&ccedil;&atilde;o usada no login e no sistema.</p>
+                    </div>
+                    {% if usuario_editado %}
+                        {% if usuario_editado.is_active %}
+                            <span class="status-pill active">Ativo</span>
+                        {% else %}
+                            <span class="status-pill inactive">Inativo</span>
+                        {% endif %}
+                    {% endif %}
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-field">
+                        <label for="{{ form.username.id_for_label }}">{{ form.username.label }}</label>
+                        {{ form.username }}
+                        {{ form.username.errors }}
+                    </div>
+
+                    <div class="form-field">
+                        <label for="{{ form.first_name.id_for_label }}">{{ form.first_name.label }}</label>
+                        {{ form.first_name }}
+                        {{ form.first_name.errors }}
+                    </div>
+
+                    <div class="form-field">
+                        <label for="{{ form.last_name.id_for_label }}">{{ form.last_name.label }}</label>
+                        {{ form.last_name }}
+                        {{ form.last_name.errors }}
+                    </div>
+
+                    <div class="form-field">
+                        <label for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
+                        {{ form.email }}
+                        {{ form.email.errors }}
+                    </div>
+
+                    <div class="form-field">
+                        <label for="{{ form.cargo.id_for_label }}">{{ form.cargo.label }}</label>
+                        {{ form.cargo }}
+                        {{ form.cargo.errors }}
+                    </div>
+
+                    <div class="form-field">
+                        <label for="{{ form.unidade.id_for_label }}">{{ form.unidade.label }}</label>
+                        {{ form.unidade }}
+                        {{ form.unidade.errors }}
+                    </div>
+                </div>
+            </section>
+
+            <section class="security-card">
+                <div class="security-card-head">
+                    <div>
+                        <h2>Senha e situa&ccedil;&atilde;o</h2>
+                        {% if usuario_editado %}
+                            <p>Preencha a senha apenas se quiser trocar.</p>
+                        {% else %}
+                            <p>Defina a senha inicial do usu&aacute;rio.</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-field">
+                        <label for="{{ form.password1.id_for_label }}">{{ form.password1.label }}</label>
+                        {{ form.password1 }}
+                        {{ form.password1.errors }}
+                    </div>
+
+                    <div class="form-field">
+                        <label for="{{ form.password2.id_for_label }}">{{ form.password2.label }}</label>
+                        {{ form.password2 }}
+                        {{ form.password2.errors }}
+                    </div>
+                </div>
+
+                <div class="toggle-grid">
+                    <label class="security-toggle">
+                        {{ form.is_active }}
+                        <span>
+                            <strong>{{ form.is_active.label }}</strong>
+                            <small>Desmarque para bloquear o login sem apagar o cadastro.</small>
+                        </span>
+                    </label>
+
+                    <label class="security-toggle">
+                        {{ form.is_staff }}
+                        <span>
+                            <strong>{{ form.is_staff.label }}</strong>
+                            <small>{{ form.is_staff.help_text }}</small>
+                        </span>
+                    </label>
+
+                    <label class="security-toggle">
+                        {{ form.is_superuser }}
+                        <span>
+                            <strong>{{ form.is_superuser.label }}</strong>
+                            <small>{{ form.is_superuser.help_text }}</small>
+                        </span>
+                    </label>
+                </div>
+            </section>
+
+            <div class="security-layout access-layout">
+                <section class="security-card">
+                    <div class="security-card-head">
+                        <div>
+                            <h2>Categorias</h2>
+                            <p>Escolha um ou mais perfis para liberar pain&eacute;is automaticamente.</p>
+                        </div>
+                    </div>
+
+                    <div class="choice-panel">
+                        {{ form.perfis_acesso }}
+                        {{ form.perfis_acesso.errors }}
+                    </div>
+                </section>
+
+                <section class="security-card">
+                    <div class="security-card-head">
+                        <div>
+                            <h2>Pain&eacute;is extras</h2>
+                            <p>Libere acessos pontuais fora da categoria principal.</p>
+                        </div>
+                    </div>
+
+                    <div class="choice-panel">
+                        {{ form.paineis_extra }}
+                        {{ form.paineis_extra.errors }}
+                    </div>
+                </section>
+            </div>
+
+            <div class="form-footer-actions">
+                <a href="{% url 'seguranca_usuarios' %}" class="btn-security">
+                    Cancelar
+                </a>
+                <button type="submit" class="btn-security primary">
+                    Salvar usu&aacute;rio
+                </button>
+            </div>
+        </form>
+
+    </div>
+</div>
+{% endblock %}

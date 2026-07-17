@@ -4,8 +4,7 @@ from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
-from django.utils.http import url_has_allowed_host_and_scheme
-from django.views.decorators.http import require_GET, require_POST
+from django.views.decorators.http import require_POST
 
 from acolhimento.models import Acolhimento
 from acolhimento.utils import passagens_do_paciente_no_dia
@@ -23,7 +22,6 @@ from painel.services import (
 
 from .forms import ConsultaMedicaForm
 from .models import (
-    AlertaPanicoMedico,
     ConsultaMedica,
     CID,
     TransferenciaConsultaMedica,
@@ -60,45 +58,6 @@ def consultorio_medico_atual(request):
 
 def consultorio_medico_informado(request):
     return normalizar_consultorio_medico(request.POST.get("consultorio"))
-
-
-def dados_paciente_panico(acolhimento):
-    if not acolhimento:
-        return "", ""
-
-    paciente_nome = (
-        acolhimento.paciente.nome_completo
-        if acolhimento.paciente
-        else acolhimento.nome_paciente
-    )
-    return paciente_nome or "", acolhimento.numero_bam or ""
-
-
-def mensagem_panico_medico(medico_nome, consultorio, paciente_nome, numero_bam):
-    partes = [
-        f"{medico_nome} solicitou ajuda imediata",
-        f"Local: {consultorio or 'Consultorio nao informado'}",
-    ]
-
-    if paciente_nome:
-        paciente = paciente_nome
-        if numero_bam:
-            paciente = f"{paciente} - BAM {numero_bam}"
-        partes.append(f"Paciente: {paciente}")
-
-    return " | ".join(partes)
-
-
-def redirecionamento_seguro(request, padrao):
-    destino = request.POST.get("next") or ""
-
-    if destino and url_has_allowed_host_and_scheme(
-        destino,
-        allowed_hosts={request.get_host()},
-    ):
-        return destino
-
-    return padrao
 
 
 def ultimo_consultorio_chamado(acolhimento):
@@ -246,89 +205,6 @@ def definir_consultorio_medico(request):
     )
 
     return redirect("medico_dashboard")
-
-
-@require_POST
-def acionar_panico_medico(request):
-    acolhimento = None
-    acolhimento_id = request.POST.get("acolhimento_id")
-
-    if acolhimento_id:
-        acolhimento = (
-            Acolhimento.objects
-            .select_related("paciente")
-            .filter(id=acolhimento_id)
-            .first()
-        )
-
-    medico = request.user if request.user.is_authenticated else None
-    medico_nome = nome_usuario(request) or "Medico"
-    consultorio = consultorio_medico_atual(request) or "Consultorio nao informado"
-    paciente_nome, numero_bam = dados_paciente_panico(acolhimento)
-    mensagem = mensagem_panico_medico(
-        medico_nome,
-        consultorio,
-        paciente_nome,
-        numero_bam,
-    )
-
-    AlertaPanicoMedico.objects.create(
-        medico=medico,
-        acolhimento=acolhimento,
-        medico_nome=medico_nome,
-        consultorio=consultorio,
-        paciente_nome=paciente_nome,
-        numero_bam=numero_bam,
-        mensagem=mensagem,
-    )
-
-    messages.warning(
-        request,
-        "Alerta de panico enviado para as telas do sistema."
-    )
-
-    return redirect(redirecionamento_seguro(request, "medico_dashboard"))
-
-
-@require_GET
-def status_panico_medico(request):
-    alertas_ativos = AlertaPanicoMedico.objects.filter(ativo=True)
-    alerta = alertas_ativos.order_by("-criado_em").first()
-
-    if not alerta:
-        return JsonResponse({"ativo": False})
-
-    return JsonResponse({
-        "ativo": True,
-        "id": alerta.id,
-        "total": alertas_ativos.count(),
-        "medico": alerta.medico_nome,
-        "consultorio": alerta.consultorio or "Consultorio nao informado",
-        "paciente": alerta.paciente_nome,
-        "bam": alerta.numero_bam,
-        "mensagem": alerta.mensagem,
-        "criado_em": alerta.criado_em.strftime("%d/%m/%Y %H:%M:%S"),
-    })
-
-
-@require_POST
-def encerrar_panico_medico(request):
-    encerrado_por = nome_usuario(request) or "Usuario do sistema"
-    agora = timezone.now()
-    total = (
-        AlertaPanicoMedico.objects
-        .filter(ativo=True)
-        .update(
-            ativo=False,
-            encerrado_em=agora,
-            encerrado_por=encerrado_por,
-        )
-    )
-
-    return JsonResponse({
-        "ok": True,
-        "encerrados": total,
-    })
 
 
 def chamar_paciente_medico(request, acolhimento_id):

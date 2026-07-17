@@ -16,6 +16,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
+from accounts.permissions import usuario_tem_painel
 from .forms import (
     AtendimentoTIForm,
     EquipamentoTIForm,
@@ -707,17 +708,7 @@ def usuario_equipe_ti(user):
     if not user.is_authenticated:
         return False
 
-    if user.is_staff or user.is_superuser:
-        return True
-
-    return user.groups.filter(
-        name__in=[
-            "TI",
-            "Tecnologia",
-            "Tecnologia da Informacao",
-            "Tecnologia da Informação",
-        ]
-    ).exists()
+    return usuario_tem_painel(user, "ti")
 
 
 def criar_equipamento_descoberto(

@@ -1,11 +1,11 @@
-ï»¿{% load static %}
+{% load static %}
 
 <!DOCTYPE html>
 <html lang="pt-br">
 
 <head>
     <meta charset="UTF-8">
-    <title>Consulta MÃ©dica</title>
+    <title>Consulta Médica</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -14,6 +14,7 @@
 </head>
 
 <body>
+    {% include "includes/relogio_global.html" %}
 
 <div class="container-fluid my-3">
 
@@ -21,28 +22,13 @@
 
         <div class="page-header d-flex justify-content-between align-items-center">
             <div>
-                <h3>Consulta MÃ©dica</h3>
-                <small>Atendimento clÃ­nico do paciente</small>
+                <h3>Consulta Médica</h3>
+                <small>Atendimento clínico do paciente</small>
             </div>
 
-            <div class="page-header-actions">
-                <form method="post"
-                      action="{% url 'acionar_panico_medico' %}"
-                      class="panico-medico-form">
-                    {% csrf_token %}
-                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
-                    <input type="hidden" name="acolhimento_id" value="{{ acolhimento.id }}">
-                    <button type="submit"
-                            class="btn btn-danger fw-bold"
-                            data-confirm-submit="Acionar alerta de pÃ¢nico para todos os computadores?">
-                        BotÃ£o do pÃ¢nico
-                    </button>
-                </form>
-
-                <a href="{% url 'medico_dashboard' %}" class="btn btn-light fw-bold">
-                    Voltar
-                </a>
-            </div>
+            <a href="{% url 'medico_dashboard' %}" class="btn btn-light fw-bold">
+                Voltar
+            </a>
         </div>
 
         <div class="card-body">
@@ -58,8 +44,8 @@
 
             {% if form.errors %}
                 <div class="alert alert-danger" id="formErrorSummary">
-                    <strong>NÃ£o foi possÃ­vel salvar a conduta.</strong><br>
-                    Confira os campos obrigatÃ³rios. Pode ter erro em outra aba.
+                    <strong>Não foi possível salvar a conduta.</strong><br>
+                    Confira os campos obrigatórios. Pode ter erro em outra aba.
 
                     <ul class="mb-0 mt-2">
                         {% for field in form %}
@@ -111,13 +97,13 @@
             {% if classificacao and classificacao.alergia %}
                 <div class="alerta-alergia-card" id="alertaAlergiaPaciente" role="alert">
                     <div class="alerta-alergia-titulo">
-                        AtenÃ§Ã£o: paciente com alergia registrada
+                        Atenção: paciente com alergia registrada
                     </div>
                     <div class="alerta-alergia-texto" id="textoAlergiaPaciente">
                         {{ classificacao.alergia }}
                     </div>
                     <div class="alerta-alergia-menor">
-                        Conferir antes de prescrever, solicitar ou administrar medicaÃ§Ã£o.
+                        Conferir antes de prescrever, solicitar ou administrar medicação.
                     </div>
                 </div>
             {% endif %}
@@ -130,9 +116,9 @@
                         </div>
 
                         <div class="passagens-dia-periodo">
-                            PerÃ­odo avaliado:
+                            Período avaliado:
                             {{ periodo_passagens_inicio|date:"d/m/Y H:i:s" }}
-                            atÃ©
+                            até
                             {{ periodo_passagens_fim|date:"d/m/Y" }} 23:59:59
                         </div>
                     </div>
@@ -186,7 +172,7 @@
                             {% empty %}
                                 <tr>
                                     <td colspan="6" class="text-muted fw-bold">
-                                        Nenhuma passagem encontrada neste perÃ­odo.
+                                        Nenhuma passagem encontrada neste período.
                                     </td>
                                 </tr>
                             {% endfor %}
@@ -200,7 +186,7 @@
                     <div class="responsavel-medico-topo">
                         <div>
                             <div class="passagens-dia-titulo">
-                                Responsabilidade mÃ©dica
+                                Responsabilidade médica
                             </div>
                             <div class="responsavel-medico-nome">
                                 {{ consulta.medico_responsavel|default:"-" }}
@@ -208,7 +194,7 @@
                             <div class="passagens-dia-periodo">
                                 CRM:
                                 {{ consulta.crm_medico|default:"-" }}
-                                Â· Consulta iniciada em
+                                · Consulta iniciada em
                                 {{ consulta.data_consulta|date:"d/m/Y H:i" }}
                             </div>
                         </div>
@@ -229,12 +215,12 @@
 
                             <div class="row g-2">
                                 <div class="col-md-4">
-                                    <label class="form-label fw-bold">Novo mÃ©dico responsÃ¡vel</label>
+                                    <label class="form-label fw-bold">Novo médico responsável</label>
                                     <input type="text"
                                            name="novo_medico"
                                            class="form-control"
                                            value="{{ medico_atual }}"
-                                           placeholder="Nome do mÃ©dico que assume"
+                                           placeholder="Nome do médico que assume"
                                            required>
                                 </div>
 
@@ -256,18 +242,18 @@
                                 </div>
 
                                 <div class="col-md-3">
-                                    <label class="form-label fw-bold">ObservaÃ§Ã£o</label>
+                                    <label class="form-label fw-bold">Observação</label>
                                     <input type="text"
                                            name="observacao"
                                            class="form-control"
-                                           placeholder="Ex: plantÃ£o noturno">
+                                           placeholder="Ex: plantão noturno">
                                 </div>
                             </div>
 
                             <div class="d-flex justify-content-end mt-2">
                                 <button type="submit"
                                         class="btn btn-success fw-bold"
-                                        data-confirm-submit="Confirmar passagem de responsabilidade mÃ©dica?">
+                                        data-confirm-submit="Confirmar passagem de responsabilidade médica?">
                                     Assumir paciente
                                 </button>
                             </div>
@@ -276,28 +262,28 @@
 
                     <div class="historico-transferencia">
                         <div class="passagens-dia-titulo">
-                            HistÃ³rico de passagem mÃ©dica
+                            Histórico de passagem médica
                         </div>
 
                         {% for transferencia in historico_transferencias %}
                             <div class="historico-transferencia-item">
                                 <strong>
                                     {{ transferencia.medico_anterior|default:"-" }}
-                                    â†’
+                                    ?
                                     {{ transferencia.medico_novo }}
                                 </strong>
                                 <div class="passagens-dia-periodo">
                                     {{ transferencia.get_motivo_display }}
-                                    Â·
+                                    ·
                                     {{ transferencia.data_transferencia|date:"d/m/Y H:i" }}
                                     {% if transferencia.observacao %}
-                                        Â· {{ transferencia.observacao }}
+                                        · {{ transferencia.observacao }}
                                     {% endif %}
                                 </div>
                             </div>
                         {% empty %}
                             <div class="text-muted fw-bold mt-2">
-                                Nenhuma passagem mÃ©dica registrada.
+                                Nenhuma passagem médica registrada.
                             </div>
                         {% endfor %}
                     </div>
@@ -317,7 +303,7 @@
 
                     <li class="nav-item" role="presentation">
                         <button class="nav-link" data-bs-toggle="tab" data-bs-target="#classificacao" type="button">
-                            ClassificaÃ§Ã£o
+                            Classificação
                         </button>
                     </li>
 
@@ -335,7 +321,7 @@
 
                     <li class="nav-item" role="presentation">
                         <button class="nav-link" data-bs-toggle="tab" data-bs-target="#laboratorio" type="button">
-                            LaboratÃ³rio
+                            Laboratório
                         </button>
                     </li>
 
@@ -353,13 +339,13 @@
 
                     <li class="nav-item" role="presentation">
                         <button class="nav-link" data-bs-toggle="tab" data-bs-target="#prescricao" type="button">
-                            PrescriÃ§Ã£o
+                            Prescrição
                         </button>
                     </li>
 
                     <li class="nav-item" role="presentation">
                         <button class="nav-link" data-bs-toggle="tab" data-bs-target="#orientacoes" type="button">
-                            OrientaÃ§Ãµes
+                            Orientações
                         </button>
                     </li>
 
@@ -378,7 +364,7 @@
                                 <div class="info-grid">
 
                                     <div class="info-item">
-                                        <div class="info-label">PressÃ£o arterial</div>
+                                        <div class="info-label">Pressão arterial</div>
                                         <div class="info-value">{{ acolhimento.pressao_arterial|default:"-" }}</div>
                                     </div>
 
@@ -386,7 +372,7 @@
                                         <div class="info-label">Temperatura</div>
                                         <div class="info-value">
                                             {% if acolhimento.temperatura %}
-                                                {{ acolhimento.temperatura }} Â°C
+                                                {{ acolhimento.temperatura }} °C
                                             {% else %}
                                                 -
                                             {% endif %}
@@ -394,12 +380,12 @@
                                     </div>
 
                                     <div class="info-item">
-                                        <div class="info-label">Freq. cardÃ­aca</div>
+                                        <div class="info-label">Freq. cardíaca</div>
                                         <div class="info-value">{{ acolhimento.pulso|default:"-" }} bpm</div>
                                     </div>
 
                                     <div class="info-item">
-                                        <div class="info-label">Freq. respiratÃ³ria</div>
+                                        <div class="info-label">Freq. respiratória</div>
                                         <div class="info-value">{{ acolhimento.frequencia_respiratoria|default:"-" }}</div>
                                     </div>
 
@@ -435,7 +421,7 @@
 
                         <div class="section-card">
                             <div class="section-head vermelho">
-                                Resumo da ClassificaÃ§Ã£o
+                                Resumo da Classificação
                             </div>
 
                             <div class="section-body">
@@ -443,7 +429,7 @@
                                     {% if classificacao.alergia %}
                                         <div class="alerta-alergia-card">
                                             <div class="alerta-alergia-titulo">
-                                                Alergia informada na classificaÃ§Ã£o
+                                                Alergia informada na classificação
                                             </div>
                                             <div class="alerta-alergia-texto">
                                                 {{ classificacao.alergia }}
@@ -454,10 +440,10 @@
                                     <div class="info-grid">
 
                                         <div class="info-item classificacao-destaque">
-                                            <div class="info-label">ClassificaÃ§Ã£o</div>
+                                            <div class="info-label">Classificação</div>
                                             <div class="info-value">
                                                 {% if classificacao.cor == "VERMELHO" %}
-                                                    <span class="badge-classificacao badge-vermelho">Vermelho - EmergÃªncia</span>
+                                                    <span class="badge-classificacao badge-vermelho">Vermelho - Emergência</span>
                                                 {% elif classificacao.cor == "LARANJA" %}
                                                     <span class="badge-classificacao badge-laranja">Laranja - Muito Urgente</span>
                                                 {% elif classificacao.cor == "AMARELO" %}
@@ -465,7 +451,7 @@
                                                 {% elif classificacao.cor == "VERDE" %}
                                                     <span class="badge-classificacao badge-verde">Verde - Pouco Urgente</span>
                                                 {% elif classificacao.cor == "AZUL" %}
-                                                    <span class="badge-classificacao badge-azul">Azul - NÃ£o Urgente</span>
+                                                    <span class="badge-classificacao badge-azul">Azul - Não Urgente</span>
                                                 {% else %}
                                                     {{ classificacao.get_cor_display }}
                                                 {% endif %}
@@ -473,7 +459,7 @@
                                         </div>
 
                                         <div class="info-item">
-                                            <div class="info-label">SaturaÃ§Ã£o de O2</div>
+                                            <div class="info-label">Saturação de O2</div>
                                             <div class="info-value">
                                                 {% if classificacao.saturacao %}
                                                     {{ classificacao.saturacao }}%
@@ -489,19 +475,19 @@
                                         </div>
 
                                         <div class="info-item">
-                                            <div class="info-label">Data da classificaÃ§Ã£o</div>
+                                            <div class="info-label">Data da classificação</div>
                                             <div class="info-value">{{ classificacao.data_classificacao|date:"d/m/Y H:i" }}</div>
                                         </div>
 
                                         <div class="info-item full">
-                                            <div class="info-label">Queixa da classificaÃ§Ã£o</div>
+                                            <div class="info-label">Queixa da classificação</div>
                                             <div class="info-value">{{ classificacao.queixa_principal|default:"-" }}</div>
                                         </div>
 
                                     </div>
                                 {% else %}
                                     <div class="alert alert-warning mb-0">
-                                        Nenhuma classificaÃ§Ã£o encontrada para este paciente.
+                                        Nenhuma classificação encontrada para este paciente.
                                     </div>
                                 {% endif %}
                             </div>
@@ -514,7 +500,7 @@
                         {% if classificacao %}
                             <div class="section-card">
                                 <div class="section-head vermelho">
-                                    Dados da ClassificaÃ§Ã£o de Risco
+                                    Dados da Classificação de Risco
                                 </div>
 
                                 <div class="section-body">
@@ -536,12 +522,12 @@
                                         </div>
 
                                         <div class="info-item">
-                                            <div class="info-label">ResponsÃ¡vel</div>
+                                            <div class="info-label">Responsável</div>
                                             <div class="info-value">{{ classificacao.usuario_responsavel|default:"-" }}</div>
                                         </div>
 
                                         <div class="info-item classificacao-destaque">
-                                            <div class="info-label">ClassificaÃ§Ã£o</div>
+                                            <div class="info-label">Classificação</div>
                                             <div class="info-value">{{ classificacao.get_cor_display }}</div>
                                         </div>
 
@@ -556,17 +542,17 @@
                                         </div>
 
                                         <div class="info-item">
-                                            <div class="info-label">PossÃ­vel gravidez</div>
+                                            <div class="info-label">Possível gravidez</div>
                                             <div class="info-value">{{ classificacao.get_possivel_gravidez_display|default:"-" }}</div>
                                         </div>
 
                                         <div class="info-item full">
-                                            <div class="info-label">DescriÃ§Ã£o do sintoma</div>
+                                            <div class="info-label">Descrição do sintoma</div>
                                             <div class="info-value">{{ classificacao.queixa_principal|default:"-" }}</div>
                                         </div>
 
                                         <div class="info-item">
-                                            <div class="info-label">DoenÃ§a preexistente</div>
+                                            <div class="info-label">Doença preexistente</div>
                                             <div class="info-value">{{ classificacao.doenca_pre_existente|default:"-" }}</div>
                                         </div>
 
@@ -581,12 +567,12 @@
                                         </div>
 
                                         <div class="info-item">
-                                            <div class="info-label">DeficiÃªncia</div>
+                                            <div class="info-label">Deficiência</div>
                                             <div class="info-value">{{ classificacao.deficiencia|default:"-" }}</div>
                                         </div>
 
                                         <div class="info-item">
-                                            <div class="info-label">SaturaÃ§Ã£o de O2</div>
+                                            <div class="info-label">Saturação de O2</div>
                                             <div class="info-value">
                                                 {% if classificacao.saturacao %}
                                                     {{ classificacao.saturacao }}%
@@ -616,7 +602,7 @@
                             </div>
                         {% else %}
                             <div class="alert alert-warning">
-                                Nenhuma classificaÃ§Ã£o encontrada para este paciente.
+                                Nenhuma classificação encontrada para este paciente.
                             </div>
                         {% endif %}
 
@@ -636,7 +622,7 @@
 
                                 <div class="row">
                                     <div class="col-md-4 mb-3">
-                                        <label class="form-label fw-bold">MÃ©dico responsÃ¡vel</label>
+                                        <label class="form-label fw-bold">Médico responsável</label>
                                         {{ form.medico_responsavel }}
                                         {{ form.medico_responsavel.errors }}
                                     </div>
@@ -654,7 +640,7 @@
                                             type="text"
                                             id="busca_cid"
                                             class="form-control"
-                                            placeholder="Digite o cÃ³digo ou nome do CID"
+                                            placeholder="Digite o código ou nome do CID"
                                             autocomplete="off">
 
                                         <div
@@ -667,7 +653,7 @@
                                         {{ form.cid.errors }}
 
                                         <div id="alerta-cid-agressao" class="cid-agressao-alerta d-none mt-2">
-                                            CID de agressÃ£o identificado. Paciente sinalizado em vermelho.
+                                            CID de agressão identificado. Paciente sinalizado em vermelho.
                                         </div>
                                     </div>
                                 </div>
@@ -679,19 +665,19 @@
                                 </div>
 
                                 <div class="mb-3">
-                                    <label class="form-label fw-bold">HistÃ³ria da doenÃ§a atual</label>
+                                    <label class="form-label fw-bold">História da doença atual</label>
                                     {{ form.historia_doenca_atual }}
                                     {{ form.historia_doenca_atual.errors }}
                                 </div>
 
                                 <div class="mb-3">
-                                    <label class="form-label fw-bold">Exame fÃ­sico</label>
+                                    <label class="form-label fw-bold">Exame físico</label>
                                     {{ form.exame_fisico }}
                                     {{ form.exame_fisico.errors }}
                                 </div>
 
                                 <div class="mb-3">
-                                    <label class="form-label fw-bold">HipÃ³tese diagnÃ³stica</label>
+                                    <label class="form-label fw-bold">Hipótese diagnóstica</label>
                                     {{ form.hipotese_diagnostica }}
                                     {{ form.hipotese_diagnostica.errors }}
                                 </div>
@@ -705,7 +691,7 @@
 
                         <div class="section-card">
                             <div class="section-head verde">
-                                Conduta MÃ©dica
+                                Conduta Médica
                             </div>
 
                             <div class="section-body">
@@ -722,7 +708,7 @@
                                         <div class="form-check">
                                             {{ form.solicita_medicacao }}
                                             <label class="form-check-label fw-bold">
-                                                MedicaÃ§Ã£o
+                                                Medicação
                                             </label>
                                         </div>
                                         {{ form.solicita_medicacao.errors }}
@@ -751,7 +737,7 @@
                                 </div>
 
                                 <div class="alert alert-warning mb-0">
-                                    Se marcar medicaÃ§Ã£o, laboratÃ³rio ou imagem, o paciente fica em procedimentos e depois retorna ao mÃ©dico para liberaÃ§Ã£o.
+                                    Se marcar medicação, laboratório ou imagem, o paciente fica em procedimentos e depois retorna ao médico para liberação.
                                 </div>
 
                             </div>
@@ -775,7 +761,7 @@
                                 </label>
 
                                 <div class="exam-help">
-                                    Marque os exames disponÃ­veis no hospital. O campo abaixo serÃ¡ preenchido automaticamente.
+                                    Marque os exames disponíveis no hospital. O campo abaixo será preenchido automaticamente.
                                 </div>
 
                                 <div class="exam-tools">
@@ -824,7 +810,7 @@
                                 </label>
 
                                 <div class="exam-help">
-                                    Clique no setor para abrir ou recolher. O campo abaixo serÃ¡ separado por setor automaticamente.
+                                    Clique no setor para abrir ou recolher. O campo abaixo será separado por setor automaticamente.
                                 </div>
 
                                 <div class="exam-tools">
@@ -851,14 +837,14 @@
                                     <div class="col-md-4">
                                         <div class="indicacao-imagem-box">
                                             <label class="form-label fw-bold">
-                                                IndicaÃ§Ã£o clÃ­nica para Raio-X
+                                                Indicação clínica para Raio-X
                                             </label>
 
                                             {{ form.indicacao_raiox }}
                                             {{ form.indicacao_raiox.errors }}
 
                                             <small class="text-muted d-block mt-1">
-                                                Ex: trauma, queda, dor torÃ¡cica, suspeita de fratura.
+                                                Ex: trauma, queda, dor torácica, suspeita de fratura.
                                             </small>
                                         </div>
                                     </div>
@@ -866,7 +852,7 @@
                                     <div class="col-md-4">
                                         <div class="indicacao-imagem-box">
                                             <label class="form-label fw-bold">
-                                                IndicaÃ§Ã£o clÃ­nica para Tomografia
+                                                Indicação clínica para Tomografia
                                             </label>
 
                                             {{ form.indicacao_tomografia }}
@@ -881,7 +867,7 @@
                                     <div class="col-md-4">
                                         <div class="indicacao-imagem-box">
                                             <label class="form-label fw-bold">
-                                                IndicaÃ§Ã£o clÃ­nica para outros exames
+                                                Indicação clínica para outros exames
                                             </label>
 
                                             {{ form.indicacao_outros_imagem }}
@@ -920,16 +906,16 @@
                                     <div class="col-md-6">
                                         <div class="resultado-box">
 
-                                            <h6 class="text-success">LaboratÃ³rio</h6>
+                                            <h6 class="text-success">Laboratório</h6>
 
                                             <label class="form-label fw-bold">
-                                                Pedido enviado ao laboratÃ³rio
+                                                Pedido enviado ao laboratório
                                             </label>
 
                                             <textarea class="form-control mb-2" readonly>{% if consulta %}{{ consulta.exames_laboratoriais }}{% else %}{{ form.instance.exames_laboratoriais }}{% endif %}</textarea>
 
                                             <label class="form-label fw-bold">
-                                                Resultado lanÃ§ado pelo laboratÃ³rio
+                                                Resultado lançado pelo laboratório
                                             </label>
 
                                             {% if consulta and consulta.resultado_exames_laboratoriais %}
@@ -938,7 +924,7 @@
                                                 <textarea class="form-control resultado-laudo mb-2" readonly>{{ form.instance.resultado_exames_laboratoriais }}</textarea>
                                             {% else %}
                                                 <div class="resultado-pendente mb-2">
-                                                    Resultado ainda nÃ£o lanÃ§ado.
+                                                    Resultado ainda não lançado.
                                                 </div>
                                             {% endif %}
 
@@ -955,7 +941,7 @@
                                             {% if consulta and consulta.tecnico_laboratorio_nome %}
                                                 <div class="mt-2">
                                                     <small class="text-muted">
-                                                        TÃ©cnico:
+                                                        Técnico:
                                                         <strong>{{ consulta.tecnico_laboratorio_nome }}</strong>
 
                                                         {% if consulta.tecnico_laboratorio_registro %}
@@ -967,7 +953,7 @@
                                             {% elif form.instance.tecnico_laboratorio_nome %}
                                                 <div class="mt-2">
                                                     <small class="text-muted">
-                                                        TÃ©cnico:
+                                                        Técnico:
                                                         <strong>{{ form.instance.tecnico_laboratorio_nome }}</strong>
 
                                                         {% if form.instance.tecnico_laboratorio_registro %}
@@ -1002,12 +988,12 @@
                                                 <textarea class="form-control resultado-laudo mb-2" readonly>{{ form.instance.resultado_exames_imagem }}</textarea>
                                             {% else %}
                                                 <div class="resultado-pendente mb-2">
-                                                    Resultado geral ainda nÃ£o lanÃ§ado.
+                                                    Resultado geral ainda não lançado.
                                                 </div>
                                             {% endif %}
 
                                             <div class="tecnico-lista mt-2">
-                                                <strong class="d-block mb-2">TÃ©cnicos por setor</strong>
+                                                <strong class="d-block mb-2">Técnicos por setor</strong>
 
                                                 {% if consulta and consulta.tecnico_raiox_nome %}
                                                     <div class="tecnico-linha">
@@ -1098,7 +1084,7 @@
                                                 {% endif %}
 
                                                 {% if not consulta.tecnico_raiox_nome and not consulta.tecnico_tomografia_nome and not consulta.tecnico_mamografia_nome and not consulta.tecnico_densitometria_nome and not form.instance.tecnico_raiox_nome and not form.instance.tecnico_tomografia_nome and not form.instance.tecnico_mamografia_nome and not form.instance.tecnico_densitometria_nome %}
-                                                    <small class="text-muted">Nenhum tÃ©cnico registrado ainda.</small>
+                                                    <small class="text-muted">Nenhum técnico registrado ainda.</small>
                                                 {% endif %}
                                             </div>
 
@@ -1116,9 +1102,9 @@
 
                         <div class="section-card">
                             <div class="section-head azul d-flex justify-content-between align-items-center gap-2">
-                                <span>PrescriÃ§Ã£o</span>
+                                <span>Prescrição</span>
                                 <button type="button" class="btn btn-light btn-sm fw-bold" data-print-medico="prescricao">
-                                    Imprimir prescriÃ§Ã£o
+                                    Imprimir prescrição
                                 </button>
                             </div>
 
@@ -1126,13 +1112,13 @@
                                 {% if classificacao and classificacao.alergia %}
                                     <div class="alerta-alergia-card">
                                         <div class="alerta-alergia-titulo">
-                                            Conferir alergia antes de prescrever medicaÃ§Ã£o
+                                            Conferir alergia antes de prescrever medicação
                                         </div>
                                         <div class="alerta-alergia-texto">
                                             {{ classificacao.alergia }}
                                         </div>
                                         <div class="alerta-alergia-menor">
-                                            O sistema vai pedir confirmaÃ§Ã£o ao usar medicamento, imprimir prescriÃ§Ã£o ou salvar conduta com medicaÃ§Ã£o.
+                                            O sistema vai pedir confirmação ao usar medicamento, imprimir prescrição ou salvar conduta com medicação.
                                         </div>
                                     </div>
                                 {% endif %}
@@ -1140,9 +1126,9 @@
                                 <div class="estoque-farmacia-box">
                                     <div class="estoque-farmacia-topo">
                                         <div>
-                                            <strong>Medicamentos disponÃ­veis na farmÃ¡cia</strong>
+                                            <strong>Medicamentos disponíveis na farmácia</strong>
                                             <div class="text-muted small">
-                                                Pesquise pelo nome, princÃ­pio ativo, apresentaÃ§Ã£o ou filtre por categoria e mÃ©todo.
+                                                Pesquise pelo nome, princípio ativo, apresentação ou filtre por categoria e método.
                                             </div>
                                         </div>
 
@@ -1156,7 +1142,7 @@
                                             type="text"
                                             id="buscaMedicamentoFarmacia"
                                             class="form-control"
-                                            placeholder="Buscar medicamento disponÃ­vel...">
+                                            placeholder="Buscar medicamento disponível...">
 
                                         <select id="categoriaMedicamentoFarmacia" class="form-select">
                                             <option value="">Todas as categorias</option>
@@ -1166,7 +1152,7 @@
                                         </select>
 
                                         <select id="metodoMedicamentoFarmacia" class="form-select">
-                                            <option value="">Todos os mÃ©todos</option>
+                                            <option value="">Todos os métodos</option>
                                             {% for valor, rotulo in metodos_aplicacao_farmacia %}
                                                 <option value="{{ valor }}">{{ rotulo }}</option>
                                             {% endfor %}
@@ -1180,7 +1166,7 @@
                                     <div class="estoque-farmacia-lista" id="listaMedicamentosFarmacia"></div>
                                 </div>
 
-                                <label class="form-label fw-bold">PrescriÃ§Ã£o mÃ©dica</label>
+                                <label class="form-label fw-bold">Prescrição médica</label>
                                 {{ form.prescricao }}
                                 {{ form.prescricao.errors }}
                             </div>
@@ -1192,14 +1178,14 @@
 
                         <div class="section-card">
                             <div class="section-head azul d-flex justify-content-between align-items-center gap-2">
-                                <span>OrientaÃ§Ãµes</span>
+                                <span>Orientações</span>
                                 <button type="button" class="btn btn-light btn-sm fw-bold" data-print-medico="orientacoes">
                                     Imprimir alta
                                 </button>
                             </div>
 
                             <div class="section-body">
-                                <label class="form-label fw-bold">OrientaÃ§Ãµes ao paciente</label>
+                                <label class="form-label fw-bold">Orientações ao paciente</label>
                                 {{ form.orientacoes }}
                                 {{ form.orientacoes.errors }}
                             </div>
@@ -1239,7 +1225,6 @@
 <div id="medico-atender-config" data-buscar-medicamento-farmacia-url="{% url 'buscar_medicamento_farmacia' %}" hidden></div>
 <script src="{% static 'medico/js/atender.js' %}?v=20260711-2"></script>
 
-{% include "includes/panico_medico.html" %}
 </body>
 </html>
 

@@ -1,0 +1,277 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/seguranca.css' %}?v=20260717-2">
+{% endblock %}
+
+{% block content %}
+<div class="security-page">
+    <div class="security-shell">
+
+        <section class="security-header">
+            <div>
+                <span class="security-kicker">Login e Seguran&ccedil;a</span>
+                <h1>Usu&aacute;rios e acessos</h1>
+                <p>Perfis, pain&eacute;is liberados e situa&ccedil;&atilde;o dos usu&aacute;rios cadastrados.</p>
+            </div>
+
+            <div class="security-actions">
+                <a href="{% url 'seguranca_usuario_novo' %}" class="btn-security primary">
+                    Novo usu&aacute;rio
+                </a>
+                <a href="{% url 'seguranca_usuarios' %}" class="btn-security">
+                    Usu&aacute;rios
+                </a>
+                <a href="{% url 'dashboard' %}" class="btn-security">
+                    Dashboard
+                </a>
+            </div>
+        </section>
+
+        {% if messages %}
+            <div class="security-messages">
+                {% for message in messages %}
+                    <div class="security-message {{ message.tags }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <section class="security-metrics" aria-label="Resumo dos usuarios">
+            <article class="security-metric metric-total">
+                <span>Total</span>
+                <strong>{{ totais.usuarios }}</strong>
+                <small>usu&aacute;rio(s) cadastrado(s)</small>
+            </article>
+
+            <article class="security-metric metric-active">
+                <span>Ativos</span>
+                <strong>{{ totais.ativos }}</strong>
+                <small>podem acessar o sistema</small>
+            </article>
+
+            <article class="security-metric metric-inactive">
+                <span>Inativos</span>
+                <strong>{{ totais.inativos }}</strong>
+                <small>bloqueados no login</small>
+            </article>
+
+            <article class="security-metric metric-admin">
+                <span>Equipe</span>
+                <strong>{{ totais.equipe }}</strong>
+                <small>acessam a administra&ccedil;&atilde;o</small>
+            </article>
+
+            <article class="security-metric metric-admin">
+                <span>Admin</span>
+                <strong>{{ totais.administradores }}</strong>
+                <small>superusu&aacute;rio(s)</small>
+            </article>
+
+            <article class="security-metric metric-warning">
+                <span>Sem acesso</span>
+                <strong>{{ totais.sem_acesso }}</strong>
+                <small>sem perfil ou painel extra</small>
+            </article>
+        </section>
+
+        <section class="security-card attendance-card-section">
+            <div class="security-card-head">
+                <div>
+                    <h2>Atendimentos de hoje por usu&aacute;rio</h2>
+                    <p>Quantidade registrada em {{ data_atendimentos_hoje|date:"d/m/Y" }}.</p>
+                </div>
+                <span class="head-note">Dia atual</span>
+            </div>
+
+            <div class="attendance-grid">
+                {% for usuario in usuarios_atendimento_hoje %}
+                    <article class="attendance-user-card">
+                        <div class="attendance-user-main">
+                            <div>
+                                <strong>{{ usuario.get_full_name|default:usuario.username }}</strong>
+                                <small>{{ usuario.username }}</small>
+                            </div>
+                            <span class="attendance-total">{{ usuario.atendimentos_hoje_total }}</span>
+                        </div>
+
+                        <div class="attendance-breakdown">
+                            {% for item in usuario.atendimentos_hoje_detalhes %}
+                                <span>{{ item.nome }}: {{ item.total }}</span>
+                            {% empty %}
+                                <span class="muted-pill">Nenhum atendimento hoje</span>
+                            {% endfor %}
+                        </div>
+                    </article>
+                {% empty %}
+                    <div class="empty-state">
+                        Nenhum usu&aacute;rio ativo encontrado.
+                    </div>
+                {% endfor %}
+            </div>
+        </section>
+
+        <div class="security-layout">
+            <section class="security-card">
+                <div class="security-card-head">
+                    <div>
+                        <h2>Usu&aacute;rios por categoria</h2>
+                        <p>Contagem por perfil de acesso.</p>
+                    </div>
+                    <span class="head-note">Categorias do sistema</span>
+                </div>
+
+                <div class="category-list">
+                    {% for perfil in perfis %}
+                        <div class="category-row">
+                            <div class="category-main">
+                                <strong>{{ perfil.nome }}</strong>
+                                <span>
+                                    {% for painel in perfil.paineis.all %}
+                                        {{ painel.nome }}{% if not forloop.last %}, {% endif %}
+                                    {% empty %}
+                                        Sem painel vinculado
+                                    {% endfor %}
+                                </span>
+                            </div>
+                            <div class="category-count">
+                                <strong>{{ perfil.total_usuarios }}</strong>
+                                <small>usu&aacute;rio(s)</small>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div class="empty-state">
+                            Nenhum perfil cadastrado.
+                        </div>
+                    {% endfor %}
+
+                    <div class="category-row attention">
+                        <div class="category-main">
+                            <strong>Sem categoria</strong>
+                            <span>Usu&aacute;rios comuns sem perfil e sem painel extra.</span>
+                        </div>
+                        <div class="category-count">
+                            <strong>{{ totais.sem_acesso }}</strong>
+                            <small>usu&aacute;rio(s)</small>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="security-card">
+                <div class="security-card-head">
+                    <div>
+                        <h2>Usu&aacute;rios por painel</h2>
+                        <p>Acessos liberados por perfil ou permiss&atilde;o extra.</p>
+                    </div>
+                    <span class="head-note">Pain&eacute;is ativos</span>
+                </div>
+
+                <div class="panel-access-list">
+                    {% for item in painel_resumo %}
+                        <div class="panel-access-row">
+                            <div class="panel-access-name">
+                                <span class="panel-dot"></span>
+                                <div>
+                                    <strong>{{ item.painel.nome }}</strong>
+                                    <small>{{ item.painel.descricao }}</small>
+                                </div>
+                            </div>
+                            <div class="panel-access-count">
+                                <strong>{{ item.total_usuarios }}</strong>
+                                <small>{{ item.total_extras }} extra</small>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div class="empty-state">
+                            Nenhum painel ativo cadastrado.
+                        </div>
+                    {% endfor %}
+                </div>
+            </section>
+        </div>
+
+        <section class="security-card users-card">
+            <div class="security-card-head">
+                    <div>
+                        <h2>&Uacute;ltimos usu&aacute;rios criados</h2>
+                        <p>Cadastro, categoria e situa&ccedil;&atilde;o atual.</p>
+                    </div>
+                <a href="{% url 'seguranca_usuarios' %}" class="head-link">
+                    Ver todos
+                </a>
+            </div>
+
+            <div class="users-table-wrap">
+                <table class="users-table">
+                    <thead>
+                        <tr>
+                            <th>Usu&aacute;rio</th>
+                            <th>Nome</th>
+                            <th>Categorias</th>
+                            <th>Hoje</th>
+                            <th>Status</th>
+                            <th>Criado em</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for usuario in usuarios_recentes %}
+                            <tr>
+                                <td>
+                                    <strong>{{ usuario.username }}</strong>
+                                    <small>{{ usuario.email|default:"Sem e-mail" }}</small>
+                                </td>
+                                <td>{{ usuario.get_full_name|default:"-" }}</td>
+                                <td>
+                                    <div class="pill-list">
+                                        {% for perfil in usuario.perfis_acesso.all %}
+                                            <span>{{ perfil.nome }}</span>
+                                        {% empty %}
+                                            {% if usuario.is_superuser %}
+                                                <span>Administrador</span>
+                                            {% elif usuario.is_staff %}
+                                                <span>Equipe</span>
+                                            {% else %}
+                                                <span class="muted-pill">Sem categoria</span>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                </td>
+                                <td>
+                                    <strong>{{ usuario.atendimentos_hoje_total }}</strong>
+                                    <small>atendimento(s)</small>
+                                </td>
+                                <td>
+                                    {% if usuario.is_active %}
+                                        <span class="status-pill active">Ativo</span>
+                                    {% else %}
+                                        <span class="status-pill inactive">Inativo</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ usuario.date_joined|date:"d/m/Y H:i" }}</td>
+                                <td class="text-end">
+                                    <a href="{% url 'seguranca_usuario_editar' usuario.id %}" class="table-action">
+                                        Editar
+                                    </a>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="7">
+                                    <div class="empty-state">
+                                        Nenhum usu&aacute;rio criado.
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,256 @@
+<div class="system-clock-strip">
+    <div class="system-clock-brand">
+        Sistema Hospitalar
+    </div>
+
+    <div class="system-clock-actions">
+        {% if request.user.is_authenticated and not hide_logout %}
+            <span class="system-clock-user">
+                {{ request.user.get_full_name|default:request.user.username }}
+            </span>
+        {% endif %}
+
+        <div class="system-clock-card" aria-live="polite">
+            <strong data-system-clock>--:--:--</strong>
+            <small class="system-clock-date-long" data-system-date-long>--/--/----</small>
+            <small class="system-clock-date-short" data-system-date-short>--/--/----</small>
+        </div>
+
+        {% if request.user.is_authenticated and not hide_logout %}
+            <a href="{% url 'logout' %}" class="system-logout-button">
+                Sair
+            </a>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    .system-clock-strip {
+        align-items: center;
+        background: linear-gradient(135deg, #0f4c81, #1d6fa5);
+        box-shadow: 0 3px 12px rgba(15, 23, 42, .12);
+        box-sizing: border-box;
+        display: flex;
+        gap: 12px;
+        justify-content: space-between;
+        min-height: 46px;
+        padding: 8px 16px;
+        position: relative;
+        z-index: 20;
+    }
+
+    .system-clock-strip * {
+        box-sizing: border-box;
+    }
+
+    .system-clock-brand {
+        color: #ffffff;
+        font-size: 14px;
+        font-weight: 900;
+        letter-spacing: 0;
+        line-height: 1;
+        white-space: nowrap;
+    }
+
+    .system-clock-actions {
+        align-items: center;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        justify-content: flex-end;
+        min-width: 0;
+    }
+
+    .system-clock-user {
+        color: #eef7ff;
+        display: inline-block;
+        font-size: 12px;
+        font-weight: 800;
+        line-height: 1.2;
+        max-width: 260px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .system-clock-card {
+        align-items: center;
+        background: rgba(255, 255, 255, .12);
+        border: 1px solid rgba(255, 255, 255, .24);
+        border-radius: 8px;
+        box-shadow: none;
+        color: #fff;
+        display: flex;
+        gap: 8px;
+        min-height: 30px;
+        padding: 6px 10px;
+        text-align: center;
+        white-space: nowrap;
+    }
+
+    .system-clock-card strong {
+        color: #fff;
+        display: block;
+        font-size: 14px;
+        font-weight: 900;
+        line-height: 1;
+    }
+
+    .system-clock-card small {
+        color: #eaf4ff;
+        display: block;
+        font-size: 11px;
+        font-weight: 800;
+        line-height: 1.25;
+        text-transform: capitalize;
+    }
+
+    .system-clock-date-short {
+        display: none;
+    }
+
+    .navbar .system-clock-strip {
+        background: transparent;
+        box-shadow: none;
+        gap: 0;
+        min-height: auto;
+        padding: 0;
+    }
+
+    .navbar .system-clock-brand,
+    .navbar .system-clock-user,
+    .navbar .system-clock-date-long {
+        display: none;
+    }
+
+    .navbar .system-clock-actions {
+        gap: 0;
+    }
+
+    .navbar .system-clock-card {
+        background: rgba(255, 255, 255, .13);
+        border-color: rgba(255, 255, 255, .2);
+        border-radius: 6px;
+        min-height: 30px;
+        padding: 5px 8px;
+    }
+
+    .navbar .system-clock-card strong {
+        font-size: 12px;
+    }
+
+    .navbar .system-clock-card small {
+        font-size: 9px;
+    }
+
+    .navbar .system-clock-date-short {
+        display: block;
+    }
+
+    .system-logout-button {
+        align-items: center;
+        background: #ffffff;
+        border: 1px solid rgba(255, 255, 255, .72);
+        border-radius: 8px;
+        color: #0f4c81;
+        display: inline-flex;
+        font-size: 12px;
+        font-weight: 900;
+        min-height: 30px;
+        padding: 6px 12px;
+        text-decoration: none;
+        white-space: nowrap;
+    }
+
+    .system-logout-button:hover,
+    .system-logout-button:focus {
+        background: #eaf4ff;
+        border-color: #9cc5ef;
+        color: #0b3d68;
+    }
+
+    @media (max-width: 768px) {
+        .system-clock-strip {
+            align-items: flex-start;
+            justify-content: flex-end;
+            padding: 8px 10px;
+        }
+
+        .system-clock-brand {
+            display: none;
+        }
+
+        .system-clock-actions {
+            width: 100%;
+        }
+
+        .system-clock-user {
+            max-width: calc(100vw - 170px);
+        }
+
+        .system-clock-card {
+            justify-content: center;
+            min-width: 0;
+        }
+
+        .navbar .system-clock-strip {
+            align-items: center;
+            padding: 0;
+        }
+
+        .navbar .system-clock-actions {
+            width: auto;
+        }
+    }
+
+    @media print {
+        .system-clock-strip {
+            display: none !important;
+        }
+    }
+</style>
+
+<script>
+    (function () {
+        function formatarDataLonga(data) {
+            return data.toLocaleDateString("pt-BR", {
+                weekday: "long",
+                day: "2-digit",
+                month: "long",
+                year: "numeric"
+            });
+        }
+
+        function atualizarRelogioGlobal() {
+            const agora = new Date();
+            const hora = agora.toLocaleTimeString("pt-BR", {
+                hour: "2-digit",
+                minute: "2-digit",
+                second: "2-digit"
+            });
+            const dataCurta = agora.toLocaleDateString("pt-BR", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric"
+            });
+            const dataLonga = formatarDataLonga(agora);
+
+            document.querySelectorAll("[data-system-clock]").forEach(function (item) {
+                item.textContent = hora;
+            });
+            document.querySelectorAll("[data-system-date-long]").forEach(function (item) {
+                item.textContent = dataLonga;
+            });
+            document.querySelectorAll("[data-system-date-short]").forEach(function (item) {
+                item.textContent = dataCurta;
+            });
+        }
+
+        atualizarRelogioGlobal();
+
+        if (!window.sistemaRelogioGlobalAtivo) {
+            window.sistemaRelogioGlobalAtivo = true;
+            window.setInterval(atualizarRelogioGlobal, 1000);
+        }
+    })();
+</script>

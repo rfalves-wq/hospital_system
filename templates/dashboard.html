@@ -5,378 +5,458 @@
 <div class="dashboard-page">
     <div class="container-fluid dashboard-container">
 
-        <div class="dashboard-header">
-            <h2>Sistema Hospitalar</h2>
-            <p>Painel de acesso aos módulos de atendimento, assistência e diagnóstico.</p>
-        </div>
-
-        <div class="section-block">
-            <h4 class="section-title">Atendimento</h4>
-
-            <div class="row g-4">
-
-                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
-                    <a href="{% url 'tipo_atendimento' %}" class="text-decoration-none">
-                        <div class="card module-card acolhimento">
-                            <span class="module-status status-active">Ativo</span>
-                            <div class="card-body">
-                                <div class="module-icon">&#129658;</div>
-                                <h5>Acolhimento</h5>
-                                <small>Entrada do paciente</small>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-
-                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
-                    <a href="{% url 'recepcao_dashboard' %}" class="text-decoration-none">
-                        <div class="card module-card recepcao">
-                            <span class="module-status status-active">Ativo</span>
-                            <div class="card-body">
-                                <div class="module-icon">&#127973;</div>
-                                <h5>Recepção</h5>
-                                <small>Cadastro e BAM</small>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-
-                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
-                    <a href="{% url 'classificacao_dashboard' %}" class="text-decoration-none">
-                        <div class="card module-card classificacao">
-                            <span class="module-status status-active">Ativo</span>
-                            <div class="card-body">
-                                <div class="module-icon">&#128678;</div>
-                                <h5>Classificação de Risco</h5>
-                                <small>Manchester</small>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-
-                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
-                    <a href="{% url 'medico_dashboard' %}" class="text-decoration-none">
-                        <div class="card module-card medico">
-                            <span class="module-status status-active">Ativo</span>
-                            <div class="card-body">
-                                <div class="module-icon">&#128104;&#8205;&#9877;&#65039;</div>
-                                <h5>Consulta Médica</h5>
-                                <small>Fila e retorno</small>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-
-                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
-                    <a href="{% url 'prontuario_dashboard' %}" class="text-decoration-none">
-                        <div class="card module-card prontuario">
-                            <span class="module-status status-active">Ativo</span>
-                            <div class="card-body">
-                                <div class="module-icon">&#128203;</div>
-                                <h5>Prontuário do Paciente</h5>
-                                <small>Histórico clínico completo</small>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-
-                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
-                    <a href="{% url 'painel_chamados' %}" class="text-decoration-none">
-                    <div class="card module-card painel">
-                        <span class="module-status status-active">Ativo</span>
-                        <div class="card-body">
-                            <div class="module-icon">&#128226;</div>
-                            <h5>Painel de Chamados</h5>
-                            <small>Chamadas públicas</small>
-                        </div>
-                    </div>
-                    </a>
-                </div>
-
+        <section class="dashboard-header">
+            <div>
+                <span class="dashboard-kicker">Sistema Hospitalar</span>
+                <h2 id="dashboard-greeting">Bem-vindo</h2>
+                <p>Estes s&atilde;o os pain&eacute;is liberados para o seu usu&aacute;rio.</p>
             </div>
-        </div>
+        </section>
 
-        <div class="section-block">
-            <h4 class="section-title">Assistência Hospitalar</h4>
-
-            <div class="row g-4">
-
-                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
-                    <a href="{% url 'medicacao_dashboard' %}" class="text-decoration-none">
-                        <div class="card module-card medicacao">
-                            <span class="module-status status-active">Ativo</span>
-                            <div class="card-body">
-                                <div class="module-icon">&#128138;</div>
-                                <h5>Sala de Medicação</h5>
-                                <small>Aplicar medicação liberada</small>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-
-                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
-                    <a href="{% url 'farmacia_dashboard' %}" class="text-decoration-none">
-                        <div class="card module-card farmacia">
-                            <span class="module-status status-active">Ativo</span>
-                            <div class="card-body">
-                                <div class="module-icon">&#128138;</div>
-                                <h5>Farmácia</h5>
-                                <small>Estoque e dispensação</small>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-
-                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
-                    <div class="card module-card maternidade disabled">
-                        <span class="module-status status-soon">Em breve</span>
-                        <div class="card-body">
-                            <div class="module-icon">&#128118;</div>
-                            <h5>Maternidade</h5>
-                            <small>Atendimento materno</small>
-                        </div>
+        {% if not codigos_paineis_usuario and not request.user.is_staff and not request.user.is_superuser %}
+            <div class="dashboard-empty-access">
+                <strong>Nenhum painel liberado</strong>
+                <span>Solicite ao administrador a libera&ccedil;&atilde;o dos pain&eacute;is que voc&ecirc; precisa usar.</span>
+            </div>
+        {% else %}
+            <section class="dashboard-access-section">
+                <div class="dashboard-section-head">
+                    <div>
+                        <h4>Acessos dispon&iacute;veis</h4>
+                        <p>Escolha um painel para iniciar o atendimento ou gerenciamento.</p>
                     </div>
                 </div>
 
-                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
-                    <a href="{% url 'internacao_dashboard' %}" class="text-decoration-none">
-                        <div class="card module-card internacao">
-                            <span class="module-status status-active">Ativo</span>
-                            <div class="card-body">
-                                <div class="module-icon">&#128719;&#65039;</div>
-                                <h5>Centro de Internações</h5>
-                                <small>Leitos e evolução</small>
-                            </div>
-                        </div>
-                    </a>
-                </div>
+                <div class="dashboard-access-grid">
 
-                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
-                    <div class="card module-card enfermagem disabled">
-                        <span class="module-status status-soon">Em breve</span>
-                        <div class="card-body">
-                            <div class="module-icon">&#129658;</div>
-                            <h5>Posto de Enfermagem</h5>
-                            <small>Curativos, sinais e evolução</small>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-
-        <div class="section-block">
-            <h4 class="section-title">Diagnóstico</h4>
-
-            <div class="row g-4">
-
-                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
-                    <a href="{% url 'laboratorio_dashboard' %}" class="text-decoration-none">
-                        <div class="card module-card laboratorio">
-                            <span class="module-status status-active">Ativo</span>
-                            <div class="card-body">
-                                <div class="module-icon">&#129514;</div>
-                                <h5>Laboratório</h5>
-                                <small>Resultados laboratoriais</small>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-
-                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
-                    <a href="{% url 'imagem_dashboard' %}" class="text-decoration-none">
-                        <div class="card module-card imagem">
-                            <span class="module-status status-active">Ativo</span>
-                            <div class="card-body">
-                                <div class="module-icon">&#128247;</div>
-                                <h5>Centro de Imagem</h5>
-                                <small>Raio-X, TC, mamografia</small>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-
-            </div>
-        </div>
-
-        <div class="section-block">
-            <h4 class="section-title">Apoio Operacional</h4>
-
-            <div class="row g-4">
-
-                {% if request.user.is_staff or request.user.is_superuser %}
-                    <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
-                        <a href="{% url 'tecnologia_dashboard' %}" class="text-decoration-none">
-                            <div class="card module-card tecnologia">
+                    {% if paineis_usuario.acolhimento %}
+                        <a href="{% url 'tipo_atendimento' %}" class="module-link">
+                            <div class="card module-card access-card acolhimento">
                                 <span class="module-status status-active">Ativo</span>
                                 <div class="card-body">
-                                    <div class="module-icon">&#128187;</div>
-                                    <h5>Tecnologia da Informa&ccedil;&atilde;o</h5>
-                                    <small>Equipamentos online</small>
+                                    <div class="module-icon">&#129658;</div>
+                                    <div>
+                                        <h5>Acolhimento</h5>
+                                        <small>Entrada do paciente</small>
+                                    </div>
+                                    <span class="module-action">Acessar</span>
                                 </div>
                             </div>
                         </a>
-                    </div>
-                {% endif %}
+                    {% endif %}
 
-                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
-                    <a href="{% url 'tecnologia_pedido_servico' %}" class="text-decoration-none">
-                        <div class="card module-card suporte-ti">
-                            <span class="module-status status-active">Ativo</span>
-                            <div class="card-body">
-                                <div class="module-icon">&#128736;</div>
-                                <h5>Solicitar TI</h5>
-                                <small>Abrir chamado</small>
+                    {% if paineis_usuario.recepcao %}
+                        <a href="{% url 'recepcao_dashboard' %}" class="module-link">
+                            <div class="card module-card access-card recepcao">
+                                <span class="module-status status-active">Ativo</span>
+                                <div class="card-body">
+                                    <div class="module-icon">&#127973;</div>
+                                    <div>
+                                        <h5>Recep&ccedil;&atilde;o</h5>
+                                        <small>Cadastro e BAM</small>
+                                    </div>
+                                    <span class="module-action">Acessar</span>
+                                </div>
                             </div>
-                        </div>
-                    </a>
-                </div>
+                        </a>
+                    {% endif %}
 
-                {% if request.user.is_staff or request.user.is_superuser %}
-                    <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
-                        <a href="{% url 'tecnologia_chamados' %}" class="text-decoration-none">
-                            <div class="card module-card chamados-ti">
+                    {% if paineis_usuario.classificacao %}
+                        <a href="{% url 'classificacao_dashboard' %}" class="module-link">
+                            <div class="card module-card access-card classificacao">
+                                <span class="module-status status-active">Ativo</span>
+                                <div class="card-body">
+                                    <div class="module-icon">&#128678;</div>
+                                    <div>
+                                        <h5>Classifica&ccedil;&atilde;o de Risco</h5>
+                                        <small>Manchester</small>
+                                    </div>
+                                    <span class="module-action">Acessar</span>
+                                </div>
+                            </div>
+                        </a>
+                    {% endif %}
+
+                    {% if paineis_usuario.medico %}
+                        <a href="{% url 'medico_dashboard' %}" class="module-link">
+                            <div class="card module-card access-card medico">
+                                <span class="module-status status-active">Ativo</span>
+                                <div class="card-body">
+                                    <div class="module-icon">&#128104;&#8205;&#9877;&#65039;</div>
+                                    <div>
+                                        <h5>Consulta M&eacute;dica</h5>
+                                        <small>Fila e retorno</small>
+                                    </div>
+                                    <span class="module-action">Acessar</span>
+                                </div>
+                            </div>
+                        </a>
+                    {% endif %}
+
+                    {% if paineis_usuario.prontuario %}
+                        <a href="{% url 'prontuario_dashboard' %}" class="module-link">
+                            <div class="card module-card access-card prontuario">
                                 <span class="module-status status-active">Ativo</span>
                                 <div class="card-body">
                                     <div class="module-icon">&#128203;</div>
-                                    <h5>Chamados TI</h5>
-                                    <small>Atendimento</small>
+                                    <div>
+                                        <h5>Prontu&aacute;rio do Paciente</h5>
+                                        <small>Hist&oacute;rico cl&iacute;nico</small>
+                                    </div>
+                                    <span class="module-action">Acessar</span>
                                 </div>
                             </div>
                         </a>
-                    </div>
-                {% endif %}
+                    {% endif %}
 
+                    {% if paineis_usuario.painel_chamados %}
+                        <a href="{% url 'painel_chamados' %}" class="module-link">
+                            <div class="card module-card access-card painel">
+                                <span class="module-status status-active">Ativo</span>
+                                <div class="card-body">
+                                    <div class="module-icon">&#128226;</div>
+                                    <div>
+                                        <h5>Painel de Chamados</h5>
+                                        <small>Chamadas p&uacute;blicas</small>
+                                    </div>
+                                    <span class="module-action">Acessar</span>
+                                </div>
+                            </div>
+                        </a>
+                    {% endif %}
+
+                    {% if paineis_usuario.medicacao %}
+                        <a href="{% url 'medicacao_dashboard' %}" class="module-link">
+                            <div class="card module-card access-card medicacao">
+                                <span class="module-status status-active">Ativo</span>
+                                <div class="card-body">
+                                    <div class="module-icon">&#128138;</div>
+                                    <div>
+                                        <h5>Sala de Medica&ccedil;&atilde;o</h5>
+                                        <small>Aplicar medica&ccedil;&atilde;o</small>
+                                    </div>
+                                    <span class="module-action">Acessar</span>
+                                </div>
+                            </div>
+                        </a>
+                    {% endif %}
+
+                    {% if paineis_usuario.farmacia %}
+                        <a href="{% url 'farmacia_dashboard' %}" class="module-link">
+                            <div class="card module-card access-card farmacia">
+                                <span class="module-status status-active">Ativo</span>
+                                <div class="card-body">
+                                    <div class="module-icon">&#128138;</div>
+                                    <div>
+                                        <h5>Farm&aacute;cia</h5>
+                                        <small>Estoque e dispensa&ccedil;&atilde;o</small>
+                                    </div>
+                                    <span class="module-action">Acessar</span>
+                                </div>
+                            </div>
+                        </a>
+                    {% endif %}
+
+                    {% if paineis_usuario.internacao %}
+                        <a href="{% url 'internacao_dashboard' %}" class="module-link">
+                            <div class="card module-card access-card internacao">
+                                <span class="module-status status-active">Ativo</span>
+                                <div class="card-body">
+                                    <div class="module-icon">&#128719;&#65039;</div>
+                                    <div>
+                                        <h5>Centro de Interna&ccedil;&otilde;es</h5>
+                                        <small>Leitos e evolu&ccedil;&atilde;o</small>
+                                    </div>
+                                    <span class="module-action">Acessar</span>
+                                </div>
+                            </div>
+                        </a>
+                    {% endif %}
+
+                    {% if paineis_usuario.laboratorio %}
+                        <a href="{% url 'laboratorio_dashboard' %}" class="module-link">
+                            <div class="card module-card access-card laboratorio">
+                                <span class="module-status status-active">Ativo</span>
+                                <div class="card-body">
+                                    <div class="module-icon">&#129514;</div>
+                                    <div>
+                                        <h5>Laborat&oacute;rio</h5>
+                                        <small>Resultados laboratoriais</small>
+                                    </div>
+                                    <span class="module-action">Acessar</span>
+                                </div>
+                            </div>
+                        </a>
+                    {% endif %}
+
+                    {% if paineis_usuario.imagem %}
+                        <a href="{% url 'imagem_dashboard' %}" class="module-link">
+                            <div class="card module-card access-card imagem">
+                                <span class="module-status status-active">Ativo</span>
+                                <div class="card-body">
+                                    <div class="module-icon">&#128247;</div>
+                                    <div>
+                                        <h5>Centro de Imagem</h5>
+                                        <small>Raio-X, TC, mamografia</small>
+                                    </div>
+                                    <span class="module-action">Acessar</span>
+                                </div>
+                            </div>
+                        </a>
+                    {% endif %}
+
+                    {% if paineis_usuario.ti %}
+                        <a href="{% url 'tecnologia_dashboard' %}" class="module-link">
+                            <div class="card module-card access-card tecnologia">
+                                <span class="module-status status-active">Ativo</span>
+                                <div class="card-body">
+                                    <div class="module-icon">&#128187;</div>
+                                    <div>
+                                        <h5>Tecnologia da Informa&ccedil;&atilde;o</h5>
+                                        <small>Equipamentos online</small>
+                                    </div>
+                                    <span class="module-action">Acessar</span>
+                                </div>
+                            </div>
+                        </a>
+                    {% endif %}
+
+                    {% if paineis_usuario.suporte_ti or paineis_usuario.ti %}
+                        <a href="{% url 'tecnologia_pedido_servico' %}" class="module-link">
+                            <div class="card module-card access-card suporte-ti">
+                                <span class="module-status status-active">Ativo</span>
+                                <div class="card-body">
+                                    <div class="module-icon">&#128736;</div>
+                                    <div>
+                                        <h5>Solicitar TI</h5>
+                                        <small>Abrir chamado</small>
+                                    </div>
+                                    <span class="module-action">Acessar</span>
+                                </div>
+                            </div>
+                        </a>
+                    {% endif %}
+
+                    {% if paineis_usuario.ti %}
+                        <a href="{% url 'tecnologia_chamados' %}" class="module-link">
+                            <div class="card module-card access-card chamados-ti">
+                                <span class="module-status status-active">Ativo</span>
+                                <div class="card-body">
+                                    <div class="module-icon">&#128203;</div>
+                                    <div>
+                                        <h5>Chamados TI</h5>
+                                        <small>Atendimento</small>
+                                    </div>
+                                    <span class="module-action">Acessar</span>
+                                </div>
+                            </div>
+                        </a>
+                    {% endif %}
+
+                    {% if request.user.is_staff or request.user.is_superuser %}
+                        <a href="{% url 'seguranca_dashboard' %}" class="module-link">
+                            <div class="card module-card access-card seguranca">
+                                <span class="module-status status-active">Ativo</span>
+                                <div class="card-body">
+                                    <div class="module-icon">ID</div>
+                                    <div>
+                                        <h5>Login e Seguran&ccedil;a</h5>
+                                        <small>Usu&aacute;rios e acessos</small>
+                                    </div>
+                                    <span class="module-action">Acessar</span>
+                                </div>
+                            </div>
+                        </a>
+                    {% endif %}
+
+                </div>
+            </section>
+        {% endif %}
+
+        <section class="dashboard-access-section pending-modules-section">
+            <div class="dashboard-section-head">
+                <div>
+                    <h4>M&oacute;dulos a montar</h4>
+                    <p>Cards planejados que ainda est&atilde;o pendentes de desenvolvimento.</p>
+                </div>
             </div>
-        </div>
 
-        <div class="section-block">
-            <h4 class="section-title">Especialidades</h4>
+            <div class="dashboard-access-grid pending-modules-grid">
+                <div class="card module-card access-card disabled maternidade">
+                    <span class="module-status status-soon">Em breve</span>
+                    <div class="card-body">
+                        <div class="module-icon">&#128118;</div>
+                        <div>
+                            <h5>Maternidade</h5>
+                            <small>Atendimento materno</small>
+                        </div>
+                        <span class="module-action pending">A montar</span>
+                    </div>
+                </div>
 
-            <div class="row g-4">
+                <div class="card module-card access-card disabled enfermagem">
+                    <span class="module-status status-soon">Em breve</span>
+                    <div class="card-body">
+                        <div class="module-icon">&#129658;</div>
+                        <div>
+                            <h5>Posto de Enfermagem</h5>
+                            <small>Curativos, sinais e evolu&ccedil;&atilde;o</small>
+                        </div>
+                        <span class="module-action pending">A montar</span>
+                    </div>
+                </div>
 
-                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
-                    <div class="card module-card pediatria disabled">
-                        <span class="module-status status-soon">Em breve</span>
-                        <div class="card-body">
-                            <div class="module-icon">&#128118;</div>
+                <div class="card module-card access-card disabled pediatria">
+                    <span class="module-status status-soon">Em breve</span>
+                    <div class="card-body">
+                        <div class="module-icon">&#128118;</div>
+                        <div>
                             <h5>Pediatria</h5>
                             <small>Infantil</small>
                         </div>
+                        <span class="module-action pending">A montar</span>
                     </div>
                 </div>
 
-                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
-                    <div class="card module-card cardiologia disabled">
-                        <span class="module-status status-soon">Em breve</span>
-                        <div class="card-body">
-                            <div class="module-icon">&#129728;</div>
+                <div class="card module-card access-card disabled cardiologia">
+                    <span class="module-status status-soon">Em breve</span>
+                    <div class="card-body">
+                        <div class="module-icon">&#129728;</div>
+                        <div>
                             <h5>Cardiologia</h5>
-                            <small>Coração</small>
+                            <small>Cora&ccedil;&atilde;o</small>
                         </div>
+                        <span class="module-action pending">A montar</span>
                     </div>
                 </div>
 
-                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
-                    <div class="card module-card ortopedia disabled">
-                        <span class="module-status status-soon">Em breve</span>
-                        <div class="card-body">
-                            <div class="module-icon">&#129460;</div>
+                <div class="card module-card access-card disabled ortopedia">
+                    <span class="module-status status-soon">Em breve</span>
+                    <div class="card-body">
+                        <div class="module-icon">&#129460;</div>
+                        <div>
                             <h5>Ortopedia</h5>
                             <small>Trauma e ossos</small>
                         </div>
+                        <span class="module-action pending">A montar</span>
                     </div>
                 </div>
 
-                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
-                    <div class="card module-card neurologia disabled">
-                        <span class="module-status status-soon">Em breve</span>
-                        <div class="card-body">
-                            <div class="module-icon">&#129504;</div>
+                <div class="card module-card access-card disabled neurologia">
+                    <span class="module-status status-soon">Em breve</span>
+                    <div class="card-body">
+                        <div class="module-icon">&#129504;</div>
+                        <div>
                             <h5>Neurologia</h5>
                             <small>Sistema nervoso</small>
                         </div>
+                        <span class="module-action pending">A montar</span>
                     </div>
                 </div>
 
-                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
-                    <div class="card module-card oftalmologia disabled">
-                        <span class="module-status status-soon">Em breve</span>
-                        <div class="card-body">
-                            <div class="module-icon">&#128065;&#65039;</div>
+                <div class="card module-card access-card disabled oftalmologia">
+                    <span class="module-status status-soon">Em breve</span>
+                    <div class="card-body">
+                        <div class="module-icon">&#128065;&#65039;</div>
+                        <div>
                             <h5>Oftalmologia</h5>
-                            <small>Visão</small>
+                            <small>Vis&atilde;o</small>
                         </div>
+                        <span class="module-action pending">A montar</span>
                     </div>
                 </div>
 
-                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
-                    <div class="card module-card odontologia disabled">
-                        <span class="module-status status-soon">Em breve</span>
-                        <div class="card-body">
-                            <div class="module-icon">&#129463;</div>
+                <div class="card module-card access-card disabled odontologia">
+                    <span class="module-status status-soon">Em breve</span>
+                    <div class="card-body">
+                        <div class="module-icon">&#129463;</div>
+                        <div>
                             <h5>Odontologia</h5>
-                            <small>Saúde bucal</small>
+                            <small>Sa&uacute;de bucal</small>
                         </div>
+                        <span class="module-action pending">A montar</span>
                     </div>
                 </div>
 
-            </div>
-        </div>
-
-        <div class="section-block">
-            <h4 class="section-title">Emergência e UTI</h4>
-
-            <div class="row g-4">
-
-                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
-                    <div class="card module-card emergencia disabled">
-                        <span class="module-status status-soon">Em breve</span>
-                        <div class="card-body">
-                            <div class="module-icon">&#128680;</div>
-                            <h5>Emergência</h5>
-                            <small>Atendimento crítico</small>
+                <div class="card module-card access-card disabled emergencia">
+                    <span class="module-status status-soon">Em breve</span>
+                    <div class="card-body">
+                        <div class="module-icon">&#128680;</div>
+                        <div>
+                            <h5>Emerg&ecirc;ncia</h5>
+                            <small>Atendimento cr&iacute;tico</small>
                         </div>
+                        <span class="module-action pending">A montar</span>
                     </div>
                 </div>
 
-                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
-                    <div class="card module-card uti-adulto disabled">
-                        <span class="module-status status-soon">Em breve</span>
-                        <div class="card-body">
-                            <div class="module-icon">&#128104;&#8205;&#9877;&#65039;</div>
+                <div class="card module-card access-card disabled uti-adulto">
+                    <span class="module-status status-soon">Em breve</span>
+                    <div class="card-body">
+                        <div class="module-icon">&#128104;&#8205;&#9877;&#65039;</div>
+                        <div>
                             <h5>UTI Adulto</h5>
                             <small>Cuidados intensivos</small>
                         </div>
+                        <span class="module-action pending">A montar</span>
                     </div>
                 </div>
 
-                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
-                    <div class="card module-card uti-neonatal disabled">
-                        <span class="module-status status-soon">Em breve</span>
-                        <div class="card-body">
-                            <div class="module-icon">&#128118;</div>
+                <div class="card module-card access-card disabled uti-neonatal">
+                    <span class="module-status status-soon">Em breve</span>
+                    <div class="card-body">
+                        <div class="module-icon">&#128118;</div>
+                        <div>
                             <h5>UTI Neonatal</h5>
-                            <small>Recém-nascidos</small>
+                            <small>Rec&eacute;m-nascidos</small>
                         </div>
+                        <span class="module-action pending">A montar</span>
                     </div>
                 </div>
 
-                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
-                    <div class="card module-card centro-cirurgico disabled">
-                        <span class="module-status status-soon">Em breve</span>
-                        <div class="card-body">
-                            <div class="module-icon">&#127973;</div>
-                            <h5>Centro Cirúrgico</h5>
+                <div class="card module-card access-card disabled centro-cirurgico">
+                    <span class="module-status status-soon">Em breve</span>
+                    <div class="card-body">
+                        <div class="module-icon">&#127973;</div>
+                        <div>
+                            <h5>Centro Cir&uacute;rgico</h5>
                             <small>Procedimentos</small>
                         </div>
+                        <span class="module-action pending">A montar</span>
                     </div>
                 </div>
-
             </div>
-        </div>
+        </section>
 
     </div>
 </div>
 
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    (function () {
+        const greeting = document.getElementById("dashboard-greeting");
+
+        function updateDashboardGreeting() {
+            if (!greeting) {
+                return;
+            }
+
+            const now = new Date();
+            const hour = now.getHours();
+
+            let text = "Boa noite";
+            if (hour >= 5 && hour < 12) {
+                text = "Bom dia";
+            } else if (hour >= 12 && hour < 18) {
+                text = "Boa tarde";
+            }
+
+            greeting.textContent = text + ", seja bem-vindo";
+        }
+
+        updateDashboardGreeting();
+    })();
+</script>
 {% endblock %}

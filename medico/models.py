@@ -1,4 +1,3 @@
-from django.conf import settings
 from django.db import models
 from django.utils import timezone
 
@@ -310,38 +309,3 @@ class TransferenciaConsultaMedica(models.Model):
             f"{self.consulta.acolhimento.numero_bam}: "
             f"{self.medico_anterior or '-'} -> {self.medico_novo}"
         )
-
-
-class AlertaPanicoMedico(models.Model):
-    medico = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.SET_NULL,
-        blank=True,
-        null=True,
-        related_name="alertas_panico_medico",
-    )
-    acolhimento = models.ForeignKey(
-        Acolhimento,
-        on_delete=models.SET_NULL,
-        blank=True,
-        null=True,
-        related_name="alertas_panico_medico",
-    )
-    medico_nome = models.CharField(max_length=150)
-    consultorio = models.CharField(max_length=80, blank=True, default="")
-    paciente_nome = models.CharField(max_length=200, blank=True, default="")
-    numero_bam = models.CharField(max_length=20, blank=True, default="")
-    mensagem = models.CharField(max_length=255, blank=True, default="")
-    ativo = models.BooleanField(default=True, db_index=True)
-    criado_em = models.DateTimeField(default=timezone.now, db_index=True)
-    encerrado_em = models.DateTimeField(blank=True, null=True)
-    encerrado_por = models.CharField(max_length=150, blank=True, default="")
-
-    class Meta:
-        ordering = ["-criado_em"]
-        verbose_name = "Alerta de pânico médico"
-        verbose_name_plural = "Alertas de pânico médico"
-
-    def __str__(self):
-        destino = self.consultorio or "Consultorio nao informado"
-        return f"Panico medico - {self.medico_nome} - {destino}"

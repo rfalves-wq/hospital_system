@@ -1,0 +1,193 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/seguranca.css' %}?v=20260717-2">
+{% endblock %}
+
+{% block content %}
+<div class="security-page">
+    <div class="security-shell">
+
+        <section class="security-header">
+            <div>
+                <span class="security-kicker">Login e Seguran&ccedil;a</span>
+                <h1>Gerenciar usu&aacute;rios</h1>
+                <p>Cadastre, edite, ative ou inative os acessos do sistema.</p>
+            </div>
+
+            <div class="security-actions">
+                <a href="{% url 'seguranca_usuario_novo' %}" class="btn-security primary">
+                    Novo usu&aacute;rio
+                </a>
+                <a href="{% url 'seguranca_dashboard' %}" class="btn-security">
+                    Resumo
+                </a>
+            </div>
+        </section>
+
+        {% if messages %}
+            <div class="security-messages">
+                {% for message in messages %}
+                    <div class="security-message {{ message.tags }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <section class="security-card users-card">
+            <div class="security-card-head">
+                <div>
+                    <h2>Usu&aacute;rios cadastrados</h2>
+                    <p>Filtre por nome, login, cargo, e-mail ou categoria. Contagem de hoje: {{ data_atendimentos_hoje|date:"d/m/Y" }}.</p>
+                </div>
+                <span class="head-note">{{ usuarios|length }} encontrado(s)</span>
+            </div>
+
+            <form method="get" class="user-filter-form">
+                <div class="filter-field wide">
+                    <label for="q">Buscar</label>
+                    <input
+                        id="q"
+                        type="search"
+                        name="q"
+                        value="{{ busca }}"
+                        placeholder="Nome, login, e-mail, cargo ou categoria"
+                        class="security-input">
+                </div>
+
+                <div class="filter-field">
+                    <label for="status">Status</label>
+                    <select id="status" name="status" class="security-input">
+                        <option value="todos" {% if status == "todos" %}selected{% endif %}>Todos</option>
+                        <option value="ativos" {% if status == "ativos" %}selected{% endif %}>Ativos</option>
+                        <option value="inativos" {% if status == "inativos" %}selected{% endif %}>Inativos</option>
+                        <option value="admin" {% if status == "admin" %}selected{% endif %}>Administradores</option>
+                    </select>
+                </div>
+
+                <div class="filter-actions">
+                    <button type="submit" class="btn-security primary">
+                        Filtrar
+                    </button>
+                    <a href="{% url 'seguranca_usuarios' %}" class="btn-security soft">
+                        Limpar
+                    </a>
+                </div>
+            </form>
+
+            <div class="users-table-wrap">
+                <table class="users-table">
+                    <thead>
+                        <tr>
+                            <th>Usu&aacute;rio</th>
+                            <th>Nome</th>
+                            <th>Categorias</th>
+                            <th>Pain&eacute;is extras</th>
+                            <th>Hoje</th>
+                            <th>Status</th>
+                            <th>A&ccedil;&otilde;es</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for usuario in usuarios %}
+                            <tr>
+                                <td>
+                                    <strong>{{ usuario.username }}</strong>
+                                    <small>{{ usuario.email|default:"Sem e-mail" }}</small>
+                                </td>
+                                <td>
+                                    {{ usuario.get_full_name|default:"-" }}
+                                    <small>{{ usuario.cargo|default:"Sem cargo" }}</small>
+                                </td>
+                                <td>
+                                    <div class="pill-list">
+                                        {% for perfil in usuario.perfis_acesso.all %}
+                                            <span>{{ perfil.nome }}</span>
+                                        {% empty %}
+                                            {% if usuario.is_superuser %}
+                                                <span>Administrador geral</span>
+                                            {% elif usuario.is_staff %}
+                                                <span>Equipe</span>
+                                            {% else %}
+                                                <span class="muted-pill">Sem categoria</span>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="pill-list">
+                                        {% for painel in usuario.paineis_extra.all %}
+                                            <span>{{ painel.nome }}</span>
+                                        {% empty %}
+                                            <span class="muted-pill">Nenhum</span>
+                                        {% endfor %}
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="attendance-cell">
+                                        <strong>{{ usuario.atendimentos_hoje_total }}</strong>
+                                        <div class="attendance-mini-list">
+                                            {% for item in usuario.atendimentos_hoje_detalhes %}
+                                                <span>{{ item.nome }} {{ item.total }}</span>
+                                            {% empty %}
+                                                <span>Nenhum</span>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    {% if usuario.is_active %}
+                                        <span class="status-pill active">Ativo</span>
+                                    {% else %}
+                                        <span class="status-pill inactive">Inativo</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="table-actions">
+                                        <a href="{% url 'seguranca_usuario_editar' usuario.id %}" class="table-action">
+                                            Editar
+                                        </a>
+
+                                        {% if usuario.id != request.user.id %}
+                                            <form
+                                                method="post"
+                                                action="{% url 'seguranca_usuario_status' usuario.id %}">
+                                                {% csrf_token %}
+                                                <button
+                                                    type="submit"
+                                                    class="table-action danger"
+                                                    {% if usuario.is_active %}
+                                                        onclick="return confirm('Inativar este usuario?')"
+                                                    {% endif %}>
+                                                    {% if usuario.is_active %}
+                                                        Inativar
+                                                    {% else %}
+                                                        Ativar
+                                                    {% endif %}
+                                                </button>
+                                            </form>
+                                        {% else %}
+                                            <span class="self-note">Seu acesso</span>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="7">
+                                    <div class="empty-state">
+                                        Nenhum usu&aacute;rio encontrado.
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </div>
+</div>
+{% endblock %}

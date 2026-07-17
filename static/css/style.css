@@ -60,6 +60,18 @@ body {
     padding: 16px 20px;
 }
 
+.dashboard-kicker {
+    background: rgba(255, 255, 255, .14);
+    border: 1px solid rgba(255, 255, 255, .2);
+    border-radius: 999px;
+    display: inline-flex;
+    font-size: 11px;
+    font-weight: 800;
+    margin-bottom: 8px;
+    padding: 4px 9px;
+    text-transform: uppercase;
+}
+
 .dashboard-header h2 {
     color: #fff;
     font-size: 24px;
@@ -72,6 +84,88 @@ body {
     font-size: 13px;
     font-weight: 600;
     margin: 4px 0 0;
+}
+
+.dashboard-access-section {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: 0 3px 12px rgba(15, 23, 42, .055);
+    margin: 0 auto;
+    max-width: 1180px;
+    padding: 14px;
+}
+
+.pending-modules-section {
+    background: #f8fafc;
+    margin-top: 16px;
+}
+
+.dashboard-section-head {
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+    text-align: center;
+}
+
+.dashboard-section-head > div {
+    width: 100%;
+}
+
+.dashboard-section-head h4 {
+    color: var(--text);
+    font-size: 17px;
+    font-weight: 850;
+    margin: 0;
+}
+
+.dashboard-section-head p {
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 700;
+    margin: 3px 0 0;
+}
+
+.dashboard-access-grid {
+    display: grid;
+    gap: 14px;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 320px));
+    justify-content: center;
+}
+
+.pending-modules-grid {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 260px));
+}
+
+.module-link {
+    color: inherit;
+    display: block;
+    text-decoration: none;
+    width: 100%;
+}
+
+.dashboard-empty-access {
+    background: #fffbeb;
+    border: 1px solid #f8d477;
+    border-radius: 8px;
+    color: #92400e;
+    display: grid;
+    gap: 4px;
+    padding: 16px;
+}
+
+.dashboard-empty-access strong {
+    color: #78350f;
+    font-size: 15px;
+    font-weight: 850;
+}
+
+.dashboard-empty-access span {
+    font-size: 13px;
+    font-weight: 700;
 }
 
 .section-block {
@@ -115,6 +209,51 @@ body {
     transition: .18s ease;
 }
 
+.module-card.access-card {
+    height: 148px;
+    width: 100%;
+}
+
+.module-card.access-card .card-body {
+    align-items: center;
+    flex-direction: column;
+    gap: 7px;
+    justify-content: center;
+    padding: 24px 16px 14px;
+    text-align: center;
+}
+
+.module-card.access-card .module-icon {
+    flex: 0 0 42px;
+    margin-bottom: 0;
+}
+
+.module-card.access-card h5 {
+    font-size: 15px;
+    padding-right: 0;
+}
+
+.module-card.access-card small {
+    font-size: 12px;
+    margin-top: 3px;
+}
+
+.module-action {
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-radius: 999px;
+    color: var(--primary);
+    font-size: 11px;
+    font-weight: 850;
+    margin-top: 2px;
+    padding: 5px 8px;
+}
+
+.module-card.access-card:hover .module-action {
+    background: var(--primary-light);
+    border-color: #9cc5ef;
+}
+
 .module-card::before {
     background: var(--primary);
     content: "";
@@ -132,13 +271,24 @@ body {
 .module-card.disabled {
     background: #f8fafc;
     cursor: not-allowed;
-    opacity: .64;
+    opacity: .72;
 }
 
 .module-card.disabled:hover {
     border-color: var(--border);
     box-shadow: 0 3px 12px rgba(15, 23, 42, .055);
     transform: none;
+}
+
+.module-card.disabled.access-card {
+    background: #fff;
+    height: 132px;
+}
+
+.module-card.disabled .module-action.pending {
+    background: #eef2f7;
+    border-color: #d7dee8;
+    color: #64748b;
 }
 
 .module-card .card-body {
@@ -292,6 +442,10 @@ body {
     background: #7c3aed;
 }
 
+.seguranca::before {
+    background: #334155;
+}
+
 .emergencia::before {
     background: #dc3545;
 }
@@ -329,8 +483,24 @@ body {
         font-size: 14px;
     }
 
+    .dashboard-access-section {
+        padding: 12px;
+    }
+
+    .dashboard-access-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
     .module-card {
         height: 118px;
+    }
+
+    .module-card.access-card {
+        height: 138px;
+    }
+
+    .module-card.access-card .card-body {
+        padding: 26px 12px 12px;
     }
 
     .module-icon {

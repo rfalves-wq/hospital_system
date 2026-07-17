@@ -14,6 +14,7 @@
 </head>
 
 <body>
+    {% include "includes/relogio_global.html" %}
 
 <div class="container-fluid my-4">
 
@@ -288,6 +289,5 @@
 <div id="farmacia-liberar-config" data-exigir-baixa="{% if ja_liberada %}false{% else %}true{% endif %}" data-buscar-medicamento-estoque-url="{% url 'farmacia_buscar_medicamento_estoque' %}" hidden></div>
 <script src="{% static 'farmacia/js/liberar_medicacao.js' %}?v=20260712-1"></script>
 
-{% include "includes/panico_medico.html" %}
 </body>
 </html>
