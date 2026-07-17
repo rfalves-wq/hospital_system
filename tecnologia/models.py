@@ -93,6 +93,11 @@ class EquipamentoTI(models.Model):
         verbose_name = "Equipamento de TI"
         verbose_name_plural = "Equipamentos de TI"
         ordering = ["nome"]
+        indexes = [
+            models.Index(fields=["ativo", "ultimo_status"], name="equip_ativo_status_idx"),
+            models.Index(fields=["endereco_rede"], name="equip_endereco_idx"),
+            models.Index(fields=["mac_address"], name="equip_mac_idx"),
+        ]
 
     def __str__(self):
         return self.nome
@@ -185,6 +190,10 @@ class ChamadoManutencaoTI(models.Model):
         verbose_name = "Pedido de servico de TI"
         verbose_name_plural = "Pedidos de servico de TI"
         ordering = ["-criado_em"]
+        indexes = [
+            models.Index(fields=["status", "criado_em"], name="chamado_status_dt_idx"),
+            models.Index(fields=["solicitante", "status", "criado_em"], name="chamado_solic_dt_idx"),
+        ]
 
     def __str__(self):
         alvo = self.equipamento or self.setor_solicitante or self.solicitado_por or "TI"

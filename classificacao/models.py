@@ -137,5 +137,10 @@ class ClassificacaoRisco(models.Model):
         verbose_name_plural = "Classificações de Risco"
         ordering = ["-data_classificacao"]
 
+        indexes = [
+            models.Index(fields=["data_classificacao"], name="classif_data_idx"),
+            models.Index(fields=["usuario_responsavel", "data_classificacao"], name="classif_usuario_dt_idx"),
+        ]
+
     def __str__(self):
         return f"{self.acolhimento.nome_paciente} - {self.get_cor_display()}"

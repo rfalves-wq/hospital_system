@@ -17,6 +17,7 @@ from .models import ClassificacaoRisco
 
 def classificacao_dashboard(request):
     periodo_inicio, periodo_fim = periodo_do_dia(timezone.now())
+    cache_passagens = {}
     dados_impressao = buscar_dados_impressao_classificacao(request)
 
     acolhimentos = (
@@ -55,8 +56,8 @@ def classificacao_dashboard(request):
         request,
         "classificacao/dashboard.html",
         {
-            "acolhimentos": anexar_passagens_do_dia(acolhimentos),
-            "ausentes_classificacao": anexar_passagens_do_dia(ausentes_classificacao),
+            "acolhimentos": anexar_passagens_do_dia(acolhimentos, cache_passagens),
+            "ausentes_classificacao": anexar_passagens_do_dia(ausentes_classificacao, cache_passagens),
             "total_ausentes_classificacao": ausentes_classificacao.count(),
             "classificados_hoje": classificados_hoje,
             "total_classificados_hoje": classificados_hoje.count(),

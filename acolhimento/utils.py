@@ -66,12 +66,46 @@ def passagens_do_paciente_no_dia(acolhimento, data_hora=None):
     return inicio, fim, passagens
 
 
-def anexar_passagens_do_dia(acolhimentos):
+def chave_cache_passagens(acolhimento, inicio):
+    cpf = (acolhimento.cpf or "").strip()
+
+    if not cpf and acolhimento.paciente:
+        cpf = (acolhimento.paciente.cpf or "").strip()
+
+    if cpf:
+        return ("cpf", inicio.date().isoformat(), cpf)
+
+    nome = (
+        acolhimento.paciente.nome_completo
+        if acolhimento.paciente
+        else acolhimento.nome_paciente
+    )
+
+    return (
+        "nome",
+        inicio.date().isoformat(),
+        (nome or "").strip().lower(),
+        acolhimento.data_nascimento.isoformat() if acolhimento.data_nascimento else "",
+    )
+
+
+def anexar_passagens_do_dia(acolhimentos, cache_passagens=None):
     lista = list(acolhimentos)
+    cache_passagens = cache_passagens if cache_passagens is not None else {}
 
     for acolhimento in lista:
-        inicio, fim, passagens = passagens_do_paciente_no_dia(acolhimento)
-        passagens = list(passagens)
+        referencia = acolhimento.data_acolhimento or timezone.now()
+        inicio, fim = periodo_do_dia(referencia)
+        cache_key = chave_cache_passagens(acolhimento, inicio)
+
+        if cache_key not in cache_passagens:
+            _inicio, _fim, passagens = passagens_do_paciente_no_dia(
+                acolhimento,
+                referencia,
+            )
+            cache_passagens[cache_key] = (_inicio, _fim, list(passagens))
+
+        inicio, fim, passagens = cache_passagens[cache_key]
 
         acolhimento.periodo_passagens_inicio = inicio
         acolhimento.periodo_passagens_fim = fim

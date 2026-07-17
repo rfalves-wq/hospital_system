@@ -660,8 +660,23 @@ document.addEventListener('input', function (e) {
         });
     });
 
+    const intervaloAtualizacaoRecepcao = 30000;
+
     setInterval(function () {
         if (document.getElementById("dados-impressao-recepcao")) {
+            return;
+        }
+
+        if (document.hidden) {
+            return;
+        }
+
+        const elementoAtivo = document.activeElement;
+
+        if (
+            elementoAtivo
+            && ["INPUT", "SELECT", "TEXTAREA"].includes(elementoAtivo.tagName)
+        ) {
             return;
         }
 
@@ -670,5 +685,5 @@ document.addEventListener('input', function (e) {
         if (abaAtiva !== "#historico") {
             window.location.reload();
         }
-    }, 10000);
+    }, intervaloAtualizacaoRecepcao);
 });

@@ -212,6 +212,32 @@ class ConsultaMedica(models.Model):
         verbose_name = "Consulta Médica"
         verbose_name_plural = "Consultas Médicas"
 
+        indexes = [
+            models.Index(fields=["data_consulta"], name="consulta_data_idx"),
+            models.Index(fields=["medico_responsavel", "data_consulta"], name="consulta_medico_idx"),
+            models.Index(
+                fields=[
+                    "solicita_medicacao",
+                    "farmacia_liberada",
+                    "medicacao_realizada",
+                    "data_consulta",
+                ],
+                name="consulta_medic_idx",
+            ),
+            models.Index(
+                fields=[
+                    "solicita_exames_laboratoriais",
+                    "exames_laboratoriais_realizados",
+                    "data_consulta",
+                ],
+                name="consulta_lab_idx",
+            ),
+            models.Index(
+                fields=["solicita_exames_imagem", "data_consulta"],
+                name="consulta_img_idx",
+            ),
+        ]
+
     def __str__(self):
         if self.acolhimento.paciente:
             paciente = self.acolhimento.paciente.nome_completo

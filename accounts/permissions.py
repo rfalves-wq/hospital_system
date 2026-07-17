@@ -124,8 +124,14 @@ def usuario_codigos_paineis(user):
     if not user or not user.is_authenticated:
         return set()
 
+    cache_attr = "_hospital_codigos_paineis"
+    if hasattr(user, cache_attr):
+        return getattr(user, cache_attr)
+
     if user.is_superuser or user.is_staff:
-        return set(PAINEIS_TODOS)
+        codigos = set(PAINEIS_TODOS)
+        setattr(user, cache_attr, codigos)
+        return codigos
 
     codigos = set(
         user.paineis_extra
@@ -139,6 +145,7 @@ def usuario_codigos_paineis(user):
     )
     codigos.discard(None)
 
+    setattr(user, cache_attr, codigos)
     return codigos
 
 
@@ -155,7 +162,9 @@ def usuario_tem_painel(user, codigo):
 
 
 def mapa_paineis_usuario(user):
+    codigos = usuario_codigos_paineis(user)
+
     return {
-        codigo: usuario_tem_painel(user, codigo)
+        codigo: codigo in codigos or (codigo == "suporte_ti" and "ti" in codigos)
         for codigo, _nome in PAINEL_CHOICES
     }

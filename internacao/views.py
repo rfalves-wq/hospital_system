@@ -4,6 +4,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
 from acolhimento.models import Acolhimento
+from acolhimento.utils import periodo_do_dia
 
 from .forms import AltaInternacaoForm, EvolucaoInternacaoForm, InternacaoForm
 from .models import Internacao
@@ -169,7 +170,7 @@ def buscar_dados_impressao_internacao(request):
 
 
 def internacao_dashboard(request):
-    hoje = timezone.now().date()
+    periodo_inicio, periodo_fim = periodo_do_dia(timezone.now())
     dados_impressao = buscar_dados_impressao_internacao(request)
 
     aguardando_internacao = (
@@ -195,7 +196,7 @@ def internacao_dashboard(request):
     altas_hoje = (
         Internacao.objects
         .exclude(status="INTERNADO")
-        .filter(data_alta__date=hoje)
+        .filter(data_alta__gte=periodo_inicio, data_alta__lte=periodo_fim)
         .count()
     )
 

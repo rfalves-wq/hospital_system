@@ -542,9 +542,18 @@ document.addEventListener("DOMContentLoaded", function () {
         tabelaPacientes.style.display = "none";
     }
 
+    let timerBuscaPaciente = null;
+    let controladorBuscaPaciente = null;
+
     if (busca && tabela) {
         busca.addEventListener("keyup", function () {
             const texto = this.value.trim();
+            clearTimeout(timerBuscaPaciente);
+
+            if (controladorBuscaPaciente) {
+                controladorBuscaPaciente.abort();
+                controladorBuscaPaciente = null;
+            }
 
             if (texto.length < 2) {
                 tabela.innerHTML = "";
@@ -562,38 +571,50 @@ document.addEventListener("DOMContentLoaded", function () {
                 tabelaPacientes.style.display = "table";
             }
 
-            fetch(`/acolhimento/buscar-paciente/?busca=${encodeURIComponent(texto)}`)
-                .then(function (response) {
-                    return response.json();
-                })
-                .then(function (data) {
-                    tabela.innerHTML = "";
+            timerBuscaPaciente = setTimeout(function () {
+                controladorBuscaPaciente = new AbortController();
 
-                    data.forEach(function (paciente) {
-                        const passagens = paciente.passagens_hoje || {};
-                        const totalPassagens = passagens.total || 0;
-                        const passagensCodificadas = encodeURIComponent(JSON.stringify(passagens));
+                fetch(
+                    `/acolhimento/buscar-paciente/?busca=${encodeURIComponent(texto)}`,
+                    {signal: controladorBuscaPaciente.signal}
+                )
+                    .then(function (response) {
+                        return response.json();
+                    })
+                    .then(function (data) {
+                        tabela.innerHTML = "";
 
-                        tabela.innerHTML += `
-                            <tr
-                                data-nome="${escaparHtml(paciente.nome)}"
-                                data-cpf="${escaparHtml(paciente.cpf)}"
-                                data-data="${escaparHtml(paciente.data_nascimento)}"
-                                data-idade="${escaparHtml(paciente.idade)}"
-                                data-passagens="${passagensCodificadas}">
-                                <td>${escaparHtml(paciente.nome)}</td>
-                                <td>${escaparHtml(paciente.cpf)}</td>
-                                <td>${escaparHtml(paciente.data_nascimento)}</td>
-                                <td>${escaparHtml(paciente.idade)}</td>
-                                <td>
-                                    <span class="${totalPassagens > 0 ? "passagens-dia-badge alerta" : "passagens-dia-badge"}">
-                                        ${totalPassagens}
-                                    </span>
-                                </td>
-                            </tr>
-                        `;
+                        data.forEach(function (paciente) {
+                            const passagens = paciente.passagens_hoje || {};
+                            const totalPassagens = passagens.total || 0;
+                            const passagensCodificadas = encodeURIComponent(JSON.stringify(passagens));
+
+                            tabela.innerHTML += `
+                                <tr
+                                    data-nome="${escaparHtml(paciente.nome)}"
+                                    data-cpf="${escaparHtml(paciente.cpf)}"
+                                    data-data="${escaparHtml(paciente.data_nascimento)}"
+                                    data-idade="${escaparHtml(paciente.idade)}"
+                                    data-passagens="${passagensCodificadas}">
+                                    <td>${escaparHtml(paciente.nome)}</td>
+                                    <td>${escaparHtml(paciente.cpf)}</td>
+                                    <td>${escaparHtml(paciente.data_nascimento)}</td>
+                                    <td>${escaparHtml(paciente.idade)}</td>
+                                    <td>
+                                        <span class="${totalPassagens > 0 ? "passagens-dia-badge alerta" : "passagens-dia-badge"}">
+                                            ${totalPassagens}
+                                        </span>
+                                    </td>
+                                </tr>
+                            `;
+                        });
+                    })
+                    .catch(function (erro) {
+                        if (erro.name !== "AbortError") {
+                            tabela.innerHTML = "";
+                        }
                     });
-                });
+            }, 300);
         });
 
         tabela.addEventListener("click", function (e) {

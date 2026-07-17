@@ -1,5 +1,4 @@
 import json
-from datetime import date
 from urllib import error as urlerror
 from urllib import request as urlrequest
 
@@ -8,9 +7,14 @@ from django.core.cache import cache
 from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils.cache import patch_cache_control
 
 from acolhimento.models import Acolhimento
-from acolhimento.utils import anexar_passagens_do_dia, passagens_do_paciente_no_dia
+from acolhimento.utils import (
+    anexar_passagens_do_dia,
+    passagens_do_paciente_no_dia,
+    periodo_do_dia,
+)
 from painel.models import ChamadaPainel
 from painel.services import (
     anexar_status_chamadas,
@@ -32,6 +36,12 @@ IBGE_MUNICIPIOS_URL = (
 )
 
 
+def resposta_cidades(cidades):
+    resposta = JsonResponse(cidades, safe=False)
+    patch_cache_control(resposta, public=True, max_age=CIDADES_CACHE_TIMEOUT)
+    return resposta
+
+
 def cidades_por_uf(request, uf):
     uf_normalizada = (uf or "").strip().upper()
     ufs_validas = {codigo for codigo, _nome in Recepcao.UF_CHOICES}
@@ -43,7 +53,7 @@ def cidades_por_uf(request, uf):
     cidades = cache.get(cache_key)
 
     if cidades is not None:
-        return JsonResponse(cidades, safe=False)
+        return resposta_cidades(cidades)
 
     try:
         with urlrequest.urlopen(
@@ -70,18 +80,20 @@ def cidades_por_uf(request, uf):
 
     cache.set(cache_key, cidades, CIDADES_CACHE_TIMEOUT)
 
-    return JsonResponse(cidades, safe=False)
+    return resposta_cidades(cidades)
 
 
 def recepcao_dashboard(request):
-    hoje = date.today()
+    periodo_inicio, periodo_fim = periodo_do_dia()
+    cache_passagens = {}
     dados_impressao = buscar_dados_impressao_recepcao(request)
 
     acolhimentos = (
         Acolhimento.objects
         .select_related("paciente")
         .filter(
-            data_acolhimento__date=hoje,
+            data_acolhimento__gte=periodo_inicio,
+            data_acolhimento__lte=periodo_fim,
             status="RECEPCAO"
         )
         .order_by("-data_acolhimento")
@@ -90,7 +102,10 @@ def recepcao_dashboard(request):
     historico = (
         Acolhimento.objects
         .select_related("paciente")
-        .filter(data_acolhimento__date=hoje)
+        .filter(
+            data_acolhimento__gte=periodo_inicio,
+            data_acolhimento__lte=periodo_fim,
+        )
         .exclude(status__in=["RECEPCAO", "AUSENTE"])
         .order_by("-data_acolhimento")
     )
@@ -99,7 +114,8 @@ def recepcao_dashboard(request):
         Acolhimento.objects
         .select_related("paciente")
         .filter(
-            data_acolhimento__date=hoje,
+            data_acolhimento__gte=periodo_inicio,
+            data_acolhimento__lte=periodo_fim,
             status="AUSENTE",
         )
         .filter(
@@ -114,7 +130,7 @@ def recepcao_dashboard(request):
         .order_by("-data_ausente", "-data_acolhimento")
     )
 
-    acolhimentos = anexar_passagens_do_dia(acolhimentos)
+    acolhimentos = anexar_passagens_do_dia(acolhimentos, cache_passagens)
     anexar_status_chamadas(acolhimentos, ChamadaPainel.RECEPCAO)
 
     return render(
@@ -122,8 +138,8 @@ def recepcao_dashboard(request):
         "recepcao/dashboard.html",
         {
             "acolhimentos": acolhimentos,
-            "historico": anexar_passagens_do_dia(historico),
-            "ausentes_recepcao": anexar_passagens_do_dia(ausentes_recepcao),
+            "historico": anexar_passagens_do_dia(historico, cache_passagens),
+            "ausentes_recepcao": anexar_passagens_do_dia(ausentes_recepcao, cache_passagens),
             "dados_impressao_recepcao": dados_impressao,
         }
     )

@@ -203,6 +203,15 @@ class Acolhimento(models.Model):
         ordering = ['-data_acolhimento']
         verbose_name = 'Acolhimento'
         verbose_name_plural = 'Acolhimentos'
+        indexes = [
+            models.Index(fields=['status', 'data_acolhimento'], name='acolh_status_data_idx'),
+            models.Index(fields=['data_acolhimento'], name='acolh_data_idx'),
+            models.Index(fields=['status', 'data_ausente'], name='acolh_status_aus_idx'),
+            models.Index(
+                fields=['ausente_classificacao', 'data_ausente_classificacao'],
+                name='acolh_aus_class_idx',
+            ),
+        ]
 
     def __str__(self):
         return f"{self.nome_paciente} - {self.get_tipo_atendimento_display()}"

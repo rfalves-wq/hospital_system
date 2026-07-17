@@ -10,6 +10,7 @@ from django.utils.http import url_has_allowed_host_and_scheme
 
 from .forms import LoginForm, UsuarioSistemaForm
 from .models import PainelSistema, PerfilAcesso, Usuario
+from acolhimento.utils import periodo_do_dia
 from classificacao.models import ClassificacaoRisco
 from internacao.models import EvolucaoInternacao, Internacao
 from medico.models import ConsultaMedica
@@ -92,12 +93,21 @@ def filtro_nome_profissional(campo, nomes):
     return filtro
 
 
-def total_por_profissional(modelo, campo_nome, campo_data, nomes, hoje, extra=None):
+def total_por_profissional(
+    modelo,
+    campo_nome,
+    campo_data,
+    nomes,
+    periodo_inicio,
+    periodo_fim,
+    extra=None,
+):
     if not nomes:
         return 0
 
     filtro = filtro_nome_profissional(campo_nome, nomes)
-    filtro &= Q(**{f"{campo_data}__date": hoje})
+    filtro &= Q(**{f"{campo_data}__gte": periodo_inicio})
+    filtro &= Q(**{f"{campo_data}__lte": periodo_fim})
 
     if extra is not None:
         filtro &= extra
@@ -105,7 +115,7 @@ def total_por_profissional(modelo, campo_nome, campo_data, nomes, hoje, extra=No
     return modelo.objects.filter(filtro).count()
 
 
-def resumo_atendimentos_usuario_hoje(usuario, hoje):
+def resumo_atendimentos_usuario_hoje(usuario, periodo_inicio, periodo_fim):
     nomes = nomes_usuario_para_contagem(usuario)
 
     classificacao = total_por_profissional(
@@ -113,35 +123,40 @@ def resumo_atendimentos_usuario_hoje(usuario, hoje):
         "usuario_responsavel",
         "data_classificacao",
         nomes,
-        hoje,
+        periodo_inicio,
+        periodo_fim,
     )
     medico = total_por_profissional(
         ConsultaMedica,
         "medico_responsavel",
         "data_consulta",
         nomes,
-        hoje,
+        periodo_inicio,
+        periodo_fim,
     )
     medicacao = total_por_profissional(
         ConsultaMedica,
         "profissional_medicacao_nome",
         "data_medicacao",
         nomes,
-        hoje,
+        periodo_inicio,
+        periodo_fim,
     )
     farmacia = total_por_profissional(
         ConsultaMedica,
         "profissional_farmacia_nome",
         "data_liberacao_farmacia",
         nomes,
-        hoje,
+        periodo_inicio,
+        periodo_fim,
     )
     laboratorio = total_por_profissional(
         ConsultaMedica,
         "tecnico_laboratorio_nome",
         "data_resultado_laboratorio",
         nomes,
-        hoje,
+        periodo_inicio,
+        periodo_fim,
     )
     imagem = sum(
         [
@@ -150,7 +165,8 @@ def resumo_atendimentos_usuario_hoje(usuario, hoje):
                 "tecnico_raiox_nome",
                 "data_resultado_raiox",
                 nomes,
-                hoje,
+                periodo_inicio,
+                periodo_fim,
                 Q(raiox_realizado=True),
             ),
             total_por_profissional(
@@ -158,7 +174,8 @@ def resumo_atendimentos_usuario_hoje(usuario, hoje):
                 "tecnico_tomografia_nome",
                 "data_resultado_tomografia",
                 nomes,
-                hoje,
+                periodo_inicio,
+                periodo_fim,
                 Q(tomografia_realizada=True),
             ),
             total_por_profissional(
@@ -166,7 +183,8 @@ def resumo_atendimentos_usuario_hoje(usuario, hoje):
                 "tecnico_mamografia_nome",
                 "data_resultado_mamografia",
                 nomes,
-                hoje,
+                periodo_inicio,
+                periodo_fim,
                 Q(mamografia_realizada=True),
             ),
             total_por_profissional(
@@ -174,7 +192,8 @@ def resumo_atendimentos_usuario_hoje(usuario, hoje):
                 "tecnico_densitometria_nome",
                 "data_resultado_densitometria",
                 nomes,
-                hoje,
+                periodo_inicio,
+                periodo_fim,
                 Q(densitometria_realizada=True),
             ),
         ]
@@ -186,21 +205,24 @@ def resumo_atendimentos_usuario_hoje(usuario, hoje):
                 "profissional_responsavel",
                 "data_internacao",
                 nomes,
-                hoje,
+                periodo_inicio,
+                periodo_fim,
             ),
             total_por_profissional(
                 Internacao,
                 "profissional_alta",
                 "data_alta",
                 nomes,
-                hoje,
+                periodo_inicio,
+                periodo_fim,
             ),
             total_por_profissional(
                 EvolucaoInternacao,
                 "profissional",
                 "data_evolucao",
                 nomes,
-                hoje,
+                periodo_inicio,
+                periodo_fim,
             ),
         ]
     )
@@ -209,7 +231,8 @@ def resumo_atendimentos_usuario_hoje(usuario, hoje):
         "respondido_por",
         "respondido_em",
         nomes,
-        hoje,
+        periodo_inicio,
+        periodo_fim,
     )
 
     detalhes = [
@@ -230,11 +253,11 @@ def resumo_atendimentos_usuario_hoje(usuario, hoje):
     }
 
 
-def aplicar_resumo_atendimentos_hoje(usuarios, hoje):
+def aplicar_resumo_atendimentos_hoje(usuarios, periodo_inicio, periodo_fim):
     usuarios_com_resumo = []
 
     for usuario in usuarios:
-        resumo = resumo_atendimentos_usuario_hoje(usuario, hoje)
+        resumo = resumo_atendimentos_usuario_hoje(usuario, periodo_inicio, periodo_fim)
         usuario.atendimentos_hoje_total = resumo["total"]
         usuario.atendimentos_hoje_detalhes = resumo["detalhes"]
         usuarios_com_resumo.append(usuario)
@@ -248,7 +271,8 @@ def seguranca_dashboard(request):
     if sem_permissao:
         return sem_permissao
 
-    hoje = timezone.now().date()
+    periodo_inicio, periodo_fim = periodo_do_dia(timezone.now())
+    hoje = periodo_inicio.date()
     usuarios = Usuario.objects.all()
 
     totais = {
@@ -291,7 +315,8 @@ def seguranca_dashboard(request):
         usuarios
         .prefetch_related("perfis_acesso", "paineis_extra")
         .order_by("-date_joined")[:8],
-        hoje,
+        periodo_inicio,
+        periodo_fim,
     )
 
     usuarios_atendimento_hoje = aplicar_resumo_atendimentos_hoje(
@@ -299,7 +324,8 @@ def seguranca_dashboard(request):
         .filter(is_active=True)
         .prefetch_related("perfis_acesso")
         .order_by("first_name", "username"),
-        hoje,
+        periodo_inicio,
+        periodo_fim,
     )
 
     return render(
@@ -325,7 +351,8 @@ def seguranca_usuarios(request):
     busca = request.GET.get("q", "").strip()
     status = request.GET.get("status", "todos")
 
-    hoje = timezone.now().date()
+    periodo_inicio, periodo_fim = periodo_do_dia(timezone.now())
+    hoje = periodo_inicio.date()
     usuarios = (
         Usuario.objects
         .prefetch_related("perfis_acesso", "paineis_extra")
@@ -350,7 +377,7 @@ def seguranca_usuarios(request):
     elif status == "admin":
         usuarios = usuarios.filter(Q(is_staff=True) | Q(is_superuser=True))
 
-    usuarios = aplicar_resumo_atendimentos_hoje(usuarios, hoje)
+    usuarios = aplicar_resumo_atendimentos_hoje(usuarios, periodo_inicio, periodo_fim)
 
     return render(
         request,

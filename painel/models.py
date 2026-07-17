@@ -58,6 +58,10 @@ class ChamadaPainel(models.Model):
         ordering = ["-criado_em"]
         verbose_name = "Chamada do painel"
         verbose_name_plural = "Chamadas do painel"
+        indexes = [
+            models.Index(fields=["setor", "criado_em"], name="chamada_setor_dt_idx"),
+            models.Index(fields=["acolhimento", "setor", "tipo"], name="chamada_acolh_set_idx"),
+        ]
 
     def __str__(self):
         return f"{self.get_tipo_display()} - {self.get_setor_display()} - {self.paciente_nome}"

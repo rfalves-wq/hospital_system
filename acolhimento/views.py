@@ -1,4 +1,4 @@
-from datetime import datetime, date
+from datetime import datetime
 
 from django.contrib import messages
 from django.shortcuts import render, redirect, get_object_or_404
@@ -7,7 +7,7 @@ from django.db.models import Q
 from django.utils import timezone
 
 from .models import Acolhimento
-from .utils import resumo_passagens_json
+from .utils import periodo_do_dia, resumo_passagens_json
 
 
 def tipo_atendimento(request):
@@ -169,9 +169,11 @@ def dados_acolhimento_para_impressao(acolhimento):
 
 
 def buscar_historico_acolhimentos():
+    inicio, fim = periodo_do_dia()
+
     return (
         Acolhimento.objects
-        .filter(data_acolhimento__date=date.today())
+        .filter(data_acolhimento__gte=inicio, data_acolhimento__lte=fim)
         .order_by("-data_acolhimento")
     )
 

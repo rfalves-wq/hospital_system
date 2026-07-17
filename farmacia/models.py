@@ -100,6 +100,11 @@ class MedicamentoEstoque(models.Model):
         ordering = ["categoria", "nome", "apresentacao", "concentracao"]
         verbose_name = "Medicamento em Estoque"
         verbose_name_plural = "Medicamentos em Estoque"
+        indexes = [
+            models.Index(fields=["ativo", "categoria", "nome"], name="med_ativo_cat_nome_idx"),
+            models.Index(fields=["ativo", "validade"], name="med_ativo_valid_idx"),
+            models.Index(fields=["categoria", "metodo_aplicacao"], name="med_cat_metodo_idx"),
+        ]
 
     def __str__(self):
         partes = [self.nome]
@@ -212,6 +217,11 @@ class MovimentacaoEstoque(models.Model):
         ordering = ["-criado_em"]
         verbose_name = "Movimentação de Estoque"
         verbose_name_plural = "Movimentações de Estoque"
+
+        indexes = [
+            models.Index(fields=["medicamento", "criado_em"], name="mov_med_data_idx"),
+            models.Index(fields=["tipo", "criado_em"], name="mov_tipo_data_idx"),
+        ]
 
     def __str__(self):
         return f"{self.get_tipo_display()} - {self.medicamento} - {self.quantidade}"

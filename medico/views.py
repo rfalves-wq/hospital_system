@@ -7,7 +7,7 @@ from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from acolhimento.models import Acolhimento
-from acolhimento.utils import passagens_do_paciente_no_dia
+from acolhimento.utils import passagens_do_paciente_no_dia, periodo_do_dia
 from farmacia.models import MedicamentoEstoque
 from painel.models import ChamadaPainel
 from painel.services import (
@@ -107,14 +107,15 @@ def registrar_transferencia_medico(
 def medico_dashboard(request):
     dados_impressao = buscar_dados_impressao_medico(request)
     nome_medico = nome_usuario(request)
-    hoje = timezone.now().date()
+    periodo_inicio, periodo_fim = periodo_do_dia(timezone.now())
     consultorio_atual = consultorio_medico_atual(request)
 
     acolhimentos = (
         Acolhimento.objects
         .select_related("paciente", "classificacao", "consulta_medica")
         .filter(
-            data_acolhimento__date=hoje,
+            data_acolhimento__gte=periodo_inicio,
+            data_acolhimento__lte=periodo_fim,
             status__in=["CONSULTA", "RETORNO_MEDICO"],
         )
         .order_by("data_acolhimento")
@@ -128,7 +129,8 @@ def medico_dashboard(request):
             "acolhimento__classificacao"
         )
         .filter(
-            acolhimento__data_acolhimento__date=hoje,
+            acolhimento__data_acolhimento__gte=periodo_inicio,
+            acolhimento__data_acolhimento__lte=periodo_fim,
             medico_responsavel=nome_medico,
         )
         .order_by("-data_consulta")
@@ -141,7 +143,10 @@ def medico_dashboard(request):
             "acolhimento__paciente",
             "acolhimento__classificacao"
         )
-        .filter(acolhimento__data_acolhimento__date=hoje)
+        .filter(
+            acolhimento__data_acolhimento__gte=periodo_inicio,
+            acolhimento__data_acolhimento__lte=periodo_fim,
+        )
         .exclude(acolhimento__status__in=["FINALIZADO", "AUSENTE"])
         .order_by("-data_consulta")
     )
@@ -149,7 +154,8 @@ def medico_dashboard(request):
         Acolhimento.objects
         .select_related("paciente", "classificacao", "consulta_medica")
         .filter(
-            data_acolhimento__date=hoje,
+            data_acolhimento__gte=periodo_inicio,
+            data_acolhimento__lte=periodo_fim,
             status="AUSENTE",
         )
         .filter(
