@@ -3,6 +3,8 @@ from django.db.models import Q
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
 
+from acolhimento.tempos import anexar_entrada_setor
+from accounts.utils import nome_profissional_request
 from medico.models import ConsultaMedica
 from painel.models import ChamadaPainel
 from painel.services import (
@@ -41,9 +43,9 @@ def medicacao_dashboard(request):
     medicacoes_pendentes = (
         ConsultaMedica.objects
         .select_related("acolhimento", "acolhimento__paciente")
+        .prefetch_related("acolhimento__tempos_setores")
         .filter(
             solicita_medicacao=True,
-            farmacia_liberada=True,
             medicacao_realizada=False,
         )
         .exclude(acolhimento__status__in=["FINALIZADO", "AUSENTE"])
@@ -53,6 +55,7 @@ def medicacao_dashboard(request):
     medicacoes_realizadas = (
         ConsultaMedica.objects
         .select_related("acolhimento", "acolhimento__paciente")
+        .prefetch_related("acolhimento__tempos_setores")
         .filter(
             solicita_medicacao=True,
             medicacao_realizada=True,
@@ -62,9 +65,9 @@ def medicacao_dashboard(request):
     ausentes_medicacao = (
         ConsultaMedica.objects
         .select_related("acolhimento", "acolhimento__paciente")
+        .prefetch_related("acolhimento__tempos_setores")
         .filter(
             solicita_medicacao=True,
-            farmacia_liberada=True,
             medicacao_realizada=False,
             acolhimento__status="AUSENTE",
         )
@@ -80,7 +83,12 @@ def medicacao_dashboard(request):
         .order_by("-acolhimento__data_ausente", "data_consulta")
     )
 
-    medicacoes_pendentes = list(medicacoes_pendentes)
+    medicacoes_pendentes = anexar_entrada_setor(
+        medicacoes_pendentes,
+        "MEDICACAO",
+        attr_acolhimento="acolhimento",
+        fallback_attrs=["data_liberacao_farmacia", "data_consulta"],
+    )
     anexar_status_chamadas(
         medicacoes_pendentes,
         ChamadaPainel.MEDICACAO,
@@ -109,7 +117,6 @@ def administrar_medicacao(request, consulta_id):
         ),
         id=consulta_id,
         solicita_medicacao=True,
-        farmacia_liberada=True,
     )
 
     if request.method == "POST":
@@ -142,7 +149,12 @@ def administrar_medicacao(request, consulta_id):
             return redirect("medicacao_dashboard")
 
     else:
-        form = MedicacaoForm(instance=consulta)
+        initial = {}
+
+        if not consulta.profissional_medicacao_nome:
+            initial["profissional_medicacao_nome"] = nome_profissional_request(request)
+
+        form = MedicacaoForm(instance=consulta, initial=initial)
 
     return render(
         request,
@@ -163,7 +175,6 @@ def chamar_paciente_medicacao(request, consulta_id):
         ConsultaMedica.objects.select_related("acolhimento", "acolhimento__paciente"),
         id=consulta_id,
         solicita_medicacao=True,
-        farmacia_liberada=True,
         medicacao_realizada=False,
     )
     chamada, total = registrar_chamada_limitada(
@@ -196,7 +207,6 @@ def ausentar_paciente_medicacao(request, consulta_id):
         ConsultaMedica.objects.select_related("acolhimento", "acolhimento__paciente"),
         id=consulta_id,
         solicita_medicacao=True,
-        farmacia_liberada=True,
         medicacao_realizada=False,
     )
     acolhimento = consulta.acolhimento
@@ -234,7 +244,6 @@ def retornar_ausente_medicacao(request, consulta_id):
         ConsultaMedica.objects.select_related("acolhimento", "acolhimento__paciente"),
         id=consulta_id,
         solicita_medicacao=True,
-        farmacia_liberada=True,
         medicacao_realizada=False,
         acolhimento__status="AUSENTE",
     )

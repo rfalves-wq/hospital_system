@@ -386,6 +386,30 @@ body {
     background: #0ea5e9;
 }
 
+.faturamento::before {
+    background: #16a34a;
+}
+
+.funcionarios::before {
+    background: #f97316;
+}
+
+.nutricao-estoque::before {
+    background: #84cc16;
+}
+
+.almoxarifado::before {
+    background: #0891b2;
+}
+
+.auditoria-sistema::before {
+    background: #9333ea;
+}
+
+.auditorio::before {
+    background: #8b5cf6;
+}
+
 .maternidade::before {
     background: #d63384;
 }

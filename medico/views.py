@@ -7,7 +7,9 @@ from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from acolhimento.models import Acolhimento
+from acolhimento.tempos import anexar_entrada_setor
 from acolhimento.utils import passagens_do_paciente_no_dia, periodo_do_dia
+from accounts.utils import nome_profissional_request, registro_profissional_request
 from farmacia.models import MedicamentoEstoque
 from painel.models import ChamadaPainel
 from painel.services import (
@@ -20,19 +22,17 @@ from painel.services import (
     total_chamadas_setor,
 )
 
-from .forms import ConsultaMedicaForm
+from .forms import ConsultaMedicaForm, ReavaliacaoMedicaForm
 from .models import (
     ConsultaMedica,
     CID,
+    ReavaliacaoMedica,
     TransferenciaConsultaMedica,
 )
 
 
 def nome_usuario(request):
-    if request.user.is_authenticated:
-        return request.user.get_full_name() or request.user.username
-
-    return ""
+    return nome_profissional_request(request)
 
 
 def chave_consultorio_medico(request):
@@ -107,12 +107,14 @@ def registrar_transferencia_medico(
 def medico_dashboard(request):
     dados_impressao = buscar_dados_impressao_medico(request)
     nome_medico = nome_usuario(request)
+    crm_medico_atual = registro_profissional_request(request)
     periodo_inicio, periodo_fim = periodo_do_dia(timezone.now())
     consultorio_atual = consultorio_medico_atual(request)
 
     acolhimentos = (
         Acolhimento.objects
         .select_related("paciente", "classificacao", "consulta_medica")
+        .prefetch_related("tempos_setores")
         .filter(
             data_acolhimento__gte=periodo_inicio,
             data_acolhimento__lte=periodo_fim,
@@ -153,6 +155,7 @@ def medico_dashboard(request):
     ausentes_medico = (
         Acolhimento.objects
         .select_related("paciente", "classificacao", "consulta_medica")
+        .prefetch_related("tempos_setores")
         .filter(
             data_acolhimento__gte=periodo_inicio,
             data_acolhimento__lte=periodo_fim,
@@ -169,7 +172,7 @@ def medico_dashboard(request):
         .distinct()
         .order_by("-data_ausente", "data_acolhimento")
     )
-    acolhimentos = list(acolhimentos)
+    acolhimentos = anexar_entrada_setor(acolhimentos, "MEDICO")
     anexar_status_chamadas(acolhimentos, ChamadaPainel.MEDICO)
 
     return render(
@@ -186,6 +189,7 @@ def medico_dashboard(request):
             "total_ausentes_medico": ausentes_medico.count(),
             "dados_impressao_medico": dados_impressao,
             "medico_atual": nome_medico,
+            "crm_medico_atual": crm_medico_atual,
             "consultorio_medico_atual": consultorio_atual,
         }
     )
@@ -369,6 +373,20 @@ def formatar_decimal(valor):
     return str(valor).replace(".", ",")
 
 
+def descricao_cid_codigo(codigo):
+    codigo = (codigo or "").strip()
+
+    if not codigo:
+        return ""
+
+    cid = CID.objects.filter(codigo__iexact=codigo).first()
+
+    if cid:
+        return f"{cid.codigo} - {cid.descricao}"
+
+    return ""
+
+
 def nome_paciente_acolhimento(acolhimento):
     if acolhimento.paciente:
         return acolhimento.paciente.nome_completo
@@ -444,6 +462,7 @@ def dados_base_para_impressao(acolhimento, classificacao=None):
 
 def dados_consulta_para_impressao(consulta):
     dados = dados_base_para_impressao(consulta.acolhimento)
+    reavaliacoes = list(consulta.reavaliacoes.all())
 
     dados.update({
         "medicoResponsavel": consulta.medico_responsavel or "",
@@ -466,23 +485,60 @@ def dados_consulta_para_impressao(consulta):
         "indicacaoOutrosImagem": consulta.indicacao_outros_imagem or "",
         "prescricao": consulta.prescricao or "",
         "orientacoes": consulta.orientacoes or "",
+        "receita": consulta.receita or "",
+        "atestado": consulta.atestado or "",
+        "atestadoDias": consulta.atestado_dias or "",
+        "atestadoCid": consulta.atestado_cid or "",
+        "atestadoCidDescricao": descricao_cid_codigo(consulta.atestado_cid),
         "resultadoLaboratorio": consulta.resultado_exames_laboratoriais or "",
         "dataResultadoLaboratorio": formatar_data_hora(consulta.data_resultado_laboratorio),
+        "tecnicoLaboratorioNome": consulta.tecnico_laboratorio_nome or "",
+        "tecnicoLaboratorioRegistro": consulta.tecnico_laboratorio_registro or "",
         "resultadoImagem": consulta.resultado_exames_imagem or "",
         "dataResultadoImagem": formatar_data_hora(consulta.data_resultado_imagem),
         "resultadoRaiox": consulta.resultado_raiox or "",
         "dataResultadoRaiox": formatar_data_hora(consulta.data_resultado_raiox),
+        "tecnicoRaioxNome": consulta.tecnico_raiox_nome or "",
+        "tecnicoRaioxRegistro": consulta.tecnico_raiox_registro or "",
         "resultadoTomografia": consulta.resultado_tomografia or "",
         "dataResultadoTomografia": formatar_data_hora(consulta.data_resultado_tomografia),
+        "tecnicoTomografiaNome": consulta.tecnico_tomografia_nome or "",
+        "tecnicoTomografiaRegistro": consulta.tecnico_tomografia_registro or "",
         "resultadoMamografia": consulta.resultado_mamografia or "",
         "dataResultadoMamografia": formatar_data_hora(consulta.data_resultado_mamografia),
+        "tecnicoMamografiaNome": consulta.tecnico_mamografia_nome or "",
+        "tecnicoMamografiaRegistro": consulta.tecnico_mamografia_registro or "",
         "resultadoDensitometria": consulta.resultado_densitometria or "",
         "dataResultadoDensitometria": formatar_data_hora(consulta.data_resultado_densitometria),
+        "tecnicoDensitometriaNome": consulta.tecnico_densitometria_nome or "",
+        "tecnicoDensitometriaRegistro": consulta.tecnico_densitometria_registro or "",
         "medicamentosDispensados": consulta.medicamentos_dispensados or "",
+        "profissionalFarmaciaNome": consulta.profissional_farmacia_nome or "",
+        "profissionalFarmaciaRegistro": consulta.profissional_farmacia_registro or "",
         "medicacaoAdministrada": consulta.medicacao_administrada or "",
         "observacoesMedicacao": consulta.observacoes_medicacao or "",
+        "profissionalMedicacaoNome": consulta.profissional_medicacao_nome or "",
+        "profissionalMedicacaoRegistro": consulta.profissional_medicacao_registro or "",
         "farmaciaLiberada": consulta.farmacia_liberada,
-        "imprimirTudo": consulta.conduta in ["ALTA", "INTERNACAO"],
+        "reavaliacoes": [
+            {
+                "medico": reavaliacao.medico_responsavel or "",
+                "crm": reavaliacao.crm_medico or "",
+                "cid": reavaliacao.cid or "",
+                "avaliacao": reavaliacao.avaliacao or "",
+                "conduta": reavaliacao.get_conduta_display(),
+                "orientacoes": reavaliacao.orientacoes or "",
+                "data": formatar_data_hora(reavaliacao.data_reavaliacao),
+            }
+            for reavaliacao in reavaliacoes
+        ],
+        "imprimirTudo": (
+            consulta.conduta in ["ALTA", "INTERNACAO"]
+            or any(
+                reavaliacao.conduta in ["ALTA", "INTERNACAO"]
+                for reavaliacao in reavaliacoes
+            )
+        ),
     })
 
     return dados
@@ -584,12 +640,67 @@ def buscar_medicamento_farmacia(request):
     )
 
 
+def status_por_conduta_medica(conduta):
+    if conduta == "ALTA":
+        return "FINALIZADO"
+
+    if conduta == "INTERNACAO":
+        return "INTERNACAO"
+
+    if conduta == "OBSERVACAO":
+        return "OBSERVACAO"
+
+    return "RETORNO_MEDICO"
+
+
+def pendencias_alta_medica(consulta):
+    pendencias = []
+
+    if not consulta:
+        return pendencias
+
+    if consulta.solicita_medicacao:
+        if not consulta.medicacao_realizada:
+            pendencias.append("administracao da medicacao")
+
+    if (
+        consulta.solicita_exames_laboratoriais
+        and not consulta.exames_laboratoriais_realizados
+    ):
+        pendencias.append("resultado dos exames laboratoriais")
+
+    if (
+        consulta.solicita_exames_imagem
+        and not consulta.todos_exames_imagem_finalizados()
+    ):
+        pendencias.append("resultado dos exames de imagem")
+
+    return pendencias
+
+
+def mensagem_alta_bloqueada(pendencias):
+    return (
+        "Nao e possivel dar alta enquanto existir procedimento pendente: "
+        f"{', '.join(pendencias)}."
+    )
+
+
 def atender_paciente(request, acolhimento_id):
 
     acolhimento = get_object_or_404(
         Acolhimento,
         id=acolhimento_id
     )
+
+    if (
+        not consultorio_medico_atual(request)
+        and acolhimento.status in ["CONSULTA", "RETORNO_MEDICO"]
+    ):
+        messages.warning(
+            request,
+            "Informe o consultorio antes de atender pacientes."
+        )
+        return redirect("medico_dashboard")
 
     consulta = ConsultaMedica.objects.filter(
         acolhimento=acolhimento
@@ -600,7 +711,97 @@ def atender_paciente(request, acolhimento_id):
     except ObjectDoesNotExist:
         classificacao = None
 
-    if request.method == "POST":
+    medico_atual = nome_usuario(request)
+    crm_medico_atual = registro_profissional_request(request)
+
+    reavaliacao_form = ReavaliacaoMedicaForm(initial={
+        "medico_responsavel": medico_atual,
+        "crm_medico": crm_medico_atual,
+        "conduta": "RETORNO",
+    })
+
+    if request.method == "POST" and request.POST.get("acao") == "reavaliacao":
+        if not consulta:
+            messages.warning(
+                request,
+                "Ainda nao existe consulta medica anterior para reavaliar."
+            )
+            return redirect("atender_paciente", acolhimento_id=acolhimento.id)
+
+        if acolhimento.status in ["FINALIZADO", "AUSENTE"]:
+            messages.warning(
+                request,
+                "Paciente finalizado ou ausente nao pode receber nova reavaliacao."
+            )
+            return redirect("medico_dashboard")
+
+        reavaliacao_form = ReavaliacaoMedicaForm(request.POST)
+
+        if reavaliacao_form.is_valid():
+            reavaliacao = reavaliacao_form.save(commit=False)
+            reavaliacao.consulta = consulta
+
+            pendencias = pendencias_alta_medica(consulta)
+
+            if reavaliacao.conduta == "ALTA" and pendencias:
+                mensagem = mensagem_alta_bloqueada(pendencias)
+                reavaliacao_form.add_error("conduta", mensagem)
+                messages.error(request, mensagem)
+            else:
+                reavaliacao.save()
+
+                campos_consulta = []
+
+                if consulta.conduta != reavaliacao.conduta:
+                    consulta.conduta = reavaliacao.conduta
+                    campos_consulta.append("conduta")
+
+                if reavaliacao.cid and consulta.cid != reavaliacao.cid:
+                    consulta.cid = reavaliacao.cid
+                    campos_consulta.append("cid")
+
+                if (
+                    reavaliacao.medico_responsavel
+                    and (
+                        consulta.medico_responsavel != reavaliacao.medico_responsavel
+                        or (consulta.crm_medico or "") != (reavaliacao.crm_medico or "")
+                    )
+                ):
+                    registrar_transferencia_medico(
+                        consulta,
+                        reavaliacao.medico_responsavel,
+                        reavaliacao.crm_medico or "",
+                        motivo="OUTRO",
+                        observacao="Responsavel alterado ao salvar reavaliacao medica.",
+                    )
+                    consulta.medico_responsavel = reavaliacao.medico_responsavel
+                    consulta.crm_medico = reavaliacao.crm_medico or ""
+                    campos_consulta.extend(["medico_responsavel", "crm_medico"])
+
+                if campos_consulta:
+                    consulta.save(update_fields=campos_consulta)
+
+                acolhimento.status = status_por_conduta_medica(reavaliacao.conduta)
+                acolhimento.save(update_fields=["status"])
+
+                if reavaliacao.conduta in ["ALTA", "INTERNACAO"]:
+                    request.session["medico_impressao_consulta_id"] = consulta.id
+
+                messages.success(
+                    request,
+                    "Reavaliacao medica registrada. Paciente encaminhado conforme a nova conduta."
+                )
+
+                return redirect("medico_dashboard")
+
+        form = ConsultaMedicaForm(
+            instance=consulta,
+            initial={"queixa_principal": classificacao.queixa_principal}
+            if classificacao and not consulta
+            else None,
+        )
+
+    elif request.method == "POST":
 
         form = ConsultaMedicaForm(
             request.POST,
@@ -614,6 +815,15 @@ def atender_paciente(request, acolhimento_id):
 
             consulta_medica = form.save(commit=False)
             consulta_medica.acolhimento = acolhimento
+            pendencias_alta = pendencias_alta_medica(consulta_medica)
+            alta_bloqueada = (
+                consulta_medica.conduta == "ALTA"
+                and bool(pendencias_alta)
+            )
+
+            if alta_bloqueada:
+                consulta_medica.conduta = "RETORNO"
+
             consulta_medica.save()
 
             if consulta and (
@@ -656,10 +866,19 @@ def atender_paciente(request, acolhimento_id):
             if consulta_medica.conduta in ["ALTA", "INTERNACAO"]:
                 request.session["medico_impressao_consulta_id"] = consulta_medica.id
 
-            messages.success(
-                request,
-                "Consulta médica salva com sucesso. Paciente encaminhado conforme a conduta."
-            )
+            if alta_bloqueada:
+                messages.error(
+                    request,
+                    (
+                        mensagem_alta_bloqueada(pendencias_alta)
+                        + " O paciente foi encaminhado para procedimentos."
+                    )
+                )
+            else:
+                messages.success(
+                    request,
+                    "Consulta médica salva com sucesso. Paciente encaminhado conforme a conduta."
+                )
 
             return redirect("medico_dashboard")
 
@@ -670,11 +889,8 @@ def atender_paciente(request, acolhimento_id):
         if classificacao:
             inicial["queixa_principal"] = classificacao.queixa_principal
 
-        if request.user.is_authenticated and not consulta:
-            inicial["medico_responsavel"] = (
-                request.user.get_full_name()
-                or request.user.username
-            )
+        if not consulta:
+            inicial["medico_responsavel"] = nome_usuario(request)
 
         form = ConsultaMedicaForm(
             instance=consulta,
@@ -694,9 +910,13 @@ def atender_paciente(request, acolhimento_id):
         .exclude(id=acolhimento.id)
         .exists()
     )
-    medico_atual = nome_usuario(request)
     historico_transferencias = (
         consulta.transferencias_medico.all()
+        if consulta
+        else []
+    )
+    reavaliacoes_medicas = (
+        consulta.reavaliacoes.all()
         if consulta
         else []
     )
@@ -723,7 +943,10 @@ def atender_paciente(request, acolhimento_id):
             "total_passagens_hospital_dia": total_passagens_hospital_dia,
             "tem_passagem_anterior_hoje": tem_passagem_anterior_hoje,
             "medico_atual": medico_atual,
+            "crm_medico_atual": crm_medico_atual,
             "historico_transferencias": historico_transferencias,
+            "reavaliacoes_medicas": reavaliacoes_medicas,
+            "reavaliacao_form": reavaliacao_form,
             "pode_assumir_consulta": pode_assumir_consulta,
             "motivos_transferencia": TransferenciaConsultaMedica.MOTIVO_CHOICES,
             "dados_base_impressao_medico": dados_base_para_impressao(
@@ -765,6 +988,8 @@ def assumir_paciente(request, acolhimento_id):
         or ""
     ).strip()
     crm_novo = (request.POST.get("crm_novo") or "").strip()
+    if not crm_novo:
+        crm_novo = registro_profissional_request(request)
     motivo = (request.POST.get("motivo") or "PLANTAO").strip()
     observacao = (request.POST.get("observacao") or "").strip()
     motivos_validos = {

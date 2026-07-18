@@ -119,6 +119,100 @@
             padding: 8px 10px;
         }
 
+        .resumo-medico-anterior {
+            border-top: 1px solid #e5edf5;
+            margin-top: 12px;
+            padding-top: 10px;
+        }
+
+        .resumo-medico-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .resumo-medico-grid > div {
+            background: #f8fafc;
+            border: 1px solid #e5edf5;
+            border-radius: 8px;
+            min-height: 88px;
+            padding: 9px 10px;
+        }
+
+        .resumo-medico-grid label,
+        .reavaliacao-item label {
+            color: var(--muted);
+            display: block;
+            font-size: 11px;
+            font-weight: 900;
+            letter-spacing: .04em;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        .resumo-medico-grid p,
+        .reavaliacao-item p {
+            margin: 0;
+            white-space: pre-line;
+        }
+
+        .reavaliacao-medica-card {
+            border-left: 5px solid var(--verde);
+            margin-top: 16px;
+        }
+
+        .reavaliacoes-lista {
+            background: #f8fafc;
+            border: 1px solid #e5edf5;
+            border-radius: 12px;
+            padding: 12px;
+        }
+
+        .reavaliacoes-lista h6 {
+            color: #0f172a;
+            font-weight: 900;
+            margin-bottom: 10px;
+        }
+
+        .reavaliacao-item {
+            background: #fff;
+            border: 1px solid #dce5ef;
+            border-radius: 10px;
+            margin-top: 8px;
+            padding: 10px 12px;
+        }
+
+        .reavaliacao-topo {
+            align-items: center;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: space-between;
+            margin-bottom: 4px;
+        }
+
+        .reavaliacao-topo strong {
+            color: #0f172a;
+            font-weight: 900;
+        }
+
+        .reavaliacao-topo span {
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .reavaliacao-orientacao {
+            background: #ecfdf5;
+            border: 1px solid #bbf7d0;
+            border-radius: 8px;
+            color: #14532d;
+            margin-top: 8px;
+            padding: 8px 10px;
+            white-space: pre-line;
+        }
+
         .passagens-dia-topo {
             display: flex;
             align-items: flex-start;
@@ -738,6 +832,10 @@
         }
 
         @media (max-width: 1200px) {
+            .resumo-medico-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
             .exam-list.simple-list,
             .exam-category-body {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -771,6 +869,7 @@
             }
 
             .info-grid,
+            .resumo-medico-grid,
             .exam-list.simple-list,
             .exam-category-body {
                 grid-template-columns: 1fr;

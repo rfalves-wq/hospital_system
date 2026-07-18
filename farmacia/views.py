@@ -10,6 +10,8 @@ from django.urls import reverse
 from django.utils.dateparse import parse_date
 from django.utils import timezone
 
+from acolhimento.tempos import anexar_entrada_setor
+from accounts.utils import nome_profissional_request
 from medico.models import ConsultaMedica
 
 from .forms import FarmaciaForm, MedicamentoEstoqueForm, MovimentacaoEstoqueForm
@@ -46,13 +48,13 @@ def farmacia_dashboard(request):
     base = (
         ConsultaMedica.objects
         .select_related("acolhimento", "acolhimento__paciente")
+        .prefetch_related("acolhimento__tempos_setores")
         .filter(solicita_medicacao=True)
     )
 
     pendentes_base = (
         base
         .filter(farmacia_liberada=False)
-        .exclude(acolhimento__status__in=["FINALIZADO", "AUSENTE"])
         .order_by("data_consulta")
     )
 
@@ -62,7 +64,12 @@ def farmacia_dashboard(request):
         .order_by("-data_liberacao_farmacia")
     )
 
-    medicacoes_pendentes = filtrar_por_busca(pendentes_base, busca)
+    medicacoes_pendentes = anexar_entrada_setor(
+        filtrar_por_busca(pendentes_base, busca),
+        "FARMACIA",
+        attr_acolhimento="acolhimento",
+        fallback_attr="data_consulta",
+    )
     medicacoes_liberadas = filtrar_por_busca(liberadas_base, busca)
 
     total_pendentes = pendentes_base.count()
@@ -276,26 +283,35 @@ def liberar_medicacao(request, consulta_id):
 
                     acolhimento = consulta.acolhimento
 
-                    if acolhimento.status not in ["FINALIZADO", "AUSENTE"]:
+                    if (
+                        not consulta.medicacao_realizada
+                        and acolhimento.status not in ["FINALIZADO", "AUSENTE"]
+                    ):
                         acolhimento.status = "PROCEDIMENTOS"
                         acolhimento.save(update_fields=["status"])
 
                     if ja_liberada:
                         messages.success(
                             request,
-                            "Liberacao da farmacia atualizada com sucesso."
+                            "Baixa de estoque atualizada com sucesso."
                         )
                     else:
                         messages.success(
                             request,
-                            "Medicacao liberada pela farmacia com baixa automatica no estoque."
+                            "Baixa de estoque registrada para a prescricao medica."
                         )
 
                     return redirect("farmacia_dashboard")
     else:
+        initial = {}
+
+        if not consulta.profissional_farmacia_nome:
+            initial["profissional_farmacia_nome"] = nome_profissional_request(request)
+
         form = FarmaciaForm(
             instance=consulta,
-            exigir_itens_estoque=not ja_liberada
+            exigir_itens_estoque=not ja_liberada,
+            initial=initial,
         )
 
     return render(
@@ -621,7 +637,11 @@ def movimentar_estoque_lote(request):
 
     tipo = (request.POST.get("tipo_movimentacao") or "").upper()
     ids_texto = request.POST.getlist("medicamentos")
-    profissional_nome = (request.POST.get("profissional_nome") or "").strip()
+    profissional_nome = (
+        request.POST.get("profissional_nome")
+        or nome_profissional_request(request)
+        or ""
+    ).strip()
     profissional_registro = (request.POST.get("profissional_registro") or "").strip()
     origem_destino = (request.POST.get("origem_destino") or "").strip()
     observacao = (request.POST.get("observacao") or "").strip()
@@ -832,7 +852,12 @@ def movimentar_estoque(request, medicamento_id, tipo):
                     messages.success(request, "Movimentacao registrada com sucesso.")
                     return redirect("farmacia_estoque")
     else:
-        form = MovimentacaoEstoqueForm(tipo_movimento=tipo)
+        form = MovimentacaoEstoqueForm(
+            tipo_movimento=tipo,
+            initial={
+                "profissional_nome": nome_profissional_request(request),
+            },
+        )
 
     return render(
         request,

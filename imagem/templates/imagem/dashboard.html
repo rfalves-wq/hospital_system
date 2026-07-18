@@ -92,7 +92,7 @@
                                     <th>Setor</th>
                                     <th>Pedido</th>
                                     <th>Indicação</th>
-                                    <th>Data da Consulta</th>
+                                    <th>Entrada na imagem</th>
                                     <th>Ação</th>
                                 </tr>
                             </thead>
@@ -149,7 +149,7 @@
                                             </td>
 
                                             <td>
-                                                {{ consulta.data_consulta|date:"d/m/Y H:i" }}
+                                                {{ item.entrada_setor|date:"d/m/Y H:i"|default:"-" }}
                                             </td>
 
                                             <td>

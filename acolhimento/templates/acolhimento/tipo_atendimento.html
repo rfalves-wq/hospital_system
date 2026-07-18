@@ -7,7 +7,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Acolhimento Hospitalar</title>
-    <link rel="stylesheet" href="{% static 'acolhimento/css/atendimento.css' %}">
+    <link rel="stylesheet" href="{% static 'acolhimento/css/atendimento.css' %}?v=20260718-6">
 </head>
 
 <body>
@@ -70,6 +70,11 @@
     <div class="abas-acolhimento">
         <button type="button" class="aba-btn active" data-aba="aba-novo">
             Novo Acolhimento
+        </button>
+
+        <button type="button" class="aba-btn" data-aba="aba-reimpressao">
+            Reimprimir ficha
+            <span>{{ historico_acolhimentos|length }}</span>
         </button>
     </div>
 
@@ -264,13 +269,96 @@
 
     </div>
 
+    <div id="aba-reimpressao" class="conteudo-aba">
+        <div class="etapa">
+            <span>REIMPRESS&Atilde;O</span>
+            <h3>Fichas de acolhimento de hoje</h3>
+        </div>
+
+        <div class="reimpressao-box">
+            <p class="reimpressao-ajuda">
+                Use esta lista quando a primeira impress&atilde;o falhar, travar ou sair com problema.
+            </p>
+
+            {% if historico_acolhimentos %}
+                <div class="tabela-historico-box">
+                    <table class="tabela-pacientes tabela-reimpressao">
+                        <thead>
+                            <tr>
+                                <th>BAM</th>
+                                <th>Paciente</th>
+                                <th>Tipo</th>
+                                <th>Acolhimento</th>
+                                <th>Profissional</th>
+                                <th>A&ccedil;&atilde;o</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in historico_acolhimentos %}
+                                <tr>
+                                    <td>{{ item.numero_bam }}</td>
+                                    <td>{{ item.nome_paciente }}</td>
+                                    <td>{{ item.get_tipo_atendimento_display }}</td>
+                                    <td>{{ item.data_acolhimento|date:"d/m/Y H:i" }}</td>
+                                    <td>{{ item.profissional_responsavel|default:"-" }}</td>
+                                    <td>
+                                        <div class="acoes-reimpressao">
+                                            <button
+                                                type="button"
+                                                class="btn-reimprimir-ficha"
+                                                data-reimprimir-acolhimento
+                                                data-nome-paciente="{{ item.nome_paciente }}"
+                                                data-cpf="{{ item.cpf|default:'' }}"
+                                                data-numero-bam="{{ item.numero_bam }}"
+                                                data-data-nascimento="{{ item.data_nascimento|date:'d/m/Y' }}"
+                                                data-idade="{{ item.idade|default:'' }}"
+                                                data-hora-chegada="{{ item.hora_chegada|time:'H:i' }}"
+                                                data-pressao-arterial="{{ item.pressao_arterial|default:'' }}"
+                                                data-temperatura="{{ item.temperatura|default:'' }}"
+                                                data-frequencia-respiratoria="{{ item.frequencia_respiratoria|default:'' }}"
+                                                data-pulso="{{ item.pulso|default:'' }}"
+                                                data-dor="{{ item.dor|default:'' }}"
+                                                data-tipo-atendimento="{{ item.tipo_atendimento }}"
+                                                data-tipo-atendimento-label="{{ item.get_tipo_atendimento_display }}"
+                                                data-data-acolhimento="{{ item.data_acolhimento|date:'d/m/Y H:i' }}"
+                                                data-profissional-responsavel="{{ item.profissional_responsavel|default:'' }}"
+                                                data-profissional-conselho="{{ item.profissional_responsavel_conselho|default:'' }}"
+                                                data-profissional-registro="{{ item.profissional_responsavel_registro|default:'' }}"
+                                                data-profissional-conselho-registro="{% if item.profissional_responsavel_conselho and item.profissional_responsavel_registro %}{{ item.profissional_responsavel_conselho }} {{ item.profissional_responsavel_registro }}{% elif item.profissional_responsavel_conselho %}{{ item.profissional_responsavel_conselho }}{% elif item.profissional_responsavel_registro %}{{ item.profissional_responsavel_registro }}{% endif %}">
+                                                Reimprimir ficha
+                                            </button>
+
+                                            <form
+                                                method="post"
+                                                action="{% url 'acolhimento_reenviar_recepcao' item.id %}"
+                                                class="form-reenviar-recepcao">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn-reenviar-recepcao">
+                                                    Reenviar recep&ccedil;&atilde;o
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="historico-vazio">
+                    Nenhum acolhimento registrado hoje para reimpress&atilde;o.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
 </div>
 
 {% if dados_impressao %}
     {{ dados_impressao|json_script:"dados-impressao-acolhimento" }}
 {% endif %}
 
-<script src="{% static 'acolhimento/js/atendimento.js' %}?v=20260717-1"></script>
+<script src="{% static 'acolhimento/js/atendimento.js' %}?v=20260718-5"></script>
 
 </body>
 </html>

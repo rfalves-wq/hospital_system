@@ -3,6 +3,7 @@ from django.contrib import admin
 from .models import (
     ConsultaMedica,
     CID,
+    ReavaliacaoMedica,
     TransferenciaConsultaMedica,
 )
 
@@ -68,4 +69,28 @@ class TransferenciaConsultaMedicaAdmin(admin.ModelAdmin):
     list_filter = [
         "motivo",
         "data_transferencia",
+    ]
+
+
+@admin.register(ReavaliacaoMedica)
+class ReavaliacaoMedicaAdmin(admin.ModelAdmin):
+    list_display = [
+        "consulta",
+        "medico_responsavel",
+        "crm_medico",
+        "conduta",
+        "data_reavaliacao",
+    ]
+
+    search_fields = [
+        "consulta__acolhimento__numero_bam",
+        "consulta__acolhimento__nome_paciente",
+        "medico_responsavel",
+        "crm_medico",
+        "avaliacao",
+    ]
+
+    list_filter = [
+        "conduta",
+        "data_reavaliacao",
     ]

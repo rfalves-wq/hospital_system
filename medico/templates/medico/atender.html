@@ -10,7 +10,7 @@
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
-    <link rel="stylesheet" href="{% static 'medico/css/atender.css' %}?v=20260714-1">
+    <link rel="stylesheet" href="{% static 'medico/css/atender.css' %}?v=20260718-1">
 </head>
 
 <body>
@@ -105,6 +105,7 @@
                     <div class="alerta-alergia-menor">
                         Conferir antes de prescrever, solicitar ou administrar medicação.
                     </div>
+
                 </div>
             {% endif %}
 
@@ -229,6 +230,7 @@
                                     <input type="text"
                                            name="crm_novo"
                                            class="form-control"
+                                           value="{{ crm_medico_atual }}"
                                            placeholder="CRM">
                                 </div>
 
@@ -287,6 +289,54 @@
                             </div>
                         {% endfor %}
                     </div>
+
+                    <div class="resumo-medico-anterior">
+                        <div class="passagens-dia-titulo">
+                            Conduta, prescricao e resultados ja registrados
+                        </div>
+
+                        <div class="resumo-medico-grid">
+                            <div>
+                                <label>Conduta anterior</label>
+                                <strong>{{ consulta.get_conduta_display|default:"-" }}</strong>
+                            </div>
+
+                            <div>
+                                <label>Prescricao</label>
+                                <p>{{ consulta.prescricao|default:"-"|linebreaksbr }}</p>
+                            </div>
+
+                            <div>
+                                <label>Exames laboratoriais solicitados</label>
+                                <p>{{ consulta.exames_laboratoriais|default:"-"|linebreaksbr }}</p>
+                            </div>
+
+                            <div>
+                                <label>Exames de imagem solicitados</label>
+                                <p>{{ consulta.exames_imagem|default:"-"|linebreaksbr }}</p>
+                            </div>
+
+                            <div>
+                                <label>Resultado laboratorio</label>
+                                <p>{{ consulta.resultado_exames_laboratoriais|default:"Pendente"|linebreaksbr }}</p>
+                            </div>
+
+                            <div>
+                                <label>Resultado imagem</label>
+                                <p>{{ consulta.resultado_exames_imagem|default:"Pendente"|linebreaksbr }}</p>
+                            </div>
+
+                            <div>
+                                <label>Medicacao administrada</label>
+                                <p>{{ consulta.medicacao_administrada|default:"Pendente"|linebreaksbr }}</p>
+                            </div>
+
+                            <div>
+                                <label>Orientacoes anteriores</label>
+                                <p>{{ consulta.orientacoes|default:"-"|linebreaksbr }}</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             {% endif %}
 
@@ -339,13 +389,7 @@
 
                     <li class="nav-item" role="presentation">
                         <button class="nav-link" data-bs-toggle="tab" data-bs-target="#prescricao" type="button">
-                            Prescrição
-                        </button>
-                    </li>
-
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#orientacoes" type="button">
-                            Orientações
+                            Prescrição e Documentos
                         </button>
                     </li>
 
@@ -1102,10 +1146,21 @@
 
                         <div class="section-card">
                             <div class="section-head azul d-flex justify-content-between align-items-center gap-2">
-                                <span>Prescrição</span>
-                                <button type="button" class="btn btn-light btn-sm fw-bold" data-print-medico="prescricao">
-                                    Imprimir prescrição
-                                </button>
+                                <span>Prescrição e Documentos</span>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <button type="button" class="btn btn-light btn-sm fw-bold" data-print-medico="prescricao">
+                                        Imprimir prescrição
+                                    </button>
+                                    <button type="button" class="btn btn-light btn-sm fw-bold" data-print-medico="receita">
+                                        Imprimir receita
+                                    </button>
+                                    <button type="button" class="btn btn-light btn-sm fw-bold" data-print-medico="atestado">
+                                        Imprimir atestado
+                                    </button>
+                                    <button type="button" class="btn btn-light btn-sm fw-bold" data-print-medico="orientacoes">
+                                        Imprimir alta
+                                    </button>
+                                </div>
                             </div>
 
                             <div class="section-body">
@@ -1169,25 +1224,41 @@
                                 <label class="form-label fw-bold">Prescrição médica</label>
                                 {{ form.prescricao }}
                                 {{ form.prescricao.errors }}
-                            </div>
-                        </div>
 
-                    </div>
+                                <div class="mt-3">
+                                    <label class="form-label fw-bold">Receita médica</label>
+                                    {{ form.receita }}
+                                    {{ form.receita.errors }}
+                                </div>
 
-                    <div class="tab-pane fade" id="orientacoes">
+                                <div class="mt-3">
+                                    <label class="form-label fw-bold">Atestado médico</label>
+                                    <div class="row g-2">
+                                        <div class="col-md-3">
+                                            <label class="form-label small fw-bold text-muted">Dias</label>
+                                            {{ form.atestado_dias }}
+                                            {{ form.atestado_dias.errors }}
+                                        </div>
+                                        <div class="col-md-4 position-relative">
+                                            <label class="form-label small fw-bold text-muted">CID, se necessário</label>
+                                            {{ form.atestado_cid }}
+                                            <div
+                                                id="resultado-atestado-cid"
+                                                class="list-group position-absolute w-100 shadow-sm cid-resultados">
+                                            </div>
+                                            {{ form.atestado_cid.errors }}
+                                            <div id="alerta-atestado-cid-agressao" class="cid-agressao-alerta d-none mt-2">
+                                                CID de agressão identificado. Atestado sinalizado em vermelho.
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
 
-                        <div class="section-card">
-                            <div class="section-head azul d-flex justify-content-between align-items-center gap-2">
-                                <span>Orientações</span>
-                                <button type="button" class="btn btn-light btn-sm fw-bold" data-print-medico="orientacoes">
-                                    Imprimir alta
-                                </button>
-                            </div>
-
-                            <div class="section-body">
-                                <label class="form-label fw-bold">Orientações ao paciente</label>
-                                {{ form.orientacoes }}
-                                {{ form.orientacoes.errors }}
+                                <div class="mt-3">
+                                    <label class="form-label fw-bold">Orientações ao paciente</label>
+                                    {{ form.orientacoes }}
+                                    {{ form.orientacoes.errors }}
+                                </div>
                             </div>
                         </div>
 
@@ -1211,6 +1282,113 @@
 
             </form>
 
+            {% if consulta %}
+                <div class="section-card reavaliacao-medica-card">
+                    <div class="section-head verde">
+                        Reavaliacao / nova conduta medica
+                    </div>
+
+                    <div class="section-body">
+                        <div class="alert alert-info fw-bold">
+                            Use este bloco quando outro medico assumir o paciente. Ele registra a nova avaliacao sem apagar a prescricao, pedidos e evolucoes do medico anterior.
+                        </div>
+
+                        <div class="reavaliacoes-lista">
+                            <h6>Reavaliacoes ja registradas</h6>
+
+                            {% for reavaliacao in reavaliacoes_medicas %}
+                                <article class="reavaliacao-item">
+                                    <div class="reavaliacao-topo">
+                                        <strong>{{ reavaliacao.medico_responsavel|default:"-" }}</strong>
+                                        <span>{{ reavaliacao.data_reavaliacao|date:"d/m/Y H:i" }}</span>
+                                    </div>
+
+                                    <div class="passagens-dia-periodo">
+                                        CRM: {{ reavaliacao.crm_medico|default:"-" }}
+                                        Â· Conduta: {{ reavaliacao.get_conduta_display }}
+                                        {% if reavaliacao.cid %}
+                                            Â· CID: {{ reavaliacao.cid }}
+                                        {% endif %}
+                                    </div>
+
+                                    <p>{{ reavaliacao.avaliacao|linebreaksbr }}</p>
+
+                                    {% if reavaliacao.orientacoes %}
+                                        <div class="reavaliacao-orientacao">
+                                            <strong>Orientacoes:</strong>
+                                            {{ reavaliacao.orientacoes|linebreaksbr }}
+                                        </div>
+                                    {% endif %}
+                                </article>
+                            {% empty %}
+                                <div class="text-muted fw-bold">
+                                    Nenhuma reavaliacao registrada ainda.
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                        {% if acolhimento.status != "FINALIZADO" and acolhimento.status != "AUSENTE" %}
+                            <form method="post" class="mt-3">
+                                {% csrf_token %}
+                                <input type="hidden" name="acao" value="reavaliacao">
+
+                                {% if reavaliacao_form.errors %}
+                                    <div class="alert alert-danger">
+                                        Confira os campos da reavaliacao antes de salvar.
+                                    </div>
+                                {% endif %}
+
+                                <div class="row g-3">
+                                    <div class="col-md-5">
+                                        <label class="form-label fw-bold">Medico que esta assumindo / reavaliando</label>
+                                        {{ reavaliacao_form.medico_responsavel }}
+                                        {{ reavaliacao_form.medico_responsavel.errors }}
+                                    </div>
+
+                                    <div class="col-md-2">
+                                        <label class="form-label fw-bold">CRM</label>
+                                        {{ reavaliacao_form.crm_medico }}
+                                        {{ reavaliacao_form.crm_medico.errors }}
+                                    </div>
+
+                                    <div class="col-md-2">
+                                        <label class="form-label fw-bold">CID</label>
+                                        {{ reavaliacao_form.cid }}
+                                        {{ reavaliacao_form.cid.errors }}
+                                    </div>
+
+                                    <div class="col-md-3">
+                                        <label class="form-label fw-bold">Nova conduta</label>
+                                        {{ reavaliacao_form.conduta }}
+                                        {{ reavaliacao_form.conduta.errors }}
+                                    </div>
+
+                                    <div class="col-12">
+                                        <label class="form-label fw-bold">Avaliacao do novo medico</label>
+                                        {{ reavaliacao_form.avaliacao }}
+                                        {{ reavaliacao_form.avaliacao.errors }}
+                                    </div>
+
+                                    <div class="col-12">
+                                        <label class="form-label fw-bold">Orientacoes / alta / continuidade do cuidado</label>
+                                        {{ reavaliacao_form.orientacoes }}
+                                        {{ reavaliacao_form.orientacoes.errors }}
+                                    </div>
+                                </div>
+
+                                <div class="d-flex justify-content-end mt-3">
+                                    <button type="submit"
+                                            class="btn btn-success btn-lg fw-bold"
+                                            data-confirm-submit="Confirmar registro da reavaliacao e nova conduta?">
+                                        Salvar reavaliacao e conduta
+                                    </button>
+                                </div>
+                            </form>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+
         </div>
 
     </div>
@@ -1220,10 +1398,10 @@
 {{ dados_base_impressao_medico|json_script:"dados-base-impressao-medico" }}
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="{% static 'medico/js/impressao.js' %}?v=20260711-1"></script>
+<script src="{% static 'medico/js/impressao.js' %}?v=20260718-2"></script>
 
 <div id="medico-atender-config" data-buscar-medicamento-farmacia-url="{% url 'buscar_medicamento_farmacia' %}" hidden></div>
-<script src="{% static 'medico/js/atender.js' %}?v=20260711-2"></script>
+<script src="{% static 'medico/js/atender.js' %}?v=20260718-2"></script>
 
 </body>
 </html>

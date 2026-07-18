@@ -5,6 +5,8 @@ from django.contrib import messages
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
 
+from acolhimento.tempos import anexar_entrada_setor
+from accounts.utils import nome_profissional_request
 from medico.models import ConsultaMedica
 
 from .forms import ResultadoLaboratorioForm
@@ -35,6 +37,7 @@ def laboratorio_dashboard(request):
     exames_pendentes = (
         ConsultaMedica.objects
         .select_related("acolhimento", "acolhimento__paciente")
+        .prefetch_related("acolhimento__tempos_setores")
         .filter(
             solicita_exames_laboratoriais=True,
             exames_laboratoriais_realizados=False,
@@ -46,11 +49,19 @@ def laboratorio_dashboard(request):
     exames_realizados = (
         ConsultaMedica.objects
         .select_related("acolhimento", "acolhimento__paciente")
+        .prefetch_related("acolhimento__tempos_setores")
         .filter(
             solicita_exames_laboratoriais=True,
             exames_laboratoriais_realizados=True,
         )
         .order_by("-data_resultado_laboratorio")
+    )
+
+    exames_pendentes = anexar_entrada_setor(
+        exames_pendentes,
+        "LABORATORIO",
+        attr_acolhimento="acolhimento",
+        fallback_attr="data_consulta",
     )
 
     return render(
@@ -59,7 +70,7 @@ def laboratorio_dashboard(request):
         {
             "exames_pendentes": exames_pendentes,
             "exames_realizados": exames_realizados,
-            "total_pendentes": exames_pendentes.count(),
+            "total_pendentes": len(exames_pendentes),
             "total_realizados": exames_realizados.count(),
         }
     )
@@ -110,7 +121,12 @@ def lancar_resultado_laboratorio(request, consulta_id):
 
     else:
 
-        form = ResultadoLaboratorioForm(instance=consulta)
+        initial = {}
+
+        if not consulta.tecnico_laboratorio_nome:
+            initial["tecnico_laboratorio_nome"] = nome_profissional_request(request)
+
+        form = ResultadoLaboratorioForm(instance=consulta, initial=initial)
 
     return render(
         request,

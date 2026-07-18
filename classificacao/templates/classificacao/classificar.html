@@ -201,8 +201,14 @@
 
                         <div class="col-md-3 mb-3">
                             <label class="fw-bold mb-1">Usuário responsável <span class="required-star">*</span></label>
-                            <input type="text" name="usuario_responsavel" id="id_usuario_responsavel" value="{% if form.usuario_responsavel.value %}{{ form.usuario_responsavel.value }}{% elif request.user.is_authenticated %}{{ request.user.username }}{% endif %}" required>
+                            <input type="text" name="usuario_responsavel" id="id_usuario_responsavel" value="{% if form.usuario_responsavel.value %}{{ form.usuario_responsavel.value }}{% elif profissional_logado %}{{ profissional_logado }}{% endif %}" required>
                             {{ form.usuario_responsavel.errors }}
+                        </div>
+
+                        <div class="col-md-3 mb-3">
+                            <label class="fw-bold mb-1">COREN / registro</label>
+                            <input type="text" name="responsavel_registro" id="id_responsavel_registro" value="{{ form.responsavel_registro.value|default_if_none:'' }}" placeholder="Ex: COREN 123456">
+                            {{ form.responsavel_registro.errors }}
                         </div>
                     </div>
                 </div>

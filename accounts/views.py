@@ -71,7 +71,7 @@ def redirecionar_sem_permissao(request):
     if not request.user.is_staff and not request.user.is_superuser:
         messages.error(
             request,
-            "Apenas administradores podem gerenciar usuarios e acessos."
+            "Apenas administradores podem gerenciar profissionais e acessos."
         )
         return redirect("dashboard")
 
@@ -367,6 +367,8 @@ def seguranca_usuarios(request):
             | Q(last_name__icontains=busca)
             | Q(email__icontains=busca)
             | Q(cargo__icontains=busca)
+            | Q(conselho_profissional__icontains=busca)
+            | Q(registro_profissional__icontains=busca)
             | Q(perfis_acesso__nome__icontains=busca)
         ).distinct()
 
@@ -404,7 +406,7 @@ def seguranca_usuario_novo(request):
 
     if request.method == "POST" and form.is_valid():
         usuario = form.save()
-        messages.success(request, "Usuario criado com sucesso.")
+        messages.success(request, "Profissional criado com sucesso.")
         return redirect("seguranca_usuario_editar", usuario_id=usuario.id)
 
     return render(
@@ -412,8 +414,8 @@ def seguranca_usuario_novo(request):
         "accounts/usuario_form.html",
         {
             "form": form,
-            "titulo": "Novo usuario",
-            "subtitulo": "Cadastre o login, senha e paineis liberados.",
+            "titulo": "Novo profissional",
+            "subtitulo": "Cadastre login, dados profissionais, senha e paineis liberados.",
             "usuario_editado": None,
         },
     )
@@ -434,7 +436,7 @@ def seguranca_usuario_editar(request, usuario_id):
 
     if request.method == "POST" and form.is_valid():
         form.save()
-        messages.success(request, "Usuario atualizado com sucesso.")
+        messages.success(request, "Profissional atualizado com sucesso.")
         return redirect("seguranca_usuarios")
 
     return render(
@@ -442,8 +444,8 @@ def seguranca_usuario_editar(request, usuario_id):
         "accounts/usuario_form.html",
         {
             "form": form,
-            "titulo": "Editar usuario",
-            "subtitulo": "Atualize dados, categoria, paineis e status.",
+            "titulo": "Editar profissional",
+            "subtitulo": "Atualize dados profissionais, categoria, paineis e status.",
             "usuario_editado": usuario,
         },
     )
@@ -459,15 +461,15 @@ def seguranca_usuario_status(request, usuario_id):
     usuario = get_object_or_404(Usuario, id=usuario_id)
 
     if usuario.id == request.user.id:
-        messages.error(request, "Voce nao pode inativar o proprio usuario.")
+        messages.error(request, "Voce nao pode inativar o proprio acesso.")
         return redirect("seguranca_usuarios")
 
     usuario.is_active = not usuario.is_active
     usuario.save(update_fields=["is_active"])
 
     if usuario.is_active:
-        messages.success(request, f"Usuario {usuario.username} ativado.")
+        messages.success(request, f"Profissional {usuario.username} ativado.")
     else:
-        messages.warning(request, f"Usuario {usuario.username} inativado.")
+        messages.warning(request, f"Profissional {usuario.username} inativado.")
 
     return redirect("seguranca_usuarios")

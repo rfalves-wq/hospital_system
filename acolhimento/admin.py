@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Acolhimento
+from .models import Acolhimento, PermanenciaSetorAtendimento
 
 
 @admin.register(Acolhimento)
@@ -18,4 +18,30 @@ class AcolhimentoAdmin(admin.ModelAdmin):
     search_fields = (
         'nome_paciente',
         'cpf'
+    )
+
+
+@admin.register(PermanenciaSetorAtendimento)
+class PermanenciaSetorAtendimentoAdmin(admin.ModelAdmin):
+    list_display = (
+        "acolhimento",
+        "setor",
+        "origem",
+        "entrada",
+        "saida",
+        "duracao_formatada",
+    )
+    list_filter = (
+        "setor",
+        "origem",
+        "saida",
+    )
+    search_fields = (
+        "acolhimento__numero_bam",
+        "acolhimento__nome_paciente",
+        "acolhimento__cpf",
+    )
+    readonly_fields = (
+        "criado_em",
+        "atualizado_em",
     )

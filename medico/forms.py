@@ -1,6 +1,6 @@
 from django import forms
 
-from .models import ConsultaMedica
+from .models import ConsultaMedica, ReavaliacaoMedica
 
 
 class ConsultaMedicaForm(forms.ModelForm):
@@ -27,6 +27,9 @@ class ConsultaMedicaForm(forms.ModelForm):
             "indicacao_outros_imagem",
             "prescricao",
             "orientacoes",
+            "receita",
+            "atestado_dias",
+            "atestado_cid",
         ]
 
         widgets = {
@@ -125,5 +128,71 @@ class ConsultaMedicaForm(forms.ModelForm):
                 "class": "form-control",
                 "rows": 4,
                 "placeholder": "Orientações ao paciente",
+            }),
+
+            "receita": forms.Textarea(attrs={
+                "class": "form-control",
+                "rows": 5,
+                "placeholder": "Receita medica",
+            }),
+
+            "atestado_dias": forms.NumberInput(attrs={
+                "class": "form-control",
+                "min": 1,
+                "placeholder": "Ex: 3",
+            }),
+
+            "atestado_cid": forms.TextInput(attrs={
+                "class": "form-control",
+                "autocomplete": "off",
+                "placeholder": "Digite o codigo ou nome do CID",
+            }),
+        }
+
+
+class ReavaliacaoMedicaForm(forms.ModelForm):
+
+    class Meta:
+        model = ReavaliacaoMedica
+
+        fields = [
+            "medico_responsavel",
+            "crm_medico",
+            "cid",
+            "avaliacao",
+            "conduta",
+            "orientacoes",
+        ]
+
+        widgets = {
+            "medico_responsavel": forms.TextInput(attrs={
+                "class": "form-control",
+                "placeholder": "Nome do medico que esta reavaliando",
+            }),
+
+            "crm_medico": forms.TextInput(attrs={
+                "class": "form-control",
+                "placeholder": "CRM",
+            }),
+
+            "cid": forms.TextInput(attrs={
+                "class": "form-control",
+                "placeholder": "CID, se necessario",
+            }),
+
+            "avaliacao": forms.Textarea(attrs={
+                "class": "form-control",
+                "rows": 5,
+                "placeholder": "Registre a avaliacao atual, evolucao do quadro, resultados analisados e decisao clinica.",
+            }),
+
+            "conduta": forms.Select(attrs={
+                "class": "form-select",
+            }),
+
+            "orientacoes": forms.Textarea(attrs={
+                "class": "form-control",
+                "rows": 4,
+                "placeholder": "Orientacoes, alta, retorno, sinais de alarme ou continuidade do cuidado.",
             }),
         }

@@ -261,6 +261,12 @@ document.addEventListener("DOMContentLoaded", function () {
         return codigoCidEhAgressao(codigo) || texto.includes("agress");
     }
 
+    function normalizarCodigoCid(codigo) {
+        return String(codigo || "")
+            .toUpperCase()
+            .replace(/[^A-Z0-9]/g, "");
+    }
+
     function atualizarAlertaCidAgressao(codigo, descricao) {
         const buscaCid = document.getElementById("busca_cid");
         const cidInput = document.getElementById("id_cid");
@@ -274,6 +280,20 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (cidInput) {
             cidInput.classList.toggle("cid-agressao", ehAgressao);
+        }
+
+        if (alerta) {
+            alerta.classList.toggle("d-none", !ehAgressao);
+        }
+    }
+
+    function atualizarAlertaCidAtestadoAgressao(codigo, descricao) {
+        const cidAtestado = document.getElementById("id_atestado_cid");
+        const alerta = document.getElementById("alerta-atestado-cid-agressao");
+        const ehAgressao = cidEhAgressao(codigo, descricao);
+
+        if (cidAtestado) {
+            cidAtestado.classList.toggle("cid-agressao", ehAgressao);
         }
 
         if (alerta) {
@@ -371,7 +391,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function configurarAbas() {
         const botoesAbas = document.querySelectorAll('[data-bs-toggle="tab"]');
-        const abaSalva = localStorage.getItem("abaConsultaMedicaAtiva");
+        let abaSalva = localStorage.getItem("abaConsultaMedicaAtiva");
+
+        if (abaSalva === "#orientacoes") {
+            abaSalva = "#prescricao";
+            localStorage.setItem("abaConsultaMedicaAtiva", abaSalva);
+        }
 
         if (abaSalva) {
             const botaoAba = document.querySelector(`[data-bs-target="${abaSalva}"]`);
@@ -494,6 +519,149 @@ document.addEventListener("DOMContentLoaded", function () {
 
         document.addEventListener("click", function (event) {
             if (!buscaCid.contains(event.target) && !resultadoCid.contains(event.target)) {
+                resultadoCid.style.display = "none";
+            }
+        });
+    }
+
+    function configurarBuscaCidAtestado() {
+        const cidAtestado = document.getElementById("id_atestado_cid");
+        const resultadoCid = document.getElementById("resultado-atestado-cid");
+        let timerCidAtestado = null;
+
+        if (!cidAtestado || !resultadoCid) return;
+
+        let descricaoCid = document.getElementById("atestado_cid_descricao");
+
+        if (!descricaoCid) {
+            const colunaCid = cidAtestado.closest("[class*='col-']");
+
+            if (colunaCid && colunaCid.parentElement) {
+                const colunaDescricao = document.createElement("div");
+                colunaDescricao.className = "col-md-5";
+                colunaDescricao.innerHTML = `
+                    <label class="form-label small fw-bold text-muted">Descricao do CID</label>
+                    <input
+                        type="text"
+                        id="atestado_cid_descricao"
+                        class="form-control"
+                        placeholder="A descricao aparece automaticamente"
+                        readonly>
+                `;
+                colunaCid.insertAdjacentElement("afterend", colunaDescricao);
+                descricaoCid = colunaDescricao.querySelector("#atestado_cid_descricao");
+            }
+        }
+
+        function definirDescricaoCid(cid) {
+            if (!descricaoCid) return;
+
+            if (!cid) {
+                descricaoCid.value = "";
+                descricaoCid.title = "";
+                return;
+            }
+
+            descricaoCid.value = `${cid.codigo} - ${cid.descricao}`;
+            descricaoCid.title = descricaoCid.value;
+        }
+
+        function selecionarCidAtestado(cid) {
+            cidAtestado.value = cid.codigo;
+            cidAtestado.title = `${cid.codigo} - ${cid.descricao}`;
+            definirDescricaoCid(cid);
+            resultadoCid.innerHTML = "";
+            resultadoCid.style.display = "none";
+            atualizarAlertaCidAtestadoAgressao(cid.codigo, cid.descricao);
+        }
+
+        if (cidAtestado.value) {
+            atualizarAlertaCidAtestadoAgressao(cidAtestado.value, cidAtestado.value);
+        }
+
+        cidAtestado.addEventListener("input", function () {
+            const termo = this.value.trim();
+            atualizarAlertaCidAtestadoAgressao(termo, termo);
+            clearTimeout(timerCidAtestado);
+
+            if (termo.length < 2) {
+                resultadoCid.innerHTML = "";
+                resultadoCid.style.display = "none";
+
+                if (termo.length === 0) {
+                    definirDescricaoCid(null);
+                    atualizarAlertaCidAtestadoAgressao("", "");
+                }
+
+                return;
+            }
+
+            timerCidAtestado = setTimeout(function () {
+                fetch(`/medico/buscar-cid/?q=${encodeURIComponent(termo)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        resultadoCid.innerHTML = "";
+
+                        if (!data.length) {
+                            definirDescricaoCid(null);
+                            resultadoCid.innerHTML = `
+                                <div class="list-group-item text-muted">
+                                    Nenhum CID encontrado.
+                                </div>
+                            `;
+                            resultadoCid.style.display = "block";
+                            return;
+                        }
+
+                        const cidExato = data.find(function (cid) {
+                            return normalizarCodigoCid(cid.codigo) === normalizarCodigoCid(termo);
+                        });
+
+                        if (cidExato) {
+                            definirDescricaoCid(cidExato);
+                            atualizarAlertaCidAtestadoAgressao(cidExato.codigo, cidExato.descricao);
+                        } else {
+                            definirDescricaoCid(null);
+                        }
+
+                        data.forEach(function (cid) {
+                            const item = document.createElement("button");
+                            const agressao = cidEhAgressao(cid.codigo, cid.descricao);
+
+                            item.type = "button";
+                            item.className = "list-group-item list-group-item-action";
+
+                            if (agressao) {
+                                item.classList.add("list-group-item-danger");
+                            }
+
+                            item.innerHTML = `
+                                <strong>${cid.codigo}</strong> - ${cid.descricao}
+                                ${agressao ? "<span class='badge bg-danger ms-2'>Agressão</span>" : ""}
+                            `;
+
+                            item.addEventListener("click", function () {
+                                selecionarCidAtestado(cid);
+                            });
+
+                            resultadoCid.appendChild(item);
+                        });
+
+                        resultadoCid.style.display = "block";
+                    })
+                    .catch(function () {
+                        resultadoCid.innerHTML = "";
+                        resultadoCid.style.display = "none";
+                    });
+            }, 300);
+        });
+
+        if (cidAtestado.value && cidAtestado.value.trim().length >= 2) {
+            cidAtestado.dispatchEvent(new Event("input"));
+        }
+
+        document.addEventListener("click", function (event) {
+            if (!cidAtestado.contains(event.target) && !resultadoCid.contains(event.target)) {
                 resultadoCid.style.display = "none";
             }
         });
@@ -1066,6 +1234,7 @@ document.addEventListener("DOMContentLoaded", function () {
     configurarAbas();
     configurarAcordeonExames();
     configurarBuscaCid();
+    configurarBuscaCidAtestado();
     configurarListasExames();
     configurarBuscaExames();
     configurarLimparExames();

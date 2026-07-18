@@ -107,7 +107,7 @@
                                     <th>Paciente</th>
                                     <th>Idade</th>
                                     <th>Prescrição</th>
-                                    <th>Data Consulta</th>
+                                    <th>Entrada na medicaÃ§Ã£o</th>
                                     <th>Ação</th>
                                 </tr>
                             </thead>
@@ -139,7 +139,7 @@
                                         </td>
 
                                         <td>
-                                            {{ consulta.data_consulta|date:"d/m/Y H:i" }}
+                                            {{ consulta.entrada_setor_atual|date:"d/m/Y H:i"|default:"-" }}
                                         </td>
 
                                         <td>

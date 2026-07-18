@@ -71,6 +71,13 @@ class ClassificacaoRisco(models.Model):
         default="Sistema"
     )
 
+    responsavel_registro = models.CharField(
+        max_length=50,
+        blank=True,
+        default="",
+        verbose_name="COREN / registro do responsavel"
+    )
+
     queixa_principal = models.TextField("Descrição do sintoma")
 
     tempo_inicio_sintoma = models.CharField(

@@ -55,6 +55,8 @@ class UsuarioAdmin(UserAdmin):
         "last_name",
         "email",
         "cargo",
+        "conselho_profissional",
+        "registro_profissional",
         "is_active",
         "is_staff",
     ]
@@ -71,6 +73,8 @@ class UsuarioAdmin(UserAdmin):
         "last_name",
         "email",
         "cargo",
+        "conselho_profissional",
+        "registro_profissional",
     ]
     filter_horizontal = [
         "groups",
@@ -85,6 +89,8 @@ class UsuarioAdmin(UserAdmin):
                 "fields": (
                     "unidade",
                     "cargo",
+                    "conselho_profissional",
+                    "registro_profissional",
                 )
             },
         ),

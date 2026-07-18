@@ -21,6 +21,7 @@ class Internacao(models.Model):
     diagnostico_admissao = models.TextField(blank=True, default="")
     cuidados = models.TextField(blank=True, default="")
     profissional_responsavel = models.CharField(max_length=150, blank=True, default="")
+    profissional_responsavel_registro = models.CharField(max_length=50, blank=True, default="")
     observacoes = models.TextField(blank=True, default="")
     status = models.CharField(
         max_length=20,
@@ -31,6 +32,7 @@ class Internacao(models.Model):
     data_alta = models.DateTimeField(blank=True, null=True)
     resumo_alta = models.TextField(blank=True, default="")
     profissional_alta = models.CharField(max_length=150, blank=True, default="")
+    profissional_alta_registro = models.CharField(max_length=50, blank=True, default="")
 
     class Meta:
         ordering = ["-data_internacao"]
@@ -61,6 +63,7 @@ class EvolucaoInternacao(models.Model):
     evolucao = models.TextField()
     conduta = models.TextField(blank=True, default="")
     profissional = models.CharField(max_length=150, blank=True, default="")
+    profissional_registro = models.CharField(max_length=50, blank=True, default="")
 
     class Meta:
         ordering = ["-data_evolucao"]

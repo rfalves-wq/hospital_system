@@ -39,6 +39,11 @@ function imprimirDadosRecepcao(dados) {
     const campo = function (nome) {
         return textoOuTraco(ficha[nome]);
     };
+    const profissionalRecepcao = textoOuTraco(
+        ficha.profissional_responsavel ||
+        ficha.profissionalResponsavel ||
+        (window.SistemaHospitalar && window.SistemaHospitalar.profissionalLogado)
+    );
 
     const conteudo = `
         <!DOCTYPE html>
@@ -266,6 +271,10 @@ function imprimirDadosRecepcao(dados) {
                             <td>${escaparHtml(campo("situacao_rua"))}</td>
                         </tr>
                         <tr>
+                            <th>Profissional</th>
+                            <td colspan="3">${escaparHtml(profissionalRecepcao)}</td>
+                        </tr>
+                        <tr>
                             <th>Nacionalidade</th>
                             <td>${escaparHtml(campo("nacionalidade"))}</td>
                             <th>Naturalidade</th>
@@ -335,7 +344,7 @@ function imprimirDadosRecepcao(dados) {
                 </div>
 
                 <div class="rodape">
-                    <div class="assinatura">Responsavel pela recepcao</div>
+                    <div class="assinatura">${escaparHtml(profissionalRecepcao)}<br>Responsavel pela recepcao</div>
                     <div class="assinatura">Paciente / responsavel</div>
                 </div>
             </div>

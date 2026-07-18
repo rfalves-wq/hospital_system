@@ -108,7 +108,7 @@
                                     <th>Idade</th>
                                     <th>Classificação</th>
                                     <th>Hipótese / motivo</th>
-                                    <th>Data</th>
+                                    <th>Entrada na internaÃ§Ã£o</th>
                                     <th>Ação</th>
                                 </tr>
                             </thead>
@@ -144,7 +144,7 @@
                                                 {% endif %}
                                             </div>
                                         </td>
-                                        <td>{{ acolhimento.data_acolhimento|date:"d/m/Y H:i" }}</td>
+                                        <td>{{ acolhimento.entrada_setor_atual|date:"d/m/Y H:i"|default:"-" }}</td>
                                         <td>
                                             <a href="{% url 'registrar_internacao' acolhimento.id %}" class="btn btn-primary btn-sm fw-bold">
                                                 Abrir leito
@@ -200,6 +200,9 @@
                                                 {% if ultima %}
                                                     {{ ultima.data_evolucao|date:"d/m/Y H:i" }}
                                                     <div class="muted-block">{{ ultima.profissional|default:"-" }}</div>
+                                                    {% if ultima.profissional_registro %}
+                                                        <div class="muted-block">CRM / COREN: {{ ultima.profissional_registro }}</div>
+                                                    {% endif %}
                                                 {% else %}
                                                     <span class="text-muted">Sem evolução registrada</span>
                                                 {% endif %}

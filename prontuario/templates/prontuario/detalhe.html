@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block extra_css %}
-    <link rel="stylesheet" href="{% static 'prontuario/css/detalhe.css' %}?v=20260712-2">
+    <link rel="stylesheet" href="{% static 'prontuario/css/detalhe.css' %}?v=20260718-1">
 {% endblock %}
 
 {% block content %}
@@ -212,6 +212,55 @@
                     </div>
                 </header>
 
+                <div class="record-section tempo-setores-section">
+                    <div class="section-title-line">
+                        <h4>Tempo no hospital por setor</h4>
+                        <span>Total: {{ item.tempo_total_hospital }}</span>
+                    </div>
+
+                    {% if item.tempos_setores %}
+                        <div class="tempo-setores-table-wrap">
+                            <table class="tempo-setores-table">
+                                <thead>
+                                    <tr>
+                                        <th>Setor</th>
+                                        <th>Entrada</th>
+                                        <th>Sa&iacute;da</th>
+                                        <th>Dura&ccedil;&atilde;o</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for tempo in item.tempos_setores %}
+                                        <tr>
+                                            <td>
+                                                <strong>{{ tempo.get_setor_display }}</strong>
+                                                {% if tempo.origem == "PROCEDIMENTO" %}
+                                                    <small>Procedimento</small>
+                                                {% elif tempo.status_origem %}
+                                                    <small>{{ tempo.status_origem }}</small>
+                                                {% endif %}
+                                            </td>
+                                            <td>{{ tempo.entrada|date:"d/m/Y H:i" }}</td>
+                                            <td>
+                                                {% if tempo.saida %}
+                                                    {{ tempo.saida|date:"d/m/Y H:i" }}
+                                                {% else %}
+                                                    <span class="tempo-aberto">Em andamento</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>{{ tempo.duracao_formatada }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="empty-state compact-empty">
+                            O controle de tempo por setor ser&aacute; preenchido nas pr&oacute;ximas movimenta&ccedil;&otilde;es deste atendimento.
+                        </div>
+                    {% endif %}
+                </div>
+
                 <div class="record-section">
                     <div class="section-title-line">
                         <h4>Acolhimento</h4>
@@ -408,6 +457,40 @@
                             </div>
                         {% endif %}
                     </div>
+
+                    {% if item.reavaliacoes_medicas %}
+                        <div class="record-section">
+                            <div class="section-title-line">
+                                <h4>Reavaliacoes e novas condutas medicas</h4>
+                                <span>{{ item.reavaliacoes_medicas|length }} registro(s)</span>
+                            </div>
+
+                            <div class="transfer-list">
+                                {% for reavaliacao in item.reavaliacoes_medicas %}
+                                    <div>
+                                        <strong>
+                                            {{ reavaliacao.medico_responsavel|default:"-" }}
+                                            -
+                                            {{ reavaliacao.get_conduta_display }}
+                                        </strong>
+                                        <span>
+                                            {{ reavaliacao.data_reavaliacao|date:"d/m/Y H:i" }}
+                                            {% if reavaliacao.crm_medico %}
+                                                Â· CRM {{ reavaliacao.crm_medico }}
+                                            {% endif %}
+                                            {% if reavaliacao.cid %}
+                                                Â· CID {{ reavaliacao.cid }}
+                                            {% endif %}
+                                        </span>
+                                        <p>{{ reavaliacao.avaliacao|linebreaksbr }}</p>
+                                        {% if reavaliacao.orientacoes %}
+                                            <p><strong>Orientacoes:</strong> {{ reavaliacao.orientacoes|linebreaksbr }}</p>
+                                        {% endif %}
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endif %}
 
                     {% if item.consulta.solicita_medicacao or item.consulta.prescricao or item.consulta.medicamentos_dispensados or item.consulta.medicacao_administrada %}
                         <div class="record-section">

@@ -4,7 +4,9 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
 from acolhimento.models import Acolhimento
+from acolhimento.tempos import anexar_entrada_setor
 from acolhimento.utils import periodo_do_dia
+from accounts.utils import nome_profissional_request
 
 from .forms import AltaInternacaoForm, EvolucaoInternacaoForm, InternacaoForm
 from .models import Internacao
@@ -18,10 +20,7 @@ def nome_paciente(acolhimento):
 
 
 def nome_usuario(request):
-    if request.user.is_authenticated:
-        return request.user.get_full_name() or request.user.username
-
-    return ""
+    return nome_profissional_request(request)
 
 
 def related_or_none(obj, attr):
@@ -66,6 +65,7 @@ def dados_evolucao_para_impressao(evolucao):
         "evolucao": evolucao.evolucao or "",
         "conduta": evolucao.conduta or "",
         "profissional": evolucao.profissional or "",
+        "profissionalRegistro": evolucao.profissional_registro or "",
     }
 
 
@@ -129,10 +129,12 @@ def dados_internacao_para_impressao(internacao, tipo="admissao", evolucao_id=Non
         "diagnosticoAdmissao": internacao.diagnostico_admissao or "",
         "cuidados": internacao.cuidados or "",
         "profissionalResponsavel": internacao.profissional_responsavel or "",
+        "profissionalResponsavelRegistro": internacao.profissional_responsavel_registro or "",
         "observacoes": internacao.observacoes or "",
         "dataAlta": formatar_data_hora(internacao.data_alta),
         "resumoAlta": internacao.resumo_alta or "",
         "profissionalAlta": internacao.profissional_alta or "",
+        "profissionalAltaRegistro": internacao.profissional_alta_registro or "",
         "evolucoes": evolucoes,
         "evolucaoImpressao": evolucao_impressao,
     }
@@ -176,6 +178,7 @@ def internacao_dashboard(request):
     aguardando_internacao = (
         Acolhimento.objects
         .select_related("paciente", "classificacao", "consulta_medica")
+        .prefetch_related("tempos_setores")
         .filter(status="INTERNACAO", internacao__isnull=True)
         .order_by("data_acolhimento")
     )
@@ -207,6 +210,11 @@ def internacao_dashboard(request):
         .order_by("-data_alta", "-data_internacao")[:50]
     )
 
+    aguardando_internacao = anexar_entrada_setor(
+        aguardando_internacao,
+        "INTERNACAO",
+    )
+
     return render(
         request,
         "internacao/dashboard.html",
@@ -214,7 +222,7 @@ def internacao_dashboard(request):
             "aguardando_internacao": aguardando_internacao,
             "internacoes_ativas": internacoes_ativas,
             "historico": historico,
-            "total_aguardando": aguardando_internacao.count(),
+            "total_aguardando": len(aguardando_internacao),
             "total_internados": internacoes_ativas.count(),
             "total_altas_hoje": altas_hoje,
             "dados_impressao_internacao": dados_impressao,
@@ -247,6 +255,7 @@ def registrar_internacao(request, acolhimento_id):
             internacao.data_alta = None
             internacao.resumo_alta = ""
             internacao.profissional_alta = ""
+            internacao.profissional_alta_registro = ""
             internacao.save()
 
             acolhimento.status = "INTERNACAO"

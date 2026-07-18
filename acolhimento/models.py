@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, timedelta
 
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models, transaction
@@ -134,6 +134,27 @@ class Acolhimento(models.Model):
         verbose_name='Chamadas na classificação'
     )
 
+    profissional_responsavel = models.CharField(
+        max_length=150,
+        blank=True,
+        default='',
+        verbose_name='Profissional responsavel'
+    )
+
+    profissional_responsavel_conselho = models.CharField(
+        max_length=20,
+        blank=True,
+        default='',
+        verbose_name='Conselho profissional'
+    )
+
+    profissional_responsavel_registro = models.CharField(
+        max_length=40,
+        blank=True,
+        default='',
+        verbose_name='Registro profissional'
+    )
+
     data_ultima_chamada_classificacao = models.DateTimeField(
         blank=True,
         null=True,
@@ -157,9 +178,20 @@ class Acolhimento(models.Model):
 
     def reenviar_para_recepcao(self):
         self.status = 'RECEPCAO'
-        self.save(update_fields=['status'])
+        self.status_antes_ausencia = ''
+        self.data_ausente = None
+        self.save(update_fields=['status', 'status_antes_ausencia', 'data_ausente'])
 
     def save(self, *args, **kwargs):
+        update_fields = kwargs.get("update_fields")
+        monitora_status = update_fields is None or "status" in update_fields
+        status_anterior = None
+
+        if self.pk and monitora_status:
+            try:
+                status_anterior = type(self).objects.only("status").get(pk=self.pk).status
+            except type(self).DoesNotExist:
+                status_anterior = None
 
         if self.data_nascimento:
             hoje = date.today()
@@ -199,6 +231,11 @@ class Acolhimento(models.Model):
 
         super().save(*args, **kwargs)
 
+        if monitora_status:
+            from .tempos import sincronizar_permanencia_status
+
+            sincronizar_permanencia_status(self, status_anterior)
+
     class Meta:
         ordering = ['-data_acolhimento']
         verbose_name = 'Acolhimento'
@@ -215,3 +252,81 @@ class Acolhimento(models.Model):
 
     def __str__(self):
         return f"{self.nome_paciente} - {self.get_tipo_atendimento_display()}"
+
+
+class PermanenciaSetorAtendimento(models.Model):
+    SETOR_CHOICES = [
+        ("ACOLHIMENTO", "Acolhimento"),
+        ("RECEPCAO", "Recepcao"),
+        ("CLASSIFICACAO", "Classificacao de risco"),
+        ("MEDICO", "Medico"),
+        ("PROCEDIMENTOS", "Procedimentos"),
+        ("FARMACIA", "Farmacia"),
+        ("MEDICACAO", "Medicacao"),
+        ("LABORATORIO", "Laboratorio"),
+        ("IMAGEM", "Imagem"),
+        ("OBSERVACAO", "Observacao"),
+        ("INTERNACAO", "Internacao"),
+        ("AUSENTE", "Ausente"),
+    ]
+
+    ORIGEM_CHOICES = [
+        ("STATUS", "Status do atendimento"),
+        ("PROCEDIMENTO", "Procedimento"),
+    ]
+
+    acolhimento = models.ForeignKey(
+        Acolhimento,
+        on_delete=models.CASCADE,
+        related_name="tempos_setores",
+    )
+    setor = models.CharField(max_length=30, choices=SETOR_CHOICES)
+    status_origem = models.CharField(max_length=20, blank=True, default="")
+    origem = models.CharField(
+        max_length=20,
+        choices=ORIGEM_CHOICES,
+        default="STATUS",
+    )
+    entrada = models.DateTimeField()
+    saida = models.DateTimeField(blank=True, null=True)
+    observacao = models.CharField(max_length=255, blank=True, default="")
+    criado_em = models.DateTimeField(auto_now_add=True)
+    atualizado_em = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["entrada", "id"]
+        verbose_name = "Permanencia por setor"
+        verbose_name_plural = "Permanencias por setor"
+        indexes = [
+            models.Index(fields=["acolhimento", "setor", "saida"], name="perm_setor_aberto_idx"),
+            models.Index(fields=["acolhimento", "entrada"], name="perm_acolh_entrada_idx"),
+        ]
+
+    @property
+    def saida_calculo(self):
+        return self.saida or timezone.now()
+
+    @property
+    def duracao(self):
+        if not self.entrada:
+            return timedelta()
+
+        fim = self.saida_calculo
+
+        if fim < self.entrada:
+            return timedelta()
+
+        return fim - self.entrada
+
+    @property
+    def duracao_formatada(self):
+        from .tempos import formatar_duracao
+
+        return formatar_duracao(self.duracao)
+
+    @property
+    def em_aberto(self):
+        return self.saida is None
+
+    def __str__(self):
+        return f"{self.acolhimento.numero_bam or self.acolhimento_id} - {self.get_setor_display()}"

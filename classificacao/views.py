@@ -3,6 +3,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
 from acolhimento.models import Acolhimento
+from acolhimento.tempos import anexar_entrada_setor
 from acolhimento.utils import (
     anexar_passagens_do_dia,
     passagens_do_paciente_no_dia,
@@ -23,6 +24,7 @@ def classificacao_dashboard(request):
     acolhimentos = (
         Acolhimento.objects
         .select_related("paciente")
+        .prefetch_related("tempos_setores")
         .filter(
             status="CLASSIFICACAO",
             ausente_classificacao=False,
@@ -33,6 +35,7 @@ def classificacao_dashboard(request):
     ausentes_classificacao = (
         Acolhimento.objects
         .select_related("paciente")
+        .prefetch_related("tempos_setores")
         .filter(
             status="CLASSIFICACAO",
             ausente_classificacao=True,
@@ -52,13 +55,22 @@ def classificacao_dashboard(request):
         .order_by("-data_classificacao")
     )
 
+    acolhimentos = anexar_entrada_setor(
+        anexar_passagens_do_dia(acolhimentos, cache_passagens),
+        "CLASSIFICACAO",
+    )
+    ausentes_classificacao = anexar_passagens_do_dia(
+        ausentes_classificacao,
+        cache_passagens,
+    )
+
     return render(
         request,
         "classificacao/dashboard.html",
         {
-            "acolhimentos": anexar_passagens_do_dia(acolhimentos, cache_passagens),
-            "ausentes_classificacao": anexar_passagens_do_dia(ausentes_classificacao, cache_passagens),
-            "total_ausentes_classificacao": ausentes_classificacao.count(),
+            "acolhimentos": acolhimentos,
+            "ausentes_classificacao": ausentes_classificacao,
+            "total_ausentes_classificacao": len(ausentes_classificacao),
             "classificados_hoje": classificados_hoje,
             "total_classificados_hoje": classificados_hoje.count(),
             "periodo_classificacao_inicio": periodo_inicio,
@@ -145,6 +157,7 @@ def dados_classificacao_para_impressao(classificacao):
         "classificacao": classificacao.get_cor_display(),
         "queixa": classificacao.queixa_principal or "",
         "responsavel": classificacao.usuario_responsavel or "",
+        "responsavelRegistro": classificacao.responsavel_registro or "",
         "horaClassificacao": formatar_data_hora(classificacao.data_classificacao),
         "formaChegada": classificacao.get_forma_chegada_display(),
         "tempoSintoma": classificacao.tempo_inicio_sintoma or "",

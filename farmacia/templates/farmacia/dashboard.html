@@ -32,11 +32,11 @@
                 </a>
 
                 <span class="badge bg-light text-primary fs-6">
-                    Pendentes: {{ total_pendentes }}
+                    Baixa pendente: {{ total_pendentes }}
                 </span>
 
                 <span class="badge bg-success fs-6">
-                    Liberadas: {{ total_liberadas }}
+                    Baixas feitas: {{ total_liberadas }}
                 </span>
             </div>
         </div>
@@ -54,12 +54,12 @@
 
             <div class="metric-grid">
                 <div class="metric-card warning">
-                    <div class="metric-label">Aguardando farmácia</div>
+                    <div class="metric-label">Baixa pendente no estoque</div>
                     <div class="metric-value">{{ total_pendentes }}</div>
                 </div>
 
                 <div class="metric-card">
-                    <div class="metric-label">Liberadas para enfermagem</div>
+                    <div class="metric-label">Baixas sem administracao</div>
                     <div class="metric-value">{{ total_aguardando_enfermagem }}</div>
                 </div>
 
@@ -69,7 +69,7 @@
                 </div>
 
                 <div class="metric-card success">
-                    <div class="metric-label">Total liberado</div>
+                    <div class="metric-label">Baixas feitas</div>
                     <div class="metric-value">{{ total_liberadas }}</div>
                 </div>
             </div>
@@ -108,7 +108,7 @@
                         data-bs-target="#pendentes"
                         type="button"
                         role="tab">
-                        Pendentes
+                        Baixa pendente
                         <span class="badge bg-primary ms-1">{{ medicacoes_pendentes|length }}</span>
                     </button>
                 </li>
@@ -120,7 +120,7 @@
                         data-bs-target="#liberadas"
                         type="button"
                         role="tab">
-                        Liberadas
+                        Baixas realizadas
                         <span class="badge bg-success ms-1">{{ medicacoes_liberadas|length }}</span>
                     </button>
                 </li>
@@ -141,7 +141,7 @@
                                         <th>Paciente</th>
                                         <th>Médico / CRM</th>
                                         <th>Prescrição Médica</th>
-                                        <th>Data</th>
+                                        <th>Pedido médico</th>
                                         <th>Status</th>
                                         <th>Ação</th>
                                     </tr>
@@ -182,20 +182,32 @@
                                             </td>
 
                                             <td>
-                                                {{ consulta.data_consulta|date:"d/m/Y H:i" }}
+                                                {{ consulta.entrada_setor_atual|date:"d/m/Y H:i"|default:"-" }}
                                             </td>
 
                                             <td>
                                                 <span class="badge bg-warning text-dark badge-status">
-                                                    Aguardando farmácia
+                                                    Baixa pendente
                                                 </span>
+
+                                                {% if consulta.medicacao_realizada %}
+                                                    <br>
+                                                    <span class="badge bg-primary badge-status mt-1">
+                                                        Medicacao ja administrada
+                                                    </span>
+                                                {% else %}
+                                                    <br>
+                                                    <span class="badge bg-secondary badge-status mt-1">
+                                                        Aguardando administracao
+                                                    </span>
+                                                {% endif %}
                                             </td>
 
                                             <td>
                                                 <a
                                                     href="{% url 'liberar_medicacao_farmacia' consulta.id %}"
                                                     class="btn btn-primary btn-sm fw-bold">
-                                                    Liberar
+                                                    Dar baixa
                                                 </a>
                                             </td>
                                         </tr>
@@ -207,7 +219,7 @@
                         </div>
                     {% else %}
                         <div class="empty-state">
-                            Nenhuma medicação pendente para liberação.
+                            Nenhuma baixa de estoque pendente.
                         </div>
                     {% endif %}
 

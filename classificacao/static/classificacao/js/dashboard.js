@@ -66,10 +66,11 @@ function imprimirFichaPacienteClassificacao(dados) {
             <div class="secao-titulo">Classificacao de risco</div>
             <table>
                 ${montarLinha("Classificacao", classificacao, "Hora", ficha.horaClassificacao)}
-                ${montarLinha("Forma chegada", ficha.formaChegada, "Responsavel", ficha.responsavel)}
-                ${montarLinha("Tempo sintoma", ficha.tempoSintoma, "Escala dor", ficha.escalaDor)}
-                ${montarLinha("Possivel gravidez", ficha.possivelGravidez, "Deficiencia", ficha.deficiencia)}
-                ${montarLinha("Glicemia", ficha.glicemia, "Peso / altura", pesoAltura)}
+                ${montarLinha("Responsavel", ficha.responsavel, "COREN / registro", ficha.responsavelRegistro)}
+                ${montarLinha("Forma chegada", ficha.formaChegada, "Tempo sintoma", ficha.tempoSintoma)}
+                ${montarLinha("Escala dor", ficha.escalaDor, "Possivel gravidez", ficha.possivelGravidez)}
+                ${montarLinha("Deficiencia", ficha.deficiencia, "Glicemia", ficha.glicemia)}
+                ${montarLinha("Peso / altura", pesoAltura, "Chamadas", ficha.chamadas)}
                 <tr>
                     <th>Queixa</th>
                     <td colspan="3">${escaparHtml(textoOuTraco(ficha.queixa))}</td>

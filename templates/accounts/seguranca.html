@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block extra_css %}
-    <link rel="stylesheet" href="{% static 'css/seguranca.css' %}?v=20260717-2">
+    <link rel="stylesheet" href="{% static 'css/seguranca.css' %}?v=20260718-4">
 {% endblock %}
 
 {% block content %}
@@ -12,16 +12,16 @@
         <section class="security-header">
             <div>
                 <span class="security-kicker">Login e Seguran&ccedil;a</span>
-                <h1>Usu&aacute;rios e acessos</h1>
-                <p>Perfis, pain&eacute;is liberados e situa&ccedil;&atilde;o dos usu&aacute;rios cadastrados.</p>
+                <h1>Profissionais e acessos</h1>
+                <p>Perfis, pain&eacute;is liberados e situa&ccedil;&atilde;o dos profissionais cadastrados.</p>
             </div>
 
             <div class="security-actions">
                 <a href="{% url 'seguranca_usuario_novo' %}" class="btn-security primary">
-                    Novo usu&aacute;rio
+                    Novo profissional
                 </a>
                 <a href="{% url 'seguranca_usuarios' %}" class="btn-security">
-                    Usu&aacute;rios
+                    Profissionais
                 </a>
                 <a href="{% url 'dashboard' %}" class="btn-security">
                     Dashboard
@@ -39,11 +39,11 @@
             </div>
         {% endif %}
 
-        <section class="security-metrics" aria-label="Resumo dos usuarios">
+        <section class="security-metrics" aria-label="Resumo dos profissionais">
             <article class="security-metric metric-total">
                 <span>Total</span>
                 <strong>{{ totais.usuarios }}</strong>
-                <small>usu&aacute;rio(s) cadastrado(s)</small>
+                <small>profissional(is) cadastrado(s)</small>
             </article>
 
             <article class="security-metric metric-active">
@@ -80,7 +80,7 @@
         <section class="security-card attendance-card-section">
             <div class="security-card-head">
                 <div>
-                    <h2>Atendimentos de hoje por usu&aacute;rio</h2>
+                    <h2>Atendimentos de hoje por profissional</h2>
                     <p>Quantidade registrada em {{ data_atendimentos_hoje|date:"d/m/Y" }}.</p>
                 </div>
                 <span class="head-note">Dia atual</span>
@@ -107,7 +107,7 @@
                     </article>
                 {% empty %}
                     <div class="empty-state">
-                        Nenhum usu&aacute;rio ativo encontrado.
+                        Nenhum profissional ativo encontrado.
                     </div>
                 {% endfor %}
             </div>
@@ -117,7 +117,7 @@
             <section class="security-card">
                 <div class="security-card-head">
                     <div>
-                        <h2>Usu&aacute;rios por categoria</h2>
+                        <h2>Profissionais por categoria</h2>
                         <p>Contagem por perfil de acesso.</p>
                     </div>
                     <span class="head-note">Categorias do sistema</span>
@@ -138,7 +138,7 @@
                             </div>
                             <div class="category-count">
                                 <strong>{{ perfil.total_usuarios }}</strong>
-                                <small>usu&aacute;rio(s)</small>
+                                <small>profissional(is)</small>
                             </div>
                         </div>
                     {% empty %}
@@ -150,11 +150,11 @@
                     <div class="category-row attention">
                         <div class="category-main">
                             <strong>Sem categoria</strong>
-                            <span>Usu&aacute;rios comuns sem perfil e sem painel extra.</span>
+                            <span>Profissionais sem perfil e sem painel extra.</span>
                         </div>
                         <div class="category-count">
                             <strong>{{ totais.sem_acesso }}</strong>
-                            <small>usu&aacute;rio(s)</small>
+                            <small>profissional(is)</small>
                         </div>
                     </div>
                 </div>
@@ -163,7 +163,7 @@
             <section class="security-card">
                 <div class="security-card-head">
                     <div>
-                        <h2>Usu&aacute;rios por painel</h2>
+                        <h2>Profissionais por painel</h2>
                         <p>Acessos liberados por perfil ou permiss&atilde;o extra.</p>
                     </div>
                     <span class="head-note">Pain&eacute;is ativos</span>
@@ -196,7 +196,7 @@
         <section class="security-card users-card">
             <div class="security-card-head">
                     <div>
-                        <h2>&Uacute;ltimos usu&aacute;rios criados</h2>
+                        <h2>&Uacute;ltimos profissionais criados</h2>
                         <p>Cadastro, categoria e situa&ccedil;&atilde;o atual.</p>
                     </div>
                 <a href="{% url 'seguranca_usuarios' %}" class="head-link">
@@ -210,6 +210,7 @@
                         <tr>
                             <th>Usu&aacute;rio</th>
                             <th>Nome</th>
+                            <th>Conselho</th>
                             <th>Categorias</th>
                             <th>Hoje</th>
                             <th>Status</th>
@@ -224,7 +225,14 @@
                                     <strong>{{ usuario.username }}</strong>
                                     <small>{{ usuario.email|default:"Sem e-mail" }}</small>
                                 </td>
-                                <td>{{ usuario.get_full_name|default:"-" }}</td>
+                                <td>
+                                    {{ usuario.get_full_name|default:"-" }}
+                                    <small>{{ usuario.cargo|default:"Sem cargo" }}</small>
+                                </td>
+                                <td>
+                                    <strong>{{ usuario.conselho_profissional|default:"-" }}</strong>
+                                    <small>{{ usuario.registro_profissional|default:"Sem n&uacute;mero" }}</small>
+                                </td>
                                 <td>
                                     <div class="pill-list">
                                         {% for perfil in usuario.perfis_acesso.all %}
@@ -254,15 +262,15 @@
                                 <td>{{ usuario.date_joined|date:"d/m/Y H:i" }}</td>
                                 <td class="text-end">
                                     <a href="{% url 'seguranca_usuario_editar' usuario.id %}" class="table-action">
-                                        Editar
+                                        Editar profissional
                                     </a>
                                 </td>
                             </tr>
                         {% empty %}
                             <tr>
-                                <td colspan="7">
+                                <td colspan="8">
                                     <div class="empty-state">
-                                        Nenhum usu&aacute;rio criado.
+                                        Nenhum profissional criado.
                                     </div>
                                 </td>
                             </tr>

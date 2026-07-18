@@ -100,6 +100,7 @@
             ${linha("Admissao", dados.dataInternacao, "Status", dados.statusInternacao)}
             ${linha("Medico", dados.medico, "CRM", dados.crm)}
             ${linha("CID", dados.cid, "Responsavel", dados.profissionalResponsavel)}
+            ${linha("CRM / COREN", dados.profissionalResponsavelRegistro, "Setor", dados.setor)}
             ${linhaTexto("Diagnostico / motivo", dados.diagnosticoAdmissao || dados.hipotese)}
             ${linhaTexto("Cuidados iniciais", dados.cuidados)}
             ${linhaTexto("Orientacoes medicas", dados.orientacoesMedicas)}
@@ -112,9 +113,9 @@
 
         return secao("Evolucao da internacao", tabela(`
             ${linha("Data", item.data, "Profissional", item.profissional)}
+            ${linha("CRM / COREN", item.profissionalRegistro, "Saturacao", item.saturacao ? `${item.saturacao}%` : "")}
             ${linha("PA", item.pressao, "Temperatura", item.temperatura ? `${item.temperatura} C` : "")}
             ${linha("Pulso", item.pulso ? `${item.pulso} bpm` : "", "FR", item.fr)}
-            ${linha("Saturacao", item.saturacao ? `${item.saturacao}%` : "", "Leito", "")}
             ${linhaTexto("Evolucao", item.evolucao)}
             ${linhaTexto("Conduta", item.conduta)}
         `));
@@ -133,6 +134,7 @@
     function secaoAlta(dados) {
         return secao("Alta da internacao", tabela(`
             ${linha("Data da alta", dados.dataAlta, "Profissional", dados.profissionalAlta)}
+            ${linha("CRM / COREN", dados.profissionalAltaRegistro, "Status", dados.statusInternacao)}
             ${linhaTexto("Resumo da alta", dados.resumoAlta)}
         `));
     }

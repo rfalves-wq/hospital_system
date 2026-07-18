@@ -8,7 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Recepção</title>
 
-    <link rel="stylesheet" href="{% static 'recepcao/css/dashboard.css' %}">
+    <link rel="stylesheet" href="{% static 'recepcao/css/dashboard.css' %}?v=20260718-1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 
@@ -118,7 +118,7 @@
                                             <th>Dor</th>
                                             <th>Tipo</th>
                                             <th class="d-none d-md-table-cell">Data</th>
-                                            <th>Hora</th>
+                                            <th>Entrada</th>
                                             <th>Passagens</th>
                                             <th>Ação</th>
                                         </tr>
@@ -204,20 +204,16 @@
                                             </td>
 
                                             <td class="d-none d-md-table-cell">
-                                                {{ acolhimento.data_acolhimento|date:"d/m/Y" }}
+                                                {{ acolhimento.entrada_setor_atual|date:"d/m/Y" }}
                                             </td>
 
                                             <td>
-                                                {% if acolhimento.hora_chegada %}
-                                                    {{ acolhimento.hora_chegada|time:"H:i" }}
-                                                {% else %}
-                                                    {{ acolhimento.data_acolhimento|time:"H:i" }}
-                                                {% endif %}
+                                                {{ acolhimento.entrada_setor_atual|date:"H:i"|default:"-" }}
                                             </td>
 
                                             <td>
                                                 {% if acolhimento.tem_passagem_anterior_hoje %}
-                                                    <span class="badge bg-warning text-dark">
+                                                    <span class="badge bg-warning text-dark passagens-alerta-piscando">
                                                         {{ acolhimento.total_passagens_hospital_dia }} hoje
                                                     </span>
                                                 {% else %}
@@ -340,7 +336,7 @@
 
                                                 <td>
                                                     {% if item.tem_passagem_anterior_hoje %}
-                                                        <span class="badge bg-warning text-dark">
+                                                        <span class="badge bg-warning text-dark passagens-alerta-piscando">
                                                             {{ item.total_passagens_hospital_dia }} hoje
                                                         </span>
                                                     {% else %}
@@ -395,7 +391,7 @@
                                         <th>BAM</th>
                                         <th>CPF</th>
                                         <th>Data</th>
-                                        <th>Hora</th>
+                                        <th>Entrada atual</th>
                                         <th>Passagens</th>
                                         <th>Status</th>
                                     </tr>
@@ -423,19 +419,15 @@
                                                     {% endif %}
                                                 </td>
 
-                                                <td>{{ item.data_acolhimento|date:"d/m/Y" }}</td>
+                                                <td>{{ item.entrada_setor_atual|date:"d/m/Y" }}</td>
 
                                                 <td>
-                                                    {% if item.hora_chegada %}
-                                                        {{ item.hora_chegada|time:"H:i" }}
-                                                    {% else %}
-                                                        {{ item.data_acolhimento|time:"H:i" }}
-                                                    {% endif %}
+                                                    {{ item.entrada_setor_atual|date:"H:i"|default:"-" }}
                                                 </td>
 
                                                 <td>
                                                     {% if item.tem_passagem_anterior_hoje %}
-                                                        <span class="badge bg-warning text-dark">
+                                                        <span class="badge bg-warning text-dark passagens-alerta-piscando">
                                                             {{ item.total_passagens_hospital_dia }} hoje
                                                         </span>
                                                     {% else %}

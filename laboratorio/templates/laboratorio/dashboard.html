@@ -86,7 +86,7 @@
                                     <th>Idade</th>
                                     <th>Pedido Médico</th>
                                     <th>Status</th>
-                                    <th>Data Pedido</th>
+                                    <th>Entrada no laboratÃ³rio</th>
                                     <th>Ação</th>
                                 </tr>
                             </thead>
@@ -124,7 +124,7 @@
                                         </td>
 
                                         <td>
-                                            {{ consulta.data_consulta|date:"d/m/Y H:i" }}
+                                            {{ consulta.entrada_setor_atual|date:"d/m/Y H:i"|default:"-" }}
                                         </td>
 
                                         <td>

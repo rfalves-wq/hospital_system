@@ -32,6 +32,11 @@ class ClassificacaoForm(forms.ModelForm):
                 "class": "form-control",
             }),
 
+            "responsavel_registro": forms.TextInput(attrs={
+                "class": "form-control",
+                "placeholder": "COREN ou registro profissional",
+            }),
+
             "queixa_principal": forms.Textarea(attrs={
                 "class": "form-control",
                 "rows": 3,

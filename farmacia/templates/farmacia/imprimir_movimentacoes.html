@@ -99,7 +99,7 @@
                             <td>
                                 <strong>{{ mov.profissional_nome }}</strong>
                                 {% if mov.profissional_registro %}
-                                    <small>{{ mov.profissional_registro }}</small>
+                                    <small>Registro: {{ mov.profissional_registro }}</small>
                                 {% endif %}
                             </td>
                         </tr>
@@ -116,6 +116,9 @@
 
         <footer class="signature-row">
             <div>
+                {% if profissional_logado %}
+                    <strong>{{ profissional_logado }}</strong>
+                {% endif %}
                 <span>Responsavel pela conferencia</span>
             </div>
             <div>

@@ -85,12 +85,29 @@ document.addEventListener("DOMContentLoaded", function () {
             .replace(/'/g, "&#039;");
     }
 
-    function textoOuTraco(valor) {
-        if (valor === undefined || valor === null || valor === "") {
-            return "-";
+    function textoLimpo(valor) {
+        if (valor === undefined || valor === null) {
+            return "";
         }
 
-        return String(valor);
+        return String(valor).trim();
+    }
+
+    function textoOuTraco(valor) {
+        const texto = textoLimpo(valor);
+
+        return texto || "-";
+    }
+
+    function conselhoRegistroTexto(conselho, registro) {
+        const conselhoLimpo = textoLimpo(conselho);
+        const registroLimpo = textoLimpo(registro);
+
+        if (conselhoLimpo && registroLimpo) {
+            return `${conselhoLimpo} ${registroLimpo}`;
+        }
+
+        return conselhoLimpo || registroLimpo || "-";
     }
 
     function nomeTipoAtendimento(tipo) {
@@ -114,6 +131,22 @@ document.addEventListener("DOMContentLoaded", function () {
     function normalizarDadosImpressao(dados) {
         const ficha = dados || {};
         const tipoAtendimento = ficha.tipo_atendimento || ficha.tipoAtendimento || "";
+        const profissionalConselho = (
+            ficha.profissional_conselho ||
+            ficha.profissionalConselho ||
+            (window.SistemaHospitalar && window.SistemaHospitalar.profissionalLogadoConselho)
+        );
+        const profissionalRegistro = (
+            ficha.profissional_registro ||
+            ficha.profissionalRegistro ||
+            (window.SistemaHospitalar && window.SistemaHospitalar.profissionalLogadoRegistro)
+        );
+        const profissionalConselhoRegistro = (
+            ficha.profissional_conselho_registro ||
+            ficha.profissionalConselhoRegistro ||
+            (window.SistemaHospitalar && window.SistemaHospitalar.profissionalLogadoConselhoRegistro) ||
+            conselhoRegistroTexto(profissionalConselho, profissionalRegistro)
+        );
 
         return {
             nomePaciente: textoOuTraco(ficha.nome_paciente || ficha.nomePaciente),
@@ -133,7 +166,15 @@ document.addEventListener("DOMContentLoaded", function () {
                 nomeTipoAtendimento(tipoAtendimento)
             ),
             numeroBam: textoOuTraco(ficha.numero_bam || ficha.numeroBam),
-            dataAcolhimento: textoOuTraco(ficha.data_acolhimento || ficha.dataAcolhimento)
+            dataAcolhimento: textoOuTraco(ficha.data_acolhimento || ficha.dataAcolhimento),
+            profissionalResponsavel: textoOuTraco(
+                ficha.profissional_responsavel ||
+                ficha.profissionalResponsavel ||
+                (window.SistemaHospitalar && window.SistemaHospitalar.profissionalLogado)
+            ),
+            profissionalConselho: textoOuTraco(profissionalConselho),
+            profissionalRegistro: textoOuTraco(profissionalRegistro),
+            profissionalConselhoRegistro: textoOuTraco(profissionalConselhoRegistro)
         };
     }
 
@@ -306,9 +347,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     }
 
                     .rodape {
-                        display: grid;
-                        gap: 20px;
-                        grid-template-columns: 1fr 1fr;
+                        display: block;
                         padding: 22px 14px 14px;
                     }
 
@@ -416,6 +455,12 @@ document.addEventListener("DOMContentLoaded", function () {
                                 <th>Tipo</th>
                                 <td>${escaparHtml(ficha.tipoTexto)}</td>
                             </tr>
+                            <tr>
+                                <th>Profissional</th>
+                                <td>${escaparHtml(ficha.profissionalResponsavel)}</td>
+                                <th>Conselho regional</th>
+                                <td>${escaparHtml(ficha.profissionalConselhoRegistro)}</td>
+                            </tr>
                         </table>
                     </div>
 
@@ -446,8 +491,11 @@ document.addEventListener("DOMContentLoaded", function () {
                     </div>
 
                     <div class="rodape">
-                        <div class="assinatura">Responsavel pelo acolhimento</div>
-                        <div class="assinatura">Recepcao / Setor de destino</div>
+                        <div class="assinatura">
+                            ${escaparHtml(ficha.profissionalResponsavel)}<br>
+                            Conselho regional: ${escaparHtml(ficha.profissionalConselhoRegistro)}<br>
+                            Responsavel pelo acolhimento
+                        </div>
                     </div>
                 </div>
 
@@ -462,7 +510,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (!janela) {
             alert("O navegador bloqueou a janela de impressao. Libere pop-ups para imprimir a ficha.");
-            return;
+            return false;
         }
 
         janela.document.open();
@@ -473,6 +521,33 @@ document.addEventListener("DOMContentLoaded", function () {
         setTimeout(function () {
             janela.print();
         }, 300);
+
+        return true;
+    }
+
+    function dadosReimpressaoDoBotao(botao) {
+        const dados = botao.dataset;
+
+        return {
+            nome_paciente: dados.nomePaciente,
+            cpf: dados.cpf,
+            numero_bam: dados.numeroBam,
+            data_nascimento: dados.dataNascimento,
+            idade: dados.idade,
+            hora_chegada: dados.horaChegada,
+            pressao_arterial: dados.pressaoArterial,
+            temperatura: dados.temperatura,
+            frequencia_respiratoria: dados.frequenciaRespiratoria,
+            pulso: dados.pulso,
+            dor: dados.dor,
+            tipo_atendimento: dados.tipoAtendimento,
+            tipo_atendimento_label: dados.tipoAtendimentoLabel,
+            data_acolhimento: dados.dataAcolhimento,
+            profissional_responsavel: dados.profissionalResponsavel,
+            profissional_conselho: dados.profissionalConselho,
+            profissional_registro: dados.profissionalRegistro,
+            profissional_conselho_registro: dados.profissionalConselhoRegistro
+        };
     }
 
     function esconderPassagensDia() {
@@ -751,10 +826,17 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (btnImprimirAcolhimento && dadosImpressaoAcolhimento) {
         btnImprimirAcolhimento.addEventListener("click", function () {
-            imprimirDadosPaciente(dadosImpressaoAcolhimento);
-            fecharModal();
+            if (imprimirDadosPaciente(dadosImpressaoAcolhimento)) {
+                fecharModal();
+            }
         });
     }
+
+    document.querySelectorAll("[data-reimprimir-acolhimento]").forEach(function (botao) {
+        botao.addEventListener("click", function () {
+            imprimirDadosPaciente(dadosReimpressaoDoBotao(botao));
+        });
+    });
 
     document.querySelectorAll("[data-modal-close]").forEach(function (botao) {
         botao.addEventListener("click", fecharModal);

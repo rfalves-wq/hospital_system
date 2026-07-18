@@ -12,6 +12,7 @@ class InternacaoForm(forms.ModelForm):
             "diagnostico_admissao",
             "cuidados",
             "profissional_responsavel",
+            "profissional_responsavel_registro",
             "observacoes",
         ]
         widgets = {
@@ -37,6 +38,10 @@ class InternacaoForm(forms.ModelForm):
                 "class": "form-control",
                 "placeholder": "Profissional responsável pela admissão",
             }),
+            "profissional_responsavel_registro": forms.TextInput(attrs={
+                "class": "form-control",
+                "placeholder": "CRM, COREN ou registro",
+            }),
             "observacoes": forms.Textarea(attrs={
                 "class": "form-control",
                 "rows": 3,
@@ -57,6 +62,7 @@ class EvolucaoInternacaoForm(forms.ModelForm):
             "evolucao",
             "conduta",
             "profissional",
+            "profissional_registro",
         ]
         widgets = {
             "pressao_arterial": forms.TextInput(attrs={
@@ -94,6 +100,10 @@ class EvolucaoInternacaoForm(forms.ModelForm):
                 "class": "form-control",
                 "placeholder": "Profissional que registrou a evolução",
             }),
+            "profissional_registro": forms.TextInput(attrs={
+                "class": "form-control",
+                "placeholder": "CRM, COREN ou registro",
+            }),
         }
 
 
@@ -103,6 +113,7 @@ class AltaInternacaoForm(forms.ModelForm):
         fields = [
             "resumo_alta",
             "profissional_alta",
+            "profissional_alta_registro",
         ]
         widgets = {
             "resumo_alta": forms.Textarea(attrs={
@@ -113,5 +124,9 @@ class AltaInternacaoForm(forms.ModelForm):
             "profissional_alta": forms.TextInput(attrs={
                 "class": "form-control",
                 "placeholder": "Profissional responsável pela alta",
+            }),
+            "profissional_alta_registro": forms.TextInput(attrs={
+                "class": "form-control",
+                "placeholder": "CRM, COREN ou registro",
             }),
         }

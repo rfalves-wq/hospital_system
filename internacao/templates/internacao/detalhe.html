@@ -123,6 +123,9 @@
                         <div class="mb-3">
                             <div class="info-label">Responsável</div>
                             <div>{{ internacao.profissional_responsavel|default:"-" }}</div>
+                            {% if internacao.profissional_responsavel_registro %}
+                                <small class="text-muted">CRM / COREN: {{ internacao.profissional_responsavel_registro }}</small>
+                            {% endif %}
                         </div>
 
                         <div class="mb-3">
@@ -159,6 +162,12 @@
                                     <label class="form-label fw-bold">Profissional</label>
                                     {{ alta_form.profissional_alta }}
                                     {{ alta_form.profissional_alta.errors }}
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">CRM / COREN</label>
+                                    {{ alta_form.profissional_alta_registro }}
+                                    {{ alta_form.profissional_alta_registro.errors }}
                                 </div>
 
                                 <button type="submit" class="btn btn-danger fw-bold w-100">
@@ -212,6 +221,11 @@
                                         <label class="form-label fw-bold">Profissional</label>
                                         {{ evolucao_form.profissional }}
                                     </div>
+
+                                    <div class="col-md-2 mb-3">
+                                        <label class="form-label fw-bold">CRM / COREN</label>
+                                        {{ evolucao_form.profissional_registro }}
+                                    </div>
                                 </div>
 
                                 <div class="mb-3">
@@ -244,6 +258,9 @@
                                     <div class="timeline-top">
                                         <strong>{{ evolucao.data_evolucao|date:"d/m/Y H:i" }}</strong>
                                         <span class="badge bg-secondary">{{ evolucao.profissional|default:"Sem profissional" }}</span>
+                                        {% if evolucao.profissional_registro %}
+                                            <span class="badge bg-light text-dark">CRM / COREN: {{ evolucao.profissional_registro }}</span>
+                                        {% endif %}
                                     </div>
 
                                     <div class="mb-2">

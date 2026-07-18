@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block extra_css %}
-    <link rel="stylesheet" href="{% static 'css/seguranca.css' %}?v=20260717-2">
+    <link rel="stylesheet" href="{% static 'css/seguranca.css' %}?v=20260718-4">
 {% endblock %}
 
 {% block content %}
@@ -18,7 +18,7 @@
 
             <div class="security-actions">
                 <a href="{% url 'seguranca_usuarios' %}" class="btn-security">
-                    Usu&aacute;rios
+                    Profissionais
                 </a>
                 <a href="{% url 'seguranca_dashboard' %}" class="btn-security">
                     Resumo
@@ -49,7 +49,7 @@
                 <div class="security-card-head">
                     <div>
                         <h2>Dados do usu&aacute;rio</h2>
-                        <p>Identifica&ccedil;&atilde;o usada no login e no sistema.</p>
+                        <p>Identifica&ccedil;&atilde;o usada no login, no sistema e nas impress&otilde;es.</p>
                     </div>
                     {% if usuario_editado %}
                         {% if usuario_editado.is_active %}
@@ -89,6 +89,18 @@
                         <label for="{{ form.cargo.id_for_label }}">{{ form.cargo.label }}</label>
                         {{ form.cargo }}
                         {{ form.cargo.errors }}
+                    </div>
+
+                    <div class="form-field">
+                        <label for="{{ form.conselho_profissional.id_for_label }}">{{ form.conselho_profissional.label }}</label>
+                        {{ form.conselho_profissional }}
+                        {{ form.conselho_profissional.errors }}
+                    </div>
+
+                    <div class="form-field">
+                        <label for="{{ form.registro_profissional.id_for_label }}">{{ form.registro_profissional.label }}</label>
+                        {{ form.registro_profissional }}
+                        {{ form.registro_profissional.errors }}
                     </div>
 
                     <div class="form-field">
@@ -187,7 +199,11 @@
                     Cancelar
                 </a>
                 <button type="submit" class="btn-security primary">
-                    Salvar usu&aacute;rio
+                    {% if usuario_editado %}
+                        Salvar altera&ccedil;&otilde;es
+                    {% else %}
+                        Salvar profissional
+                    {% endif %}
                 </button>
             </div>
         </form>

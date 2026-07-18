@@ -213,7 +213,7 @@
                                     <th>Classificação</th>
                                     <th>Status</th>
                                     <th>Procedimentos</th>
-                                    <th>Hora</th>
+                                    <th>Entrada</th>
                                     <th>Ação</th>
                                 </tr>
                             </thead>
@@ -342,11 +342,7 @@
                                         </td>
 
                                         <td>
-                                            {% if acolhimento.hora_chegada %}
-                                                {{ acolhimento.hora_chegada|time:"H:i" }}
-                                            {% else %}
-                                                {{ acolhimento.data_acolhimento|time:"H:i" }}
-                                            {% endif %}
+                                            {{ acolhimento.entrada_setor_atual|date:"H:i"|default:"-" }}
                                         </td>
 
                                         <td>
@@ -384,18 +380,29 @@
                                                     </form>
                                                 {% endif %}
 
-                                                <a href="{% url 'atender_paciente' acolhimento.id %}"
-                                                   class="btn btn-primary btn-sm">
-                                                    Atender
-                                                </a>
+                                                {% if consultorio_medico_atual %}
+                                                    <a href="{% url 'atender_paciente' acolhimento.id %}"
+                                                       class="btn btn-primary btn-sm"
+                                                       title="Atender em {{ consultorio_medico_atual }}">
+                                                        Atender
+                                                    </a>
+                                                {% else %}
+                                                    <button type="button"
+                                                            class="btn btn-secondary btn-sm"
+                                                            disabled
+                                                            title="Informe o consultorio antes de atender">
+                                                        Atender
+                                                    </button>
+                                                {% endif %}
 
                                                 {% if acolhimento.consulta_medica and medico_atual and acolhimento.consulta_medica.medico_responsavel != medico_atual %}
                                                     <form method="post"
                                                           action="{% url 'assumir_paciente_medico' acolhimento.id %}">
                                                         {% csrf_token %}
-                                                        <input type="hidden" name="next" value="dashboard">
-                                                        <input type="hidden" name="novo_medico" value="{{ medico_atual }}">
-                                                        <input type="hidden" name="motivo" value="PLANTAO">
+                                                         <input type="hidden" name="next" value="dashboard">
+                                                         <input type="hidden" name="novo_medico" value="{{ medico_atual }}">
+                                                         <input type="hidden" name="crm_novo" value="{{ crm_medico_atual }}">
+                                                         <input type="hidden" name="motivo" value="PLANTAO">
                                                         <button type="submit"
                                                                 class="btn btn-outline-success btn-sm"
                                                                 data-confirm-submit="Confirmar que você vai assumir este paciente?">
@@ -735,9 +742,10 @@
                                                     <form method="post"
                                                           action="{% url 'assumir_paciente_medico' consulta.acolhimento.id %}">
                                                         {% csrf_token %}
-                                                        <input type="hidden" name="next" value="dashboard">
-                                                        <input type="hidden" name="novo_medico" value="{{ medico_atual }}">
-                                                        <input type="hidden" name="motivo" value="PLANTAO">
+                                                         <input type="hidden" name="next" value="dashboard">
+                                                         <input type="hidden" name="novo_medico" value="{{ medico_atual }}">
+                                                         <input type="hidden" name="crm_novo" value="{{ crm_medico_atual }}">
+                                                         <input type="hidden" name="motivo" value="PLANTAO">
                                                         <button type="submit"
                                                                 class="btn btn-outline-success btn-sm"
                                                                 data-confirm-submit="Confirmar que você vai assumir este paciente?">
@@ -777,7 +785,7 @@
 {% endif %}
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="{% static 'medico/js/impressao.js' %}?v=20260711-1"></script>
+<script src="{% static 'medico/js/impressao.js' %}?v=20260718-2"></script>
 
 <script src="{% static 'medico/js/dashboard.js' %}?v=20260711-2"></script>
 

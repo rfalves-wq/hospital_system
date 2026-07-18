@@ -10,6 +10,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.cache import patch_cache_control
 
 from acolhimento.models import Acolhimento
+from acolhimento.tempos import anexar_entrada_setor, anexar_entrada_status_atual
 from acolhimento.utils import (
     anexar_passagens_do_dia,
     passagens_do_paciente_no_dia,
@@ -91,6 +92,7 @@ def recepcao_dashboard(request):
     acolhimentos = (
         Acolhimento.objects
         .select_related("paciente")
+        .prefetch_related("tempos_setores")
         .filter(
             data_acolhimento__gte=periodo_inicio,
             data_acolhimento__lte=periodo_fim,
@@ -102,6 +104,7 @@ def recepcao_dashboard(request):
     historico = (
         Acolhimento.objects
         .select_related("paciente")
+        .prefetch_related("tempos_setores")
         .filter(
             data_acolhimento__gte=periodo_inicio,
             data_acolhimento__lte=periodo_fim,
@@ -113,6 +116,7 @@ def recepcao_dashboard(request):
     ausentes_recepcao = (
         Acolhimento.objects
         .select_related("paciente")
+        .prefetch_related("tempos_setores")
         .filter(
             data_acolhimento__gte=periodo_inicio,
             data_acolhimento__lte=periodo_fim,
@@ -130,7 +134,14 @@ def recepcao_dashboard(request):
         .order_by("-data_ausente", "-data_acolhimento")
     )
 
-    acolhimentos = anexar_passagens_do_dia(acolhimentos, cache_passagens)
+    acolhimentos = anexar_entrada_setor(
+        anexar_passagens_do_dia(acolhimentos, cache_passagens),
+        "RECEPCAO",
+    )
+    historico = anexar_entrada_status_atual(
+        anexar_passagens_do_dia(historico, cache_passagens)
+    )
+    ausentes_recepcao = anexar_passagens_do_dia(ausentes_recepcao, cache_passagens)
     anexar_status_chamadas(acolhimentos, ChamadaPainel.RECEPCAO)
 
     return render(
@@ -138,8 +149,8 @@ def recepcao_dashboard(request):
         "recepcao/dashboard.html",
         {
             "acolhimentos": acolhimentos,
-            "historico": anexar_passagens_do_dia(historico, cache_passagens),
-            "ausentes_recepcao": anexar_passagens_do_dia(ausentes_recepcao, cache_passagens),
+            "historico": historico,
+            "ausentes_recepcao": ausentes_recepcao,
             "dados_impressao_recepcao": dados_impressao,
         }
     )

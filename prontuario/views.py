@@ -6,6 +6,7 @@ from django.db.models import Count, Max, Q
 from django.shortcuts import get_object_or_404, redirect, render
 
 from acolhimento.models import Acolhimento
+from acolhimento.tempos import formatar_duracao, somar_tempo_hospital
 from internacao.models import Internacao
 from medico.models import ConsultaMedica
 from recepcao.models import Recepcao
@@ -40,7 +41,9 @@ def query_acolhimentos(filtro):
             "internacao",
         )
         .prefetch_related(
+            "tempos_setores",
             "consulta_medica__transferencias_medico",
+            "consulta_medica__reavaliacoes",
             "internacao__evolucoes",
         )
         .filter(filtro)
@@ -56,14 +59,23 @@ def montar_registros(acolhimentos):
         classificacao = objeto_relacionado(acolhimento, "classificacao")
         consulta = objeto_relacionado(acolhimento, "consulta_medica")
         internacao = objeto_relacionado(acolhimento, "internacao")
+        tempos_setores = list(acolhimento.tempos_setores.all())
+        tempo_total_hospital = somar_tempo_hospital(tempos_setores)
 
         registros.append({
             "acolhimento": acolhimento,
             "classificacao": classificacao,
             "consulta": consulta,
             "internacao": internacao,
+            "tempos_setores": tempos_setores,
+            "tempo_total_hospital": formatar_duracao(tempo_total_hospital),
             "transferencias": (
                 list(consulta.transferencias_medico.all())
+                if consulta
+                else []
+            ),
+            "reavaliacoes_medicas": (
+                list(consulta.reavaliacoes.all())
                 if consulta
                 else []
             ),

@@ -2,6 +2,56 @@ from django import forms
 from django.contrib.auth import password_validation
 
 from .models import PainelSistema, PerfilAcesso, Usuario
+from .utils import CONSELHO_PADRAO_POR_CARGO
+
+
+CARGO_FUNCAO_CHOICES = [
+    ("", "---------"),
+    (
+        "Atendimento assistencial",
+        (
+            ("Medico", "Medico"),
+            ("Enfermeiro", "Enfermeiro"),
+            ("Tecnico de enfermagem", "Tecnico de enfermagem"),
+            ("Auxiliar de enfermagem", "Auxiliar de enfermagem"),
+            ("Classificador de risco", "Classificador de risco"),
+            ("Profissional do acolhimento", "Profissional do acolhimento"),
+            ("Farmaceutico", "Farmaceutico"),
+            ("Auxiliar de farmacia", "Auxiliar de farmacia"),
+            ("Tecnico de laboratorio", "Tecnico de laboratorio"),
+            ("Biomedico", "Biomedico"),
+            ("Tecnico de radiologia", "Tecnico de radiologia"),
+            ("Nutricionista", "Nutricionista"),
+        ),
+    ),
+    (
+        "Administrativo e apoio",
+        (
+            ("Recepcionista", "Recepcionista"),
+            ("Faturamento", "Faturamento"),
+            ("Estoque de nutricao", "Estoque de nutricao"),
+            ("Internacao", "Internacao"),
+            ("Prontuario", "Prontuario"),
+            ("Tecnologia da Informacao", "Tecnologia da Informacao"),
+            ("Suporte TI", "Suporte TI"),
+            ("Coordenador", "Coordenador"),
+            ("Administrador do sistema", "Administrador do sistema"),
+        ),
+    ),
+]
+
+
+def cargo_funcao_valores():
+    valores = set()
+
+    for valor, rotulo in CARGO_FUNCAO_CHOICES:
+        if isinstance(rotulo, (list, tuple)):
+            valores.update(opcao_valor for opcao_valor, _opcao_rotulo in rotulo)
+        elif valor:
+            valores.add(valor)
+
+    return valores
+
 
 class LoginForm(forms.Form):
 
@@ -13,6 +63,11 @@ class LoginForm(forms.Form):
 
 
 class UsuarioSistemaForm(forms.ModelForm):
+    cargo = forms.ChoiceField(
+        label="Cargo ou funcao",
+        choices=CARGO_FUNCAO_CHOICES,
+        required=False,
+    )
     password1 = forms.CharField(
         label="Senha",
         required=False,
@@ -42,6 +97,8 @@ class UsuarioSistemaForm(forms.ModelForm):
             "last_name",
             "email",
             "cargo",
+            "conselho_profissional",
+            "registro_profissional",
             "unidade",
             "is_active",
             "is_staff",
@@ -55,6 +112,8 @@ class UsuarioSistemaForm(forms.ModelForm):
             "last_name": "Sobrenome",
             "email": "E-mail",
             "cargo": "Cargo ou funcao",
+            "conselho_profissional": "Conselho regional",
+            "registro_profissional": "Numero do conselho profissional",
             "unidade": "Unidade",
             "is_active": "Usuario ativo",
             "is_staff": "Pode gerenciar usuarios",
@@ -69,6 +128,12 @@ class UsuarioSistemaForm(forms.ModelForm):
             "paineis_extra": "Use quando o usuario precisar de um painel fora da categoria.",
         }
         widgets = {
+            "registro_profissional": forms.TextInput(
+                attrs={
+                    "autocomplete": "off",
+                    "placeholder": "Ex: 123456",
+                }
+            ),
             "perfis_acesso": forms.CheckboxSelectMultiple(),
             "paineis_extra": forms.CheckboxSelectMultiple(),
         }
@@ -88,6 +153,20 @@ class UsuarioSistemaForm(forms.ModelForm):
         self.fields["unidade"].required = False
         self.fields["email"].required = False
         self.fields["cargo"].required = False
+        self.fields["conselho_profissional"].required = False
+        self.fields["registro_profissional"].required = False
+        cargo_atual = self.initial.get("cargo") or getattr(self.instance, "cargo", "")
+
+        if cargo_atual and cargo_atual not in cargo_funcao_valores():
+            self.fields["cargo"].choices = [
+                *CARGO_FUNCAO_CHOICES,
+                (
+                    "Cargo salvo anteriormente",
+                    (
+                        (cargo_atual, f"{cargo_atual} (atual)"),
+                    ),
+                ),
+            ]
 
         if not self.instance.pk:
             self.fields["password1"].required = True
@@ -110,6 +189,27 @@ class UsuarioSistemaForm(forms.ModelForm):
         cleaned_data = super().clean()
         password1 = cleaned_data.get("password1")
         password2 = cleaned_data.get("password2")
+        cargo = cleaned_data.get("cargo") or ""
+        conselho = cleaned_data.get("conselho_profissional") or ""
+        registro = (cleaned_data.get("registro_profissional") or "").strip()
+
+        if not conselho and cargo in CONSELHO_PADRAO_POR_CARGO:
+            conselho = CONSELHO_PADRAO_POR_CARGO[cargo]
+            cleaned_data["conselho_profissional"] = conselho
+
+        if conselho and not registro:
+            self.add_error(
+                "registro_profissional",
+                "Informe o numero do conselho profissional.",
+            )
+
+        if registro and not conselho:
+            self.add_error(
+                "conselho_profissional",
+                "Selecione o conselho regional do profissional.",
+            )
+
+        cleaned_data["registro_profissional"] = registro
 
         if password1 or password2:
             if password1 != password2:

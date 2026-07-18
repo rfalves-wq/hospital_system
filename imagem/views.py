@@ -2,6 +2,8 @@ from django.contrib import messages
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
 
+from acolhimento.tempos import entrada_setor
+from accounts.utils import nome_profissional_request
 from medico.models import ConsultaMedica
 
 from .forms import ResultadoImagemForm
@@ -176,6 +178,7 @@ def imagem_dashboard(request):
     consultas = (
         ConsultaMedica.objects
         .select_related("acolhimento", "acolhimento__paciente")
+        .prefetch_related("acolhimento__tempos_setores")
         .filter(solicita_exames_imagem=True)
         .exclude(acolhimento__status__in=["FINALIZADO", "AUSENTE"])
         .order_by("data_consulta")
@@ -191,6 +194,11 @@ def imagem_dashboard(request):
             item = {
                 "consulta": consulta,
                 "setor": setor,
+                "entrada_setor": entrada_setor(
+                    consulta.acolhimento,
+                    "IMAGEM",
+                    fallback=consulta.data_consulta,
+                ),
             }
 
             if setor["realizado"]:
@@ -270,9 +278,16 @@ def lancar_resultado_imagem(request, consulta_id, setor):
 
             return redirect("imagem_dashboard")
     else:
+        initial = {}
+        campo_tecnico_nome = setor_config["tecnico_nome"]
+
+        if not getattr(consulta, campo_tecnico_nome):
+            initial[campo_tecnico_nome] = nome_profissional_request(request)
+
         form = ResultadoImagemForm(
             setor=setor,
-            instance=consulta
+            instance=consulta,
+            initial=initial
         )
 
     return render(

@@ -4,9 +4,9 @@
     </div>
 
     <div class="system-clock-actions">
-        {% if request.user.is_authenticated and not hide_logout %}
+        {% if profissional_logado %}
             <span class="system-clock-user">
-                {{ request.user.get_full_name|default:request.user.username }}
+                Profissional: {{ profissional_logado }}
             </span>
         {% endif %}
 
@@ -212,6 +212,12 @@
 
 <script>
     (function () {
+        window.SistemaHospitalar = window.SistemaHospitalar || {};
+        window.SistemaHospitalar.profissionalLogado = "{{ profissional_logado|default:''|escapejs }}";
+        window.SistemaHospitalar.profissionalLogadoConselho = "{{ profissional_logado_conselho|default:''|escapejs }}";
+        window.SistemaHospitalar.profissionalLogadoRegistro = "{{ profissional_logado_registro|default:''|escapejs }}";
+        window.SistemaHospitalar.profissionalLogadoConselhoRegistro = "{{ profissional_logado_conselho_registro|default:''|escapejs }}";
+
         function formatarDataLonga(data) {
             return data.toLocaleDateString("pt-BR", {
                 weekday: "long",

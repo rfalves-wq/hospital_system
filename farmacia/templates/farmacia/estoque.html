@@ -501,7 +501,7 @@
                                         <span>Profissional</span>
                                         <strong>{{ mov.profissional_nome }}</strong>
                                         {% if mov.profissional_registro %}
-                                            <small>{{ mov.profissional_registro }}</small>
+                                            <small>Registro: {{ mov.profissional_registro }}</small>
                                         {% endif %}
                                     </div>
                                 </div>
@@ -565,7 +565,7 @@
 
                             <div class="col-md-7">
                                 <label for="id_profissional_nome_lote" class="form-label">Profissional responsavel</label>
-                                <input type="text" class="form-control" id="id_profissional_nome_lote" name="profissional_nome" required>
+                                <input type="text" class="form-control" id="id_profissional_nome_lote" name="profissional_nome" value="{{ profissional_logado }}" required>
                             </div>
 
                             <div class="col-md-5">

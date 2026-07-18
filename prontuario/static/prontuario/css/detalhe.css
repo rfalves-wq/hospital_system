@@ -318,6 +318,70 @@ label {
     border-bottom: 0;
 }
 
+.tempo-setores-section {
+    background: #fbfdff;
+}
+
+.tempo-setores-table-wrap {
+    border: 1px solid #dce8f3;
+    border-radius: 8px;
+    overflow-x: auto;
+}
+
+.tempo-setores-table {
+    border-collapse: collapse;
+    min-width: 680px;
+    width: 100%;
+}
+
+.tempo-setores-table th {
+    background: #eef5fc;
+    color: #334155;
+    font-size: 11px;
+    font-weight: 850;
+    letter-spacing: .03em;
+    padding: 8px 10px;
+    text-align: left;
+    text-transform: uppercase;
+}
+
+.tempo-setores-table td {
+    background: #fff;
+    border-top: 1px solid #e4edf5;
+    color: #172033;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 9px 10px;
+    vertical-align: top;
+}
+
+.tempo-setores-table td strong,
+.tempo-setores-table td small {
+    display: block;
+}
+
+.tempo-setores-table td small {
+    color: #64748b;
+    font-size: 11px;
+    font-weight: 700;
+    margin-top: 2px;
+}
+
+.tempo-aberto {
+    background: #dcfce7;
+    border-radius: 999px;
+    color: #166534;
+    display: inline-flex;
+    font-size: 11px;
+    font-weight: 850;
+    padding: 4px 7px;
+}
+
+.compact-empty {
+    font-size: 13px;
+    padding: 16px;
+}
+
 .section-title-line {
     align-items: center;
     display: flex;

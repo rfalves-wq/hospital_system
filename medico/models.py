@@ -1,4 +1,6 @@
 from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from django.utils import timezone
 
 from acolhimento.models import Acolhimento
@@ -80,6 +82,10 @@ class ConsultaMedica(models.Model):
 
     prescricao = models.TextField(blank=True, default="")
     orientacoes = models.TextField(blank=True, default="")
+    receita = models.TextField(blank=True, default="")
+    atestado = models.TextField(blank=True, default="")
+    atestado_dias = models.PositiveSmallIntegerField(blank=True, null=True)
+    atestado_cid = models.CharField(max_length=20, blank=True, default="")
 
     data_consulta = models.DateTimeField(auto_now_add=True)
 
@@ -285,9 +291,6 @@ class ConsultaMedica(models.Model):
         return True
 
     def todos_procedimentos_finalizados(self):
-        if self.solicita_medicacao and not self.farmacia_liberada:
-            return False
-
         if self.solicita_medicacao and not self.medicacao_realizada:
             return False
 
@@ -335,3 +338,43 @@ class TransferenciaConsultaMedica(models.Model):
             f"{self.consulta.acolhimento.numero_bam}: "
             f"{self.medico_anterior or '-'} -> {self.medico_novo}"
         )
+
+
+class ReavaliacaoMedica(models.Model):
+    consulta = models.ForeignKey(
+        ConsultaMedica,
+        on_delete=models.CASCADE,
+        related_name="reavaliacoes",
+    )
+    medico_responsavel = models.CharField(max_length=150)
+    crm_medico = models.CharField(max_length=30, blank=True, default="")
+    cid = models.CharField(max_length=20, blank=True, default="")
+    avaliacao = models.TextField()
+    conduta = models.CharField(
+        max_length=30,
+        choices=ConsultaMedica.CONDUTA_CHOICES,
+    )
+    orientacoes = models.TextField(blank=True, default="")
+    data_reavaliacao = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-data_reavaliacao"]
+        verbose_name = "Reavaliacao medica"
+        verbose_name_plural = "Reavaliacoes medicas"
+        indexes = [
+            models.Index(fields=["consulta", "data_reavaliacao"], name="reav_consulta_dt_idx"),
+            models.Index(fields=["medico_responsavel", "data_reavaliacao"], name="reav_medico_dt_idx"),
+        ]
+
+    def __str__(self):
+        return (
+            f"{self.consulta.acolhimento.numero_bam}: "
+            f"{self.medico_responsavel} - {self.get_conduta_display()}"
+        )
+
+
+@receiver(post_save, sender=ConsultaMedica)
+def sincronizar_tempos_procedimentos(sender, instance, **kwargs):
+    from acolhimento.tempos import sincronizar_procedimentos_consulta
+
+    sincronizar_procedimentos_consulta(instance)

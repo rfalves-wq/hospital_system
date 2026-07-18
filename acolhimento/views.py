@@ -5,7 +5,14 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
 from django.db.models import Q
 from django.utils import timezone
+from django.views.decorators.http import require_POST
 
+from accounts.utils import (
+    conselho_profissional_request,
+    conselho_registro_profissional,
+    nome_profissional_request,
+    registro_profissional_request,
+)
 from .models import Acolhimento
 from .utils import periodo_do_dia, resumo_passagens_json
 
@@ -89,6 +96,9 @@ def tipo_atendimento(request):
             dor=request.POST.get("dor"),
             tipo_atendimento=request.POST.get("tipo_atendimento"),
             status="RECEPCAO",
+            profissional_responsavel=nome_profissional_request(request),
+            profissional_responsavel_conselho=conselho_profissional_request(request),
+            profissional_responsavel_registro=registro_profissional_request(request),
         )
 
         request.session["acolhimento_impressao_id"] = paciente.id
@@ -165,6 +175,13 @@ def dados_acolhimento_para_impressao(acolhimento):
         "tipo_atendimento": acolhimento.tipo_atendimento or "",
         "tipo_atendimento_label": acolhimento.get_tipo_atendimento_display(),
         "data_acolhimento": data_acolhimento,
+        "profissional_responsavel": acolhimento.profissional_responsavel or "",
+        "profissional_conselho": acolhimento.profissional_responsavel_conselho or "",
+        "profissional_registro": acolhimento.profissional_responsavel_registro or "",
+        "profissional_conselho_registro": conselho_registro_profissional(
+            acolhimento.profissional_responsavel_conselho,
+            acolhimento.profissional_responsavel_registro,
+        ),
     }
 
 
@@ -178,6 +195,7 @@ def buscar_historico_acolhimentos():
     )
 
 
+@require_POST
 def reenviar_para_recepcao(request, acolhimento_id):
 
     acolhimento = get_object_or_404(Acolhimento, id=acolhimento_id)

@@ -81,6 +81,11 @@
         dados.indicacaoOutrosImagem = valorCampo("id_indicacao_outros_imagem", dados.indicacaoOutrosImagem);
         dados.prescricao = valorCampo("id_prescricao", dados.prescricao);
         dados.orientacoes = valorCampo("id_orientacoes", dados.orientacoes);
+        dados.receita = valorCampo("id_receita", dados.receita);
+        dados.atestado = valorCampo("id_atestado", dados.atestado);
+        dados.atestadoDias = valorCampo("id_atestado_dias", dados.atestadoDias);
+        dados.atestadoCid = valorCampo("id_atestado_cid", dados.atestadoCid);
+        dados.atestadoCidDescricao = valorCampo("atestado_cid_descricao", dados.atestadoCidDescricao);
         dados.alergia = dados.alergia || "";
         dados.usoMedicamento = dados.usoMedicamento || "";
         dados.dataConsulta = dados.dataConsulta || new Date().toLocaleString("pt-BR");
@@ -106,6 +111,14 @@
                 <td colspan="3">${textoLongo(valor)}</td>
             </tr>
         `;
+    }
+
+    function linhaProfissional(label, nome, labelRegistro, registro) {
+        if (!temTexto(nome) && !temTexto(registro)) {
+            return "";
+        }
+
+        return linha(label, nome, labelRegistro, registro);
     }
 
     function secao(titulo, conteudo) {
@@ -211,16 +224,40 @@
         `));
     }
 
+    function secaoReavaliacoes(dados) {
+        const reavaliacoes = Array.isArray(dados.reavaliacoes)
+            ? dados.reavaliacoes
+            : [];
+
+        if (!reavaliacoes.length) {
+            return "";
+        }
+
+        const linhas = reavaliacoes.map(function (reavaliacao) {
+            return `
+                ${linha("Medico", reavaliacao.medico, "CRM", reavaliacao.crm)}
+                ${linha("Data", reavaliacao.data, "Conduta", reavaliacao.conduta)}
+                ${linha("CID", reavaliacao.cid, "Registro", "Reavaliacao")}
+                ${linhaTexto("Avaliacao", reavaliacao.avaliacao)}
+                ${linhaTexto("Orientacoes", reavaliacao.orientacoes)}
+            `;
+        }).join("");
+
+        return secao("Reavaliacoes medicas", tabela(linhas));
+    }
+
     function secaoPedidoLaboratorio(dados) {
         return secao("Pedido de exames laboratoriais", tabela(`
-            ${linha("Solicitado", dados.solicitaLaboratorio ? "Sim" : "Nao", "Medico", dados.medicoResponsavel)}
+            ${linha("Solicitado", dados.solicitaLaboratorio ? "Sim" : "Nao", "Data", dados.dataConsulta)}
+            ${linha("Medico", dados.medicoResponsavel, "CRM", dados.crmMedico)}
             ${linhaTexto("Exames", dados.examesLaboratoriais)}
         `));
     }
 
     function secaoPedidoImagem(dados) {
         return secao("Pedido de exames de imagem", tabela(`
-            ${linha("Solicitado", dados.solicitaImagem ? "Sim" : "Nao", "Medico", dados.medicoResponsavel)}
+            ${linha("Solicitado", dados.solicitaImagem ? "Sim" : "Nao", "Data", dados.dataConsulta)}
+            ${linha("Medico", dados.medicoResponsavel, "CRM", dados.crmMedico)}
             ${linhaTexto("Exames", dados.examesImagem)}
             ${linhaTexto("Indicacao Raio-X", dados.indicacaoRaiox)}
             ${linhaTexto("Indicacao Tomografia", dados.indicacaoTomografia)}
@@ -230,7 +267,8 @@
 
     function secaoPrescricao(dados) {
         return secao("Prescricao / medicacao", tabela(`
-            ${linha("Solicita medicacao", dados.solicitaMedicacao ? "Sim" : "Nao", "Medico", dados.medicoResponsavel)}
+            ${linha("Solicita medicacao", dados.solicitaMedicacao ? "Sim" : "Nao", "Data", dados.dataConsulta)}
+            ${linha("Medico", dados.medicoResponsavel, "CRM", dados.crmMedico)}
             ${linhaTexto("Alergia registrada", dados.alergia)}
             ${linhaTexto("Prescricao", dados.prescricao)}
         `));
@@ -243,20 +281,49 @@
         `));
     }
 
+    function secaoReceita(dados) {
+        return secao("Receita medica", tabela(`
+            ${linha("Medico", dados.medicoResponsavel, "CRM", dados.crmMedico)}
+            ${linhaTexto("Receita", dados.receita)}
+        `));
+    }
+
+    function secaoAtestado(dados) {
+        const dias = String(dados.atestadoDias || "").trim();
+        const cid = String(dados.atestadoCid || "").trim();
+        const textoAtestado = dias
+            ? `Atesto, para os devidos fins, que o paciente necessita de ${dias} dia(s) de afastamento.`
+            : textoOuTraco(dados.atestado);
+
+        return secao("Atestado medico", tabela(`
+            ${linha("Medico", dados.medicoResponsavel, "CRM", dados.crmMedico)}
+            ${linha("Dias", dias || "-", "CID", cid || "Nao informado")}
+            ${linhaTexto("Descricao do CID", dados.atestadoCidDescricao)}
+            ${linhaTexto("Atestado", textoAtestado)}
+        `));
+    }
+
     function secaoResultados(dados) {
         const conteudo = `
             ${linhaTexto("Resultado laboratorio", dados.resultadoLaboratorio)}
             ${linha("Liberacao laboratorio", dados.dataResultadoLaboratorio, "Farmacia liberada", dados.farmaciaLiberada ? "Sim" : "Nao")}
+            ${linhaProfissional("Tecnico laboratorio", dados.tecnicoLaboratorioNome, "Registro", dados.tecnicoLaboratorioRegistro)}
             ${linhaTexto("Resultado imagem", dados.resultadoImagem)}
             ${linha("Liberacao imagem", dados.dataResultadoImagem, "Conduta", dados.conduta)}
             ${linhaTexto("Resultado Raio-X", dados.resultadoRaiox)}
             ${linha("Liberacao Raio-X", dados.dataResultadoRaiox, "Liberacao Tomografia", dados.dataResultadoTomografia)}
+            ${linhaProfissional("Tecnico Raio-X", dados.tecnicoRaioxNome, "Registro", dados.tecnicoRaioxRegistro)}
             ${linhaTexto("Laudo Tomografia", dados.resultadoTomografia)}
+            ${linhaProfissional("Tecnico Tomografia", dados.tecnicoTomografiaNome, "Registro", dados.tecnicoTomografiaRegistro)}
             ${linhaTexto("Laudo Mamografia", dados.resultadoMamografia)}
             ${linha("Liberacao Mamografia", dados.dataResultadoMamografia, "Liberacao Densitometria", dados.dataResultadoDensitometria)}
+            ${linhaProfissional("Tecnico Mamografia", dados.tecnicoMamografiaNome, "Registro", dados.tecnicoMamografiaRegistro)}
             ${linhaTexto("Laudo Densitometria", dados.resultadoDensitometria)}
+            ${linhaProfissional("Tecnico Densitometria", dados.tecnicoDensitometriaNome, "Registro", dados.tecnicoDensitometriaRegistro)}
             ${linhaTexto("Medicamentos dispensados", dados.medicamentosDispensados)}
+            ${linhaProfissional("Farmacia", dados.profissionalFarmaciaNome, "CRF/Registro", dados.profissionalFarmaciaRegistro)}
             ${linhaTexto("Medicacao administrada", dados.medicacaoAdministrada)}
+            ${linhaProfissional("Enfermagem", dados.profissionalMedicacaoNome, "COREN", dados.profissionalMedicacaoRegistro)}
             ${linhaTexto("Observacoes da medicacao", dados.observacoesMedicacao)}
         `;
 
@@ -321,11 +388,29 @@
             );
         }
 
+        if (tipo === "receita") {
+            return montarDocumento(
+                "Receita Medica",
+                dados,
+                [secaoReceita(dados)],
+                "Medico responsavel"
+            );
+        }
+
+        if (tipo === "atestado") {
+            return montarDocumento(
+                "Atestado Medico",
+                dados,
+                [secaoAtestado(dados)],
+                "Medico responsavel"
+            );
+        }
+
         if (tipo === "resultados") {
             return montarDocumento(
                 "Resumo de Alta e Resultados",
                 dados,
-                [secaoConsulta(dados), secaoResultados(dados), secaoOrientacoes(dados)],
+                [secaoConsulta(dados), secaoReavaliacoes(dados), secaoResultados(dados), secaoOrientacoes(dados)],
                 "Medico responsavel"
             );
         }
@@ -333,7 +418,7 @@
         return montarDocumento(
             "Ficha de Consulta Medica",
             dados,
-            [secaoAcolhimento(dados), secaoClassificacao(dados), secaoConsulta(dados)],
+            [secaoAcolhimento(dados), secaoClassificacao(dados), secaoConsulta(dados), secaoReavaliacoes(dados)],
             "Medico responsavel"
         );
     }
@@ -353,6 +438,14 @@
             tipos.push("prescricao");
         }
 
+        if (temTexto(dados.receita)) {
+            tipos.push("receita");
+        }
+
+        if (temTexto(dados.atestadoDias) || temTexto(dados.atestadoCid) || temTexto(dados.atestado)) {
+            tipos.push("atestado");
+        }
+
         if (
             temTexto(dados.resultadoLaboratorio) ||
             temTexto(dados.resultadoImagem) ||
@@ -362,7 +455,8 @@
             temTexto(dados.resultadoDensitometria) ||
             temTexto(dados.medicamentosDispensados) ||
             temTexto(dados.medicacaoAdministrada) ||
-            dados.condutaCodigo === "ALTA"
+            dados.condutaCodigo === "ALTA" ||
+            (Array.isArray(dados.reavaliacoes) && dados.reavaliacoes.length > 0)
         ) {
             tipos.push("resultados");
         } else if (temTexto(dados.orientacoes)) {

@@ -5,6 +5,19 @@ from .permissions import PAINEL_CHOICES
 from unidades.models import UnidadeMedica
 
 
+CONSELHO_PROFISSIONAL_CHOICES = [
+    ("", "---------"),
+    ("CRM", "CRM"),
+    ("COREN", "COREN"),
+    ("CRF", "CRF"),
+    ("CRBM", "CRBM"),
+    ("CRN", "CRN"),
+    ("CRTR", "CRTR"),
+    ("CREFITO", "CREFITO"),
+    ("OUTRO", "Outro"),
+]
+
+
 class PainelSistema(models.Model):
     codigo = models.CharField(
         max_length=40,
@@ -58,6 +71,19 @@ class Usuario(AbstractUser):
     cargo = models.CharField(
         max_length=100,
         blank=True
+    )
+
+    conselho_profissional = models.CharField(
+        max_length=20,
+        choices=CONSELHO_PROFISSIONAL_CHOICES,
+        blank=True,
+        verbose_name="Conselho profissional"
+    )
+
+    registro_profissional = models.CharField(
+        max_length=40,
+        blank=True,
+        verbose_name="Registro profissional"
     )
 
     perfis_acesso = models.ManyToManyField(

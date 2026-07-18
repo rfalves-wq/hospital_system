@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block extra_css %}
-    <link rel="stylesheet" href="{% static 'css/seguranca.css' %}?v=20260717-2">
+    <link rel="stylesheet" href="{% static 'css/seguranca.css' %}?v=20260718-4">
 {% endblock %}
 
 {% block content %}
@@ -12,13 +12,13 @@
         <section class="security-header">
             <div>
                 <span class="security-kicker">Login e Seguran&ccedil;a</span>
-                <h1>Gerenciar usu&aacute;rios</h1>
-                <p>Cadastre, edite, ative ou inative os acessos do sistema.</p>
+                <h1>Gerenciar profissionais</h1>
+                <p>Cadastre, edite, ative ou inative profissionais e acessos do sistema.</p>
             </div>
 
             <div class="security-actions">
                 <a href="{% url 'seguranca_usuario_novo' %}" class="btn-security primary">
-                    Novo usu&aacute;rio
+                    Novo profissional
                 </a>
                 <a href="{% url 'seguranca_dashboard' %}" class="btn-security">
                     Resumo
@@ -39,8 +39,8 @@
         <section class="security-card users-card">
             <div class="security-card-head">
                 <div>
-                    <h2>Usu&aacute;rios cadastrados</h2>
-                    <p>Filtre por nome, login, cargo, e-mail ou categoria. Contagem de hoje: {{ data_atendimentos_hoje|date:"d/m/Y" }}.</p>
+                    <h2>Profissionais cadastrados</h2>
+                    <p>Filtre por nome, login, cargo, e-mail, conselho, registro ou categoria. Contagem de hoje: {{ data_atendimentos_hoje|date:"d/m/Y" }}.</p>
                 </div>
                 <span class="head-note">{{ usuarios|length }} encontrado(s)</span>
             </div>
@@ -53,7 +53,7 @@
                         type="search"
                         name="q"
                         value="{{ busca }}"
-                        placeholder="Nome, login, e-mail, cargo ou categoria"
+                        placeholder="Nome, login, e-mail, cargo, conselho ou registro"
                         class="security-input">
                 </div>
 
@@ -83,6 +83,7 @@
                         <tr>
                             <th>Usu&aacute;rio</th>
                             <th>Nome</th>
+                            <th>Conselho</th>
                             <th>Categorias</th>
                             <th>Pain&eacute;is extras</th>
                             <th>Hoje</th>
@@ -100,6 +101,10 @@
                                 <td>
                                     {{ usuario.get_full_name|default:"-" }}
                                     <small>{{ usuario.cargo|default:"Sem cargo" }}</small>
+                                </td>
+                                <td>
+                                    <strong>{{ usuario.conselho_profissional|default:"-" }}</strong>
+                                    <small>{{ usuario.registro_profissional|default:"Sem n&uacute;mero" }}</small>
                                 </td>
                                 <td>
                                     <div class="pill-list">
@@ -147,7 +152,7 @@
                                 <td>
                                     <div class="table-actions">
                                         <a href="{% url 'seguranca_usuario_editar' usuario.id %}" class="table-action">
-                                            Editar
+                                            Editar profissional
                                         </a>
 
                                         {% if usuario.id != request.user.id %}
@@ -176,9 +181,9 @@
                             </tr>
                         {% empty %}
                             <tr>
-                                <td colspan="7">
+                                <td colspan="8">
                                     <div class="empty-state">
-                                        Nenhum usu&aacute;rio encontrado.
+                                        Nenhum profissional encontrado.
                                     </div>
                                 </td>
                             </tr>
