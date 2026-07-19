@@ -12,12 +12,15 @@ class AcolhimentoAdmin(admin.ModelAdmin):
         'hora_chegada',
         'chamadas_classificacao',
         'ausente_classificacao',
+        'medico_atendimento_nome',
+        'medico_atendimento_inicio',
         'data_acolhimento'
     )
 
     search_fields = (
         'nome_paciente',
-        'cpf'
+        'cpf',
+        'medico_atendimento_nome',
     )
 
 

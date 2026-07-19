@@ -155,6 +155,33 @@ class Acolhimento(models.Model):
         verbose_name='Registro profissional'
     )
 
+    medico_atendimento_nome = models.CharField(
+        max_length=150,
+        blank=True,
+        default='',
+        verbose_name='Medico em atendimento'
+    )
+
+    medico_atendimento_crm = models.CharField(
+        max_length=60,
+        blank=True,
+        default='',
+        verbose_name='CRM do medico em atendimento'
+    )
+
+    medico_atendimento_consultorio = models.CharField(
+        max_length=80,
+        blank=True,
+        default='',
+        verbose_name='Consultorio do atendimento medico'
+    )
+
+    medico_atendimento_inicio = models.DateTimeField(
+        blank=True,
+        null=True,
+        verbose_name='Inicio do atendimento medico'
+    )
+
     data_ultima_chamada_classificacao = models.DateTimeField(
         blank=True,
         null=True,

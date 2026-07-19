@@ -1,5 +1,6 @@
 from django.contrib import messages
 from django.core.exceptions import ObjectDoesNotExist
+from django.db import IntegrityError, transaction
 from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
@@ -33,6 +34,183 @@ from .models import (
 
 def nome_usuario(request):
     return nome_profissional_request(request)
+
+
+STATUS_TRAVA_ATENDIMENTO_MEDICO = {"CONSULTA", "RETORNO_MEDICO"}
+STATUS_NAO_EDITAVEL_MEDICO = {"FINALIZADO", "AUSENTE"}
+
+
+def nomes_profissionais_iguais(nome_a, nome_b):
+    return (nome_a or "").strip().casefold() == (nome_b or "").strip().casefold()
+
+
+def atendimento_medico_bloqueado_por_outro(acolhimento, medico_atual):
+    medico_em_atendimento = (acolhimento.medico_atendimento_nome or "").strip()
+
+    return bool(
+        acolhimento.status in STATUS_TRAVA_ATENDIMENTO_MEDICO
+        and medico_em_atendimento
+        and not nomes_profissionais_iguais(medico_em_atendimento, medico_atual)
+    )
+
+
+def consulta_medica_de_outro_profissional(consulta, medico_atual):
+    if not consulta or not (consulta.medico_responsavel or "").strip():
+        return False
+
+    return not nomes_profissionais_iguais(
+        consulta.medico_responsavel,
+        medico_atual,
+    )
+
+
+def pode_editar_atendimento_medico(acolhimento, consulta, medico_atual):
+    if not (medico_atual or "").strip():
+        return False
+
+    if acolhimento.status in STATUS_NAO_EDITAVEL_MEDICO:
+        return False
+
+    if atendimento_medico_bloqueado_por_outro(acolhimento, medico_atual):
+        return False
+
+    if consulta_medica_de_outro_profissional(consulta, medico_atual):
+        return False
+
+    return True
+
+
+def dados_bloqueio_atendimento_medico(acolhimento, consulta, medico_atual):
+    if atendimento_medico_bloqueado_por_outro(acolhimento, medico_atual):
+        return {
+            "titulo": "Paciente em atendimento por outro medico",
+            "nome": acolhimento.medico_atendimento_nome,
+            "registro": acolhimento.medico_atendimento_crm,
+            "consultorio": acolhimento.medico_atendimento_consultorio,
+            "inicio": acolhimento.medico_atendimento_inicio,
+        }
+
+    if consulta_medica_de_outro_profissional(consulta, medico_atual):
+        return {
+            "titulo": "Paciente sob responsabilidade de outro medico",
+            "nome": consulta.medico_responsavel,
+            "registro": consulta.crm_medico,
+            "consultorio": "",
+            "inicio": consulta.data_consulta,
+        }
+
+    return None
+
+
+def bloquear_campos_formulario(form):
+    for field in form.fields.values():
+        field.disabled = True
+        field.widget.attrs["disabled"] = "disabled"
+        field.widget.attrs["aria-disabled"] = "true"
+
+
+def marcar_atendimento_medico_em_andamento(
+    acolhimento,
+    medico_atual,
+    crm_medico_atual,
+    consultorio_atual,
+    reiniciar=False,
+):
+    if not medico_atual or acolhimento.status not in STATUS_TRAVA_ATENDIMENTO_MEDICO:
+        return False
+
+    agora = timezone.now()
+    campos = []
+
+    if not nomes_profissionais_iguais(acolhimento.medico_atendimento_nome, medico_atual):
+        acolhimento.medico_atendimento_nome = medico_atual
+        campos.append("medico_atendimento_nome")
+
+    crm_medico_atual = crm_medico_atual or ""
+    if (acolhimento.medico_atendimento_crm or "") != crm_medico_atual:
+        acolhimento.medico_atendimento_crm = crm_medico_atual
+        campos.append("medico_atendimento_crm")
+
+    consultorio_atual = consultorio_atual or ""
+    if (acolhimento.medico_atendimento_consultorio or "") != consultorio_atual:
+        acolhimento.medico_atendimento_consultorio = consultorio_atual
+        campos.append("medico_atendimento_consultorio")
+
+    if reiniciar or not acolhimento.medico_atendimento_inicio:
+        acolhimento.medico_atendimento_inicio = agora
+        campos.append("medico_atendimento_inicio")
+
+    if campos:
+        acolhimento.save(update_fields=campos)
+
+    return bool(campos)
+
+
+def limpar_atendimento_medico_em_andamento(acolhimento):
+    campos = []
+
+    if acolhimento.medico_atendimento_nome:
+        acolhimento.medico_atendimento_nome = ""
+        campos.append("medico_atendimento_nome")
+
+    if acolhimento.medico_atendimento_crm:
+        acolhimento.medico_atendimento_crm = ""
+        campos.append("medico_atendimento_crm")
+
+    if acolhimento.medico_atendimento_consultorio:
+        acolhimento.medico_atendimento_consultorio = ""
+        campos.append("medico_atendimento_consultorio")
+
+    if acolhimento.medico_atendimento_inicio:
+        acolhimento.medico_atendimento_inicio = None
+        campos.append("medico_atendimento_inicio")
+
+    if campos:
+        acolhimento.save(update_fields=campos)
+
+    return bool(campos)
+
+
+def anexar_trava_medica_acolhimentos(acolhimentos, medico_atual):
+    for acolhimento in acolhimentos:
+        try:
+            consulta = acolhimento.consulta_medica
+        except ObjectDoesNotExist:
+            consulta = None
+
+        acolhimento.medico_bloqueado_por_outro = atendimento_medico_bloqueado_por_outro(
+            acolhimento,
+            medico_atual,
+        )
+        acolhimento.medico_pode_editar = pode_editar_atendimento_medico(
+            acolhimento,
+            consulta,
+            medico_atual,
+        )
+        acolhimento.medico_bloqueio = dados_bloqueio_atendimento_medico(
+            acolhimento,
+            consulta,
+            medico_atual,
+        )
+
+
+def anexar_trava_medica_consultas(consultas, medico_atual):
+    for consulta in consultas:
+        acolhimento = consulta.acolhimento
+        consulta.medico_bloqueado_por_outro = atendimento_medico_bloqueado_por_outro(
+            acolhimento,
+            medico_atual,
+        )
+        consulta.medico_pode_editar = pode_editar_atendimento_medico(
+            acolhimento,
+            consulta,
+            medico_atual,
+        )
+        consulta.medico_bloqueio = dados_bloqueio_atendimento_medico(
+            acolhimento,
+            consulta,
+            medico_atual,
+        )
 
 
 def chave_consultorio_medico(request):
@@ -174,6 +352,9 @@ def medico_dashboard(request):
     )
     acolhimentos = anexar_entrada_setor(acolhimentos, "MEDICO")
     anexar_status_chamadas(acolhimentos, ChamadaPainel.MEDICO)
+    anexar_trava_medica_acolhimentos(acolhimentos, nome_medico)
+    anexar_trava_medica_consultas(minhas_consultas, nome_medico)
+    anexar_trava_medica_consultas(consultas_ativas, nome_medico)
 
     return render(
         request,
@@ -221,12 +402,9 @@ def chamar_paciente_medico(request, acolhimento_id):
     if request.method != "POST":
         return redirect("medico_dashboard")
 
-    acolhimento = get_object_or_404(
-        Acolhimento.objects.select_related("paciente"),
-        id=acolhimento_id,
-        status__in=["CONSULTA", "RETORNO_MEDICO"],
-    )
     consultorio = consultorio_medico_atual(request)
+    medico_atual = nome_usuario(request)
+    crm_medico_atual = registro_profissional_request(request)
 
     if not consultorio:
         messages.warning(
@@ -235,24 +413,71 @@ def chamar_paciente_medico(request, acolhimento_id):
         )
         return redirect("medico_dashboard")
 
-    chamada, total = registrar_chamada_limitada(
-        ChamadaPainel.MEDICO,
-        acolhimento,
-        request,
-        local_destino=consultorio,
-    )
-
-    if not chamada:
+    if not medico_atual:
         messages.warning(
             request,
-            f"BAM {acolhimento.numero_bam} ja foi chamado 4 vezes. Use Ausentar."
+            "Nao foi possivel identificar o medico logado para chamar o paciente."
         )
         return redirect("medico_dashboard")
 
-    messages.success(
-        request,
-        f"Chamada {total}/4 registrada para o BAM {acolhimento.numero_bam} no {consultorio}."
-    )
+    with transaction.atomic():
+        acolhimento = get_object_or_404(
+            Acolhimento.objects.select_for_update().select_related("paciente"),
+            id=acolhimento_id,
+            status__in=["CONSULTA", "RETORNO_MEDICO"],
+        )
+        consulta = (
+            ConsultaMedica.objects
+            .select_for_update()
+            .filter(acolhimento=acolhimento)
+            .first()
+        )
+
+        if not pode_editar_atendimento_medico(acolhimento, consulta, medico_atual):
+            bloqueio = dados_bloqueio_atendimento_medico(
+                acolhimento,
+                consulta,
+                medico_atual,
+            )
+            nome_bloqueio = (
+                bloqueio["nome"]
+                if bloqueio and bloqueio.get("nome")
+                else "outro medico"
+            )
+            messages.warning(
+                request,
+                (
+                    f"BAM {acolhimento.numero_bam} ja esta em atendimento/responsabilidade "
+                    f"de {nome_bloqueio}. Para chamar, primeiro assuma o paciente."
+                )
+            )
+            return redirect("medico_dashboard")
+
+        chamada, total = registrar_chamada_limitada(
+            ChamadaPainel.MEDICO,
+            acolhimento,
+            request,
+            local_destino=consultorio,
+        )
+
+        if not chamada:
+            messages.warning(
+                request,
+                f"BAM {acolhimento.numero_bam} ja foi chamado 4 vezes. Use Ausentar."
+            )
+            return redirect("medico_dashboard")
+
+        marcar_atendimento_medico_em_andamento(
+            acolhimento,
+            medico_atual,
+            crm_medico_atual,
+            consultorio,
+        )
+
+        messages.success(
+            request,
+            f"Chamada {total}/4 registrada para o BAM {acolhimento.numero_bam} no {consultorio}."
+        )
 
     return redirect("medico_dashboard")
 
@@ -261,33 +486,64 @@ def ausentar_paciente_medico(request, acolhimento_id):
     if request.method != "POST":
         return redirect("medico_dashboard")
 
-    acolhimento = get_object_or_404(
-        Acolhimento.objects.select_related("paciente"),
-        id=acolhimento_id,
-        status__in=["CONSULTA", "RETORNO_MEDICO"],
-    )
-    total = total_chamadas_setor(ChamadaPainel.MEDICO, acolhimento)
+    medico_atual = nome_usuario(request)
 
-    if total < 4:
-        faltam = 4 - total
+    with transaction.atomic():
+        acolhimento = get_object_or_404(
+            Acolhimento.objects.select_for_update().select_related("paciente"),
+            id=acolhimento_id,
+            status__in=["CONSULTA", "RETORNO_MEDICO"],
+        )
+        consulta = (
+            ConsultaMedica.objects
+            .select_for_update()
+            .filter(acolhimento=acolhimento)
+            .first()
+        )
+
+        if not pode_editar_atendimento_medico(acolhimento, consulta, medico_atual):
+            bloqueio = dados_bloqueio_atendimento_medico(
+                acolhimento,
+                consulta,
+                medico_atual,
+            )
+            nome_bloqueio = (
+                bloqueio["nome"]
+                if bloqueio and bloqueio.get("nome")
+                else "outro medico"
+            )
+            messages.warning(
+                request,
+                (
+                    f"BAM {acolhimento.numero_bam} esta em chamada por {nome_bloqueio}. "
+                    "Para ausentar, primeiro assuma o paciente."
+                )
+            )
+            return redirect("medico_dashboard")
+
+        total = total_chamadas_setor(ChamadaPainel.MEDICO, acolhimento)
+
+        if total < 4:
+            faltam = 4 - total
+            messages.warning(
+                request,
+                f"Para ausentar o BAM {acolhimento.numero_bam}, registre mais {faltam} chamada(s)."
+            )
+            return redirect("medico_dashboard")
+
+        registrar_ausencia(
+            ChamadaPainel.MEDICO,
+            acolhimento,
+            request,
+            local_destino=ultimo_consultorio_chamado(acolhimento),
+        )
+        marcar_acolhimento_ausente(acolhimento)
+        limpar_atendimento_medico_em_andamento(acolhimento)
+
         messages.warning(
             request,
-            f"Para ausentar o BAM {acolhimento.numero_bam}, registre mais {faltam} chamada(s)."
+            f"BAM {acolhimento.numero_bam} marcado como ausente no medico."
         )
-        return redirect("medico_dashboard")
-
-    registrar_ausencia(
-        ChamadaPainel.MEDICO,
-        acolhimento,
-        request,
-        local_destino=ultimo_consultorio_chamado(acolhimento),
-    )
-    marcar_acolhimento_ausente(acolhimento)
-
-    messages.warning(
-        request,
-        f"BAM {acolhimento.numero_bam} marcado como ausente no medico."
-    )
 
     return redirect("medico_dashboard")
 
@@ -687,13 +943,39 @@ def mensagem_alta_bloqueada(pendencias):
 
 def atender_paciente(request, acolhimento_id):
 
-    acolhimento = get_object_or_404(
-        Acolhimento,
-        id=acolhimento_id
-    )
+    medico_atual = nome_usuario(request)
+    crm_medico_atual = registro_profissional_request(request)
+    consultorio_atual = consultorio_medico_atual(request)
+
+    with transaction.atomic():
+        acolhimento = get_object_or_404(
+            Acolhimento.objects.select_for_update(),
+            id=acolhimento_id
+        )
+
+        consulta = (
+            ConsultaMedica.objects
+            .select_for_update()
+            .filter(acolhimento=acolhimento)
+            .first()
+        )
+
+        pode_editar_consulta = pode_editar_atendimento_medico(
+            acolhimento,
+            consulta,
+            medico_atual,
+        )
+
+        if pode_editar_consulta and consultorio_atual:
+            marcar_atendimento_medico_em_andamento(
+                acolhimento,
+                medico_atual,
+                crm_medico_atual,
+                consultorio_atual,
+            )
 
     if (
-        not consultorio_medico_atual(request)
+        not consultorio_atual
         and acolhimento.status in ["CONSULTA", "RETORNO_MEDICO"]
     ):
         messages.warning(
@@ -702,17 +984,31 @@ def atender_paciente(request, acolhimento_id):
         )
         return redirect("medico_dashboard")
 
-    consulta = ConsultaMedica.objects.filter(
-        acolhimento=acolhimento
-    ).first()
-
     try:
         classificacao = acolhimento.classificacao
     except ObjectDoesNotExist:
         classificacao = None
 
-    medico_atual = nome_usuario(request)
-    crm_medico_atual = registro_profissional_request(request)
+    bloqueio_edicao_medica = dados_bloqueio_atendimento_medico(
+        acolhimento,
+        consulta,
+        medico_atual,
+    )
+
+    if request.method == "POST" and not pode_editar_consulta:
+        bloqueio_nome = (
+            bloqueio_edicao_medica["nome"]
+            if bloqueio_edicao_medica
+            else "outro medico"
+        )
+        messages.error(
+            request,
+            (
+                f"Este paciente esta em atendimento/responsabilidade de {bloqueio_nome}. "
+                "Para editar, primeiro use o botao Assumir paciente."
+            )
+        )
+        return redirect("atender_paciente", acolhimento_id=acolhimento.id)
 
     reavaliacao_form = ReavaliacaoMedicaForm(initial={
         "medico_responsavel": medico_atual,
@@ -824,7 +1120,17 @@ def atender_paciente(request, acolhimento_id):
             if alta_bloqueada:
                 consulta_medica.conduta = "RETORNO"
 
-            consulta_medica.save()
+            try:
+                consulta_medica.save()
+            except IntegrityError:
+                messages.error(
+                    request,
+                    (
+                        "Outro medico iniciou ou salvou esta consulta agora. "
+                        "Atualize a tela antes de continuar."
+                    )
+                )
+                return redirect("atender_paciente", acolhimento_id=acolhimento.id)
 
             if consulta and (
                 medico_anterior != (consulta_medica.medico_responsavel or "")
@@ -920,10 +1226,15 @@ def atender_paciente(request, acolhimento_id):
         if consulta
         else []
     )
+
+    if not pode_editar_consulta:
+        bloquear_campos_formulario(form)
+        bloquear_campos_formulario(reavaliacao_form)
+
     pode_assumir_consulta = bool(
-        consulta
+        medico_atual
         and acolhimento.status not in ["FINALIZADO", "AUSENTE"]
-        and (not medico_atual or consulta.medico_responsavel != medico_atual)
+        and not pode_editar_consulta
     )
 
     return render(
@@ -947,6 +1258,8 @@ def atender_paciente(request, acolhimento_id):
             "historico_transferencias": historico_transferencias,
             "reavaliacoes_medicas": reavaliacoes_medicas,
             "reavaliacao_form": reavaliacao_form,
+            "pode_editar_consulta": pode_editar_consulta,
+            "bloqueio_edicao_medica": bloqueio_edicao_medica,
             "pode_assumir_consulta": pode_assumir_consulta,
             "motivos_transferencia": TransferenciaConsultaMedica.MOTIVO_CHOICES,
             "dados_base_impressao_medico": dados_base_para_impressao(
@@ -959,29 +1272,6 @@ def atender_paciente(request, acolhimento_id):
 
 @require_POST
 def assumir_paciente(request, acolhimento_id):
-    acolhimento = get_object_or_404(
-        Acolhimento,
-        id=acolhimento_id
-    )
-
-    consulta = ConsultaMedica.objects.filter(
-        acolhimento=acolhimento
-    ).first()
-
-    if not consulta:
-        messages.warning(
-            request,
-            "Ainda não existe consulta médica para este paciente."
-        )
-        return redirect("atender_paciente", acolhimento_id=acolhimento.id)
-
-    if acolhimento.status in ["FINALIZADO", "AUSENTE"]:
-        messages.warning(
-            request,
-            "Paciente finalizado ou ausente nao pode ser assumido por outro medico."
-        )
-        return redirect("medico_dashboard")
-
     novo_medico = (
         request.POST.get("novo_medico")
         or nome_usuario(request)
@@ -1005,37 +1295,86 @@ def assumir_paciente(request, acolhimento_id):
             request,
             "Informe o nome do médico que vai assumir o paciente."
         )
-        return redirect("atender_paciente", acolhimento_id=acolhimento.id)
+        return redirect("atender_paciente", acolhimento_id=acolhimento_id)
 
-    if (
-        consulta.medico_responsavel == novo_medico
-        and (consulta.crm_medico or "") == crm_novo
-    ):
-        messages.info(
-            request,
-            "Este médico já está responsável pelo paciente."
+    with transaction.atomic():
+        acolhimento = get_object_or_404(
+            Acolhimento.objects.select_for_update(),
+            id=acolhimento_id
         )
-    else:
-        registrar_transferencia_medico(
-            consulta,
-            novo_medico,
-            crm_novo,
-            motivo=motivo,
-            observacao=observacao,
-        )
-        consulta.medico_responsavel = novo_medico
-        consulta.crm_medico = crm_novo
-        consulta.save(update_fields=["medico_responsavel", "crm_medico"])
 
-        messages.success(
-            request,
-            f"Paciente assumido por {novo_medico}. Histórico de passagem registrado."
+        consulta = (
+            ConsultaMedica.objects
+            .select_for_update()
+            .filter(acolhimento=acolhimento)
+            .first()
         )
+
+        if acolhimento.status in ["FINALIZADO", "AUSENTE"]:
+            messages.warning(
+                request,
+                "Paciente finalizado ou ausente nao pode ser assumido por outro medico."
+            )
+            return redirect("medico_dashboard")
+
+        consultorio_atual = consultorio_medico_atual(request)
+
+        if not consulta:
+            marcar_atendimento_medico_em_andamento(
+                acolhimento,
+                novo_medico,
+                crm_novo,
+                consultorio_atual,
+                reiniciar=True,
+            )
+            messages.success(
+                request,
+                f"Atendimento medico assumido por {novo_medico}."
+            )
+        elif (
+            nomes_profissionais_iguais(consulta.medico_responsavel, novo_medico)
+            and (consulta.crm_medico or "") == crm_novo
+        ):
+            marcar_atendimento_medico_em_andamento(
+                acolhimento,
+                novo_medico,
+                crm_novo,
+                consultorio_atual,
+                reiniciar=True,
+            )
+            messages.info(
+                request,
+                "Este medico ja esta responsavel pelo paciente."
+            )
+        else:
+            registrar_transferencia_medico(
+                consulta,
+                novo_medico,
+                crm_novo,
+                motivo=motivo,
+                observacao=observacao,
+            )
+            consulta.medico_responsavel = novo_medico
+            consulta.crm_medico = crm_novo
+            consulta.save(update_fields=["medico_responsavel", "crm_medico"])
+
+            marcar_atendimento_medico_em_andamento(
+                acolhimento,
+                novo_medico,
+                crm_novo,
+                consultorio_atual,
+                reiniciar=True,
+            )
+
+            messages.success(
+                request,
+                f"Paciente assumido por {novo_medico}. Historico de passagem registrado."
+            )
 
     if request.POST.get("next") == "dashboard":
         return redirect("medico_dashboard")
 
-    return redirect("atender_paciente", acolhimento_id=acolhimento.id)
+    return redirect("atender_paciente", acolhimento_id=acolhimento_id)
 
 
 def retornar_para_medico(request, acolhimento_id):

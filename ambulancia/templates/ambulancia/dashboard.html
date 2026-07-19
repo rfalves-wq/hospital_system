@@ -1,0 +1,447 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'ambulancia/css/dashboard.css' %}?v=20260719-3">
+{% endblock %}
+
+{% block content %}
+<div class="ambulancia-page">
+    <section class="ambulancia-hero">
+        <div>
+            <span>Remocao e transporte</span>
+            <h1>Solicita&ccedil;&atilde;o de Ambul&acirc;ncia</h1>
+            <p>Registre o pedido, acompanhe o status e complete os dados da viagem quando a ambul&acirc;ncia for definida.</p>
+        </div>
+
+        <a href="{% url 'dashboard' %}" class="btn btn-light fw-bold">In&iacute;cio</a>
+    </section>
+
+    {% if messages %}
+        <div class="ambulancia-messages">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags|default:'info' }} mb-2">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <section class="ambulancia-summary">
+        <div class="summary-tile ativo">
+            <small>Ativas</small>
+            <strong>{{ total_ativos }}</strong>
+        </div>
+        <div class="summary-tile urgente">
+            <small>Urgentes</small>
+            <strong>{{ total_urgentes }}</strong>
+        </div>
+        <div class="summary-tile transporte">
+            <small>Em transporte</small>
+            <strong>{{ total_em_transporte }}</strong>
+        </div>
+        <div class="summary-tile concluido">
+            <small>Conclu&iacute;das hoje</small>
+            <strong>{{ total_concluidos_hoje }}</strong>
+        </div>
+    </section>
+
+    <div class="ambulancia-layout">
+        <section class="ambulancia-panel form-panel">
+            <div class="panel-head">
+                <div>
+                    <h2>Nova solicita&ccedil;&atilde;o</h2>
+                    <small>Dados essenciais para abrir o pedido. A equipe e a quilometragem ficam no bot&atilde;o Viagem.</small>
+                </div>
+                <span class="panel-badge">AMB</span>
+            </div>
+
+            <form method="post" class="ambulancia-form">
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                    <div class="form-alert">{{ form.non_field_errors }}</div>
+                {% endif %}
+
+                <div class="form-grid">
+                    <div class="field span-2">
+                        <label for="{{ form.acolhimento.id_for_label }}">Paciente em atendimento</label>
+                        {{ form.acolhimento }}
+                        {{ form.acolhimento.errors }}
+                    </div>
+
+                    <div class="field span-2">
+                        <label for="{{ form.nome_paciente.id_for_label }}">Paciente</label>
+                        {{ form.nome_paciente }}
+                        {{ form.nome_paciente.errors }}
+                    </div>
+
+                    <div class="field">
+                        <label for="{{ form.numero_bam.id_for_label }}">BAM</label>
+                        {{ form.numero_bam }}
+                        {{ form.numero_bam.errors }}
+                    </div>
+
+                    <div class="field">
+                        <label for="{{ form.cpf.id_for_label }}">CPF</label>
+                        {{ form.cpf }}
+                        {{ form.cpf.errors }}
+                    </div>
+
+                    <div class="field">
+                        <label for="{{ form.data_nascimento.id_for_label }}">Nascimento</label>
+                        {{ form.data_nascimento }}
+                        {{ form.data_nascimento.errors }}
+                    </div>
+
+                    <div class="field">
+                        <label for="{{ form.prioridade.id_for_label }}">Prioridade</label>
+                        {{ form.prioridade }}
+                        {{ form.prioridade.errors }}
+                    </div>
+
+                    <div class="field">
+                        <label for="{{ form.tipo_transporte.id_for_label }}">Tipo</label>
+                        {{ form.tipo_transporte }}
+                        {{ form.tipo_transporte.errors }}
+                    </div>
+
+                    <div class="field">
+                        <label for="{{ form.origem.id_for_label }}">Origem</label>
+                        {{ form.origem }}
+                        {{ form.origem.errors }}
+                    </div>
+
+                    <div class="field span-2">
+                        <label for="{{ form.destino.id_for_label }}">Destino</label>
+                        {{ form.destino }}
+                        {{ form.destino.errors }}
+                    </div>
+
+                    <div class="field span-2">
+                        <label for="{{ form.unidade_destino.id_for_label }}">Unidade de destino</label>
+                        {{ form.unidade_destino }}
+                        {{ form.unidade_destino.errors }}
+                    </div>
+
+                    <div class="field span-2">
+                        <label for="{{ form.motivo.id_for_label }}">Motivo</label>
+                        {{ form.motivo }}
+                        {{ form.motivo.errors }}
+                    </div>
+
+                    <div class="field span-2">
+                        <label for="{{ form.resumo_clinico.id_for_label }}">Resumo cl&iacute;nico</label>
+                        {{ form.resumo_clinico }}
+                        {{ form.resumo_clinico.errors }}
+                    </div>
+
+                    <div class="checks span-2">
+                        <label>{{ form.necessita_maca }} <span>Maca</span></label>
+                        <label>{{ form.necessita_oxigenio }} <span>Oxig&ecirc;nio</span></label>
+                        <label>{{ form.necessita_isolamento }} <span>Isolamento</span></label>
+                        <label>{{ form.acompanhante }} <span>Acompanhante</span></label>
+                    </div>
+
+                    <div class="field">
+                        <label for="{{ form.setor_solicitante.id_for_label }}">Setor</label>
+                        {{ form.setor_solicitante }}
+                        {{ form.setor_solicitante.errors }}
+                    </div>
+
+                    <div class="field">
+                        <label for="{{ form.contato.id_for_label }}">Contato</label>
+                        {{ form.contato }}
+                        {{ form.contato.errors }}
+                    </div>
+
+                    <div class="field span-2">
+                        <label for="{{ form.observacoes.id_for_label }}">Observa&ccedil;&otilde;es</label>
+                        {{ form.observacoes }}
+                        {{ form.observacoes.errors }}
+                    </div>
+
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary fw-bold">
+                        Abrir solicita&ccedil;&atilde;o
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <section class="ambulancia-panel queue-panel">
+            <div class="panel-head queue-head">
+                <div>
+                    <h2>Fila de solicita&ccedil;&otilde;es</h2>
+                    <small>Acompanhe preparo, sa&iacute;da e conclus&atilde;o do transporte.</small>
+                </div>
+            </div>
+
+            <form method="get" class="ambulancia-filters">
+                <div class="filter-help">
+                    <strong>Filtrar solicita&ccedil;&otilde;es</strong>
+                    <span>Esses bot&otilde;es apenas mudam a lista abaixo.</span>
+                </div>
+
+                <div class="filter-tabs">
+                    {% for filtro in filtros_status %}
+                        <button type="submit"
+                                name="status"
+                                value="{{ filtro.codigo }}"
+                                class="{% if filtro.codigo == filtro_status %}active{% endif %}">
+                            <span>{{ filtro.rotulo }}</span>
+                            <small>{{ filtro.total }}</small>
+                        </button>
+                    {% endfor %}
+                </div>
+
+                <div class="search-row">
+                    <input type="hidden" name="status" value="{{ filtro_status }}">
+                    <input type="search"
+                           name="q"
+                           value="{{ busca }}"
+                           class="form-control"
+                           placeholder="Buscar por paciente, BAM, CPF ou destino">
+                    <button type="submit" class="btn btn-outline-primary fw-bold">Buscar</button>
+                </div>
+            </form>
+
+            <div class="ambulancia-table-wrap">
+                <table class="ambulancia-table">
+                    <thead>
+                        <tr>
+                            <th>Paciente</th>
+                            <th>Destino</th>
+                            <th>Prioridade</th>
+                            <th>Status</th>
+                            <th>Hor&aacute;rios</th>
+                            <th>A&ccedil;&atilde;o</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for solicitacao in solicitacoes %}
+                            <tr class="priority-{{ solicitacao.prioridade|lower }} status-{{ solicitacao.status|lower }}">
+                                <td>
+                                    <strong>{{ solicitacao.nome_paciente }}</strong>
+                                    <span>
+                                        BAM {{ solicitacao.numero_bam|default:"-" }}
+                                        &bull; {{ solicitacao.idade_texto }}
+                                    </span>
+                                    <span>{{ solicitacao.get_tipo_transporte_display }}</span>
+                                </td>
+                                <td>
+                                    <strong>{{ solicitacao.destino }}</strong>
+                                    <span>{{ solicitacao.unidade_destino|default:solicitacao.origem }}</span>
+                                </td>
+                                <td>
+                                    <span class="priority-pill priority-{{ solicitacao.prioridade|lower }}">
+                                        {{ solicitacao.get_prioridade_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="status-pill status-{{ solicitacao.status|lower }}">
+                                        {{ solicitacao.get_status_display }}
+                                    </span>
+                                    <small>#{{ solicitacao.id }}</small>
+                                </td>
+                                <td>
+                                    <span>Solicitado: {{ solicitacao.solicitado_em|date:"d/m H:i" }}</span>
+                                    {% if solicitacao.saida_em %}
+                                        <span>Sa&iacute;da: {{ solicitacao.saida_em|date:"d/m H:i" }}</span>
+                                    {% endif %}
+                                    {% if solicitacao.concluido_em %}
+                                        <span>Chegada: {{ solicitacao.concluido_em|date:"d/m H:i" }}</span>
+                                    {% endif %}
+                                    {% if solicitacao.km_percorrido is not None %}
+                                        <span>Rodado: {{ solicitacao.km_percorrido }} km</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="row-actions">
+                                        <a href="{% url 'ambulancia_imprimir' solicitacao.id %}"
+                                           target="_blank"
+                                           class="btn btn-sm btn-outline-primary fw-bold">
+                                            Imprimir
+                                        </a>
+
+                                        <button type="button"
+                                                class="btn btn-sm btn-secondary fw-bold trip-open-button"
+                                                data-dialog-target="trip-dialog-{{ solicitacao.id }}">
+                                            Viagem
+                                        </button>
+
+                                        {% if solicitacao.status != status_concluido and solicitacao.status != status_cancelado %}
+                                            {% for status_acao, rotulo_acao in acoes_status %}
+                                                {% if status_acao != solicitacao.status %}
+                                                    <form method="post"
+                                                          action="{% url 'ambulancia_alterar_status' solicitacao.id %}"
+                                                          class="status-action-form">
+                                                        {% csrf_token %}
+                                                        <input type="hidden" name="status" value="{{ status_acao }}">
+                                                        <input type="hidden" name="next" value="{% url 'ambulancia_dashboard' %}?status={{ filtro_status }}{% if busca %}&q={{ busca|urlencode }}{% endif %}">
+                                                        <button type="submit"
+                                                                class="btn btn-sm btn-light status-btn status-target-{{ status_acao|lower }}">
+                                                            {{ rotulo_acao }}
+                                                        </button>
+                                                    </form>
+                                                {% endif %}
+                                            {% endfor %}
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr class="trip-modal-row">
+                                <td colspan="6">
+                                    <dialog class="trip-dialog" id="trip-dialog-{{ solicitacao.id }}">
+                                        <div class="trip-dialog-head">
+                                            <div>
+                                                <h3>Dados da viagem</h3>
+                                                <small>
+                                                    #{{ solicitacao.id }} &bull; {{ solicitacao.nome_paciente }}
+                                                    &bull; {{ solicitacao.destino }}
+                                                </small>
+                                            </div>
+                                            <button type="button" class="trip-close-button" aria-label="Fechar">&times;</button>
+                                        </div>
+
+                                        <form method="post"
+                                              action="{% url 'ambulancia_atualizar_dados' solicitacao.id %}"
+                                              class="trip-form">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="next" value="{% url 'ambulancia_dashboard' %}?status={{ filtro_status }}{% if busca %}&q={{ busca|urlencode }}{% endif %}">
+
+                                            <div class="trip-grid">
+                                                <label>
+                                                    <span>Motorista</span>
+                                                    <input type="text" name="motorista" value="{{ solicitacao.motorista }}" class="form-control">
+                                                </label>
+
+                                                <label>
+                                                    <span>Respons&aacute;vel transporte</span>
+                                                    <input type="text" name="responsavel_transporte" value="{{ solicitacao.responsavel_transporte }}" class="form-control">
+                                                </label>
+
+                                                <label>
+                                                    <span>Ambul&acirc;ncia / ve&iacute;culo</span>
+                                                    <input type="text" name="veiculo" value="{{ solicitacao.veiculo }}" class="form-control">
+                                                </label>
+
+                                                <label>
+                                                    <span>Placa</span>
+                                                    <input type="text" name="placa" value="{{ solicitacao.placa }}" class="form-control">
+                                                </label>
+
+                                                <label>
+                                                    <span>M&eacute;dico</span>
+                                                    <input type="text" name="medico_transporte" value="{{ solicitacao.medico_transporte }}" class="form-control">
+                                                </label>
+
+                                                <label>
+                                                    <span>Enfermeiro</span>
+                                                    <input type="text" name="enfermeiro_transporte" value="{{ solicitacao.enfermeiro_transporte }}" class="form-control">
+                                                </label>
+
+                                                <label>
+                                                    <span>T&eacute;cnico</span>
+                                                    <input type="text" name="tecnico_transporte" value="{{ solicitacao.tecnico_transporte }}" class="form-control">
+                                                </label>
+
+                                                <label>
+                                                    <span>Recebedor no destino</span>
+                                                    <input type="text" name="recebedor_destino" value="{{ solicitacao.recebedor_destino }}" class="form-control">
+                                                </label>
+
+                                                <label>
+                                                    <span>Km sa&iacute;da</span>
+                                                    <input type="number" min="0" name="km_saida" value="{{ solicitacao.km_saida|default_if_none:'' }}" class="form-control">
+                                                </label>
+
+                                                <label>
+                                                    <span>Combust&iacute;vel sa&iacute;da</span>
+                                                    <select name="combustivel_saida" class="form-select">
+                                                        <option value="">---------</option>
+                                                        <option value="RESERVA" {% if solicitacao.combustivel_saida == "RESERVA" %}selected{% endif %}>Reserva</option>
+                                                        <option value="1/4" {% if solicitacao.combustivel_saida == "1/4" %}selected{% endif %}>1/4</option>
+                                                        <option value="1/2" {% if solicitacao.combustivel_saida == "1/2" %}selected{% endif %}>1/2</option>
+                                                        <option value="3/4" {% if solicitacao.combustivel_saida == "3/4" %}selected{% endif %}>3/4</option>
+                                                        <option value="CHEIO" {% if solicitacao.combustivel_saida == "CHEIO" %}selected{% endif %}>Cheio</option>
+                                                    </select>
+                                                </label>
+
+                                                <label>
+                                                    <span>Km chegada</span>
+                                                    <input type="number" min="0" name="km_chegada" value="{{ solicitacao.km_chegada|default_if_none:'' }}" class="form-control">
+                                                </label>
+
+                                                <label>
+                                                    <span>Combust&iacute;vel chegada</span>
+                                                    <select name="combustivel_chegada" class="form-select">
+                                                        <option value="">---------</option>
+                                                        <option value="RESERVA" {% if solicitacao.combustivel_chegada == "RESERVA" %}selected{% endif %}>Reserva</option>
+                                                        <option value="1/4" {% if solicitacao.combustivel_chegada == "1/4" %}selected{% endif %}>1/4</option>
+                                                        <option value="1/2" {% if solicitacao.combustivel_chegada == "1/2" %}selected{% endif %}>1/2</option>
+                                                        <option value="3/4" {% if solicitacao.combustivel_chegada == "3/4" %}selected{% endif %}>3/4</option>
+                                                        <option value="CHEIO" {% if solicitacao.combustivel_chegada == "CHEIO" %}selected{% endif %}>Cheio</option>
+                                                    </select>
+                                                </label>
+
+                                                <label class="span-2">
+                                                    <span>Equipamentos m&eacute;dicos</span>
+                                                    <textarea name="equipamentos_medicos" rows="2" class="form-control">{{ solicitacao.equipamentos_medicos }}</textarea>
+                                                </label>
+
+                                                <label class="span-2">
+                                                    <span>Checklist de sa&iacute;da</span>
+                                                    <textarea name="checklist_saida" rows="2" class="form-control">{{ solicitacao.checklist_saida }}</textarea>
+                                                </label>
+
+                                                <label class="span-2">
+                                                    <span>Condi&ccedil;&atilde;o do paciente na sa&iacute;da</span>
+                                                    <textarea name="condicao_paciente_saida" rows="2" class="form-control">{{ solicitacao.condicao_paciente_saida }}</textarea>
+                                                </label>
+
+                                                <label class="span-2">
+                                                    <span>Condi&ccedil;&atilde;o do paciente na chegada</span>
+                                                    <textarea name="condicao_paciente_chegada" rows="2" class="form-control">{{ solicitacao.condicao_paciente_chegada }}</textarea>
+                                                </label>
+
+                                                <label class="span-2">
+                                                    <span>Ocorr&ecirc;ncias no transporte</span>
+                                                    <textarea name="ocorrencias_transporte" rows="2" class="form-control">{{ solicitacao.ocorrencias_transporte }}</textarea>
+                                                </label>
+                                            </div>
+
+                                            <div class="trip-actions">
+                                                <button type="button" class="btn btn-sm btn-outline-secondary trip-cancel-button">
+                                                    Fechar
+                                                </button>
+                                                <button type="submit" class="btn btn-sm btn-success fw-bold">
+                                                    Salvar dados da viagem
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </dialog>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="6" class="empty-row">
+                                    Nenhuma solicita&ccedil;&atilde;o encontrada.
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+</div>
+
+{{ pacientes_data|json_script:"pacientes-ambulancia-data" }}
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'ambulancia/js/dashboard.js' %}?v=20260719-3"></script>
+{% endblock %}

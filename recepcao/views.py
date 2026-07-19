@@ -8,6 +8,7 @@ from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.cache import patch_cache_control
+from django.views.decorators.http import require_POST
 
 from acolhimento.models import Acolhimento
 from acolhimento.tempos import anexar_entrada_setor, anexar_entrada_status_atual
@@ -309,6 +310,61 @@ def enviar_classificacao(request, acolhimento_id):
         acolhimento.status = "CLASSIFICACAO"
         acolhimento.save()
         request.session["recepcao_impressao_acolhimento_id"] = acolhimento.id
+
+    return redirect("recepcao_dashboard")
+
+
+@require_POST
+def reimprimir_recepcao(request, acolhimento_id):
+    acolhimento = get_object_or_404(
+        Acolhimento.objects.select_related("paciente"),
+        id=acolhimento_id,
+    )
+
+    if not acolhimento.paciente:
+        messages.warning(
+            request,
+            f"BAM {acolhimento.numero_bam} ainda nao tem cadastro da recepcao para reimprimir."
+        )
+        return redirect("recepcao_dashboard")
+
+    request.session["recepcao_impressao_acolhimento_id"] = acolhimento.id
+    messages.info(
+        request,
+        f"Ficha da recepcao do BAM {acolhimento.numero_bam} pronta para reimpressao."
+    )
+
+    return redirect("recepcao_dashboard")
+
+
+@require_POST
+def reenviar_classificacao(request, acolhimento_id):
+    acolhimento = get_object_or_404(
+        Acolhimento.objects.select_related("paciente"),
+        id=acolhimento_id,
+    )
+
+    if not acolhimento.paciente:
+        messages.warning(
+            request,
+            f"BAM {acolhimento.numero_bam} ainda nao tem cadastro da recepcao."
+        )
+        return redirect("recepcao_dashboard")
+
+    if acolhimento.status != "CLASSIFICACAO":
+        messages.warning(
+            request,
+            "Este paciente ja saiu da etapa de classificacao. Nao foi reenviado para evitar voltar o fluxo."
+        )
+        return redirect("recepcao_dashboard")
+
+    acolhimento.status = "CLASSIFICACAO"
+    acolhimento.save(update_fields=["status"])
+
+    messages.success(
+        request,
+        f"BAM {acolhimento.numero_bam} reenviado para a Classificacao de Risco."
+    )
 
     return redirect("recepcao_dashboard")
 

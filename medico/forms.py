@@ -28,6 +28,7 @@ class ConsultaMedicaForm(forms.ModelForm):
             "prescricao",
             "orientacoes",
             "receita",
+            "atestado",
             "atestado_dias",
             "atestado_cid",
         ]
@@ -134,6 +135,12 @@ class ConsultaMedicaForm(forms.ModelForm):
                 "class": "form-control",
                 "rows": 5,
                 "placeholder": "Receita medica",
+            }),
+
+            "atestado": forms.Textarea(attrs={
+                "class": "form-control",
+                "rows": 4,
+                "placeholder": "Texto do atestado medico",
             }),
 
             "atestado_dias": forms.NumberInput(attrs={

@@ -131,6 +131,14 @@
                     </li>
                 {% endif %}
 
+                {% if paineis_usuario.ambulancia %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'ambulancia_dashboard' %}">
+                            Ambul&acirc;ncia
+                        </a>
+                    </li>
+                {% endif %}
+
                 {% if request.user.is_staff or request.user.is_superuser %}
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'seguranca_dashboard' %}">

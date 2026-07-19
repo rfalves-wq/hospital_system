@@ -173,6 +173,22 @@
                         </a>
                     {% endif %}
 
+                    {% if paineis_usuario.ambulancia %}
+                        <a href="{% url 'ambulancia_dashboard' %}" class="module-link">
+                            <div class="card module-card access-card solicitacao-ambulancia">
+                                <span class="module-status status-active">Ativo</span>
+                                <div class="card-body">
+                                    <div class="module-icon">&#128657;</div>
+                                    <div>
+                                        <h5>Solicita&ccedil;&atilde;o de Ambul&acirc;ncia</h5>
+                                        <small>Remo&ccedil;&atilde;o e transporte</small>
+                                    </div>
+                                    <span class="module-action">Acessar</span>
+                                </div>
+                            </div>
+                        </a>
+                    {% endif %}
+
                     {% if paineis_usuario.laboratorio %}
                         <a href="{% url 'laboratorio_dashboard' %}" class="module-link">
                             <div class="card module-card access-card laboratorio">
@@ -493,6 +509,150 @@
                         <div>
                             <h5>Centro Cir&uacute;rgico</h5>
                             <small>Procedimentos</small>
+                        </div>
+                        <span class="module-action pending">A montar</span>
+                    </div>
+                </div>
+
+                <div class="card module-card access-card disabled regulacao">
+                    <span class="module-status status-soon">Em breve</span>
+                    <div class="card-body">
+                        <div class="module-icon">&#128657;</div>
+                        <div>
+                            <h5>Regula&ccedil;&atilde;o</h5>
+                            <small>Transfer&ecirc;ncias e vagas</small>
+                        </div>
+                        <span class="module-action pending">A montar</span>
+                    </div>
+                </div>
+
+                <div class="card module-card access-card disabled alta-medica">
+                    <span class="module-status status-soon">Em breve</span>
+                    <div class="card-body">
+                        <div class="module-icon">&#9989;</div>
+                        <div>
+                            <h5>Alta M&eacute;dica</h5>
+                            <small>Libera&ccedil;&atilde;o e documentos</small>
+                        </div>
+                        <span class="module-action pending">A montar</span>
+                    </div>
+                </div>
+
+                <div class="card module-card access-card disabled servico-social">
+                    <span class="module-status status-soon">Em breve</span>
+                    <div class="card-body">
+                        <div class="module-icon">SS</div>
+                        <div>
+                            <h5>Servi&ccedil;o Social</h5>
+                            <small>Apoio ao paciente</small>
+                        </div>
+                        <span class="module-action pending">A montar</span>
+                    </div>
+                </div>
+
+                <div class="card module-card access-card disabled higienizacao">
+                    <span class="module-status status-soon">Em breve</span>
+                    <div class="card-body">
+                        <div class="module-icon">&#129529;</div>
+                        <div>
+                            <h5>Higieniza&ccedil;&atilde;o</h5>
+                            <small>Limpeza de leitos</small>
+                        </div>
+                        <span class="module-action pending">A montar</span>
+                    </div>
+                </div>
+
+                <div class="card module-card access-card disabled manutencao">
+                    <span class="module-status status-soon">Em breve</span>
+                    <div class="card-body">
+                        <div class="module-icon">&#128295;</div>
+                        <div>
+                            <h5>Manuten&ccedil;&atilde;o</h5>
+                            <small>Predial e equipamentos</small>
+                        </div>
+                        <span class="module-action pending">A montar</span>
+                    </div>
+                </div>
+
+                <div class="card module-card access-card disabled compras">
+                    <span class="module-status status-soon">Em breve</span>
+                    <div class="card-body">
+                        <div class="module-icon">&#128179;</div>
+                        <div>
+                            <h5>Compras</h5>
+                            <small>Cota&ccedil;&otilde;es e fornecedores</small>
+                        </div>
+                        <span class="module-action pending">A montar</span>
+                    </div>
+                </div>
+
+                <div class="card module-card access-card disabled cme">
+                    <span class="module-status status-soon">Em breve</span>
+                    <div class="card-body">
+                        <div class="module-icon">CME</div>
+                        <div>
+                            <h5>CME</h5>
+                            <small>Esteriliza&ccedil;&atilde;o</small>
+                        </div>
+                        <span class="module-action pending">A montar</span>
+                    </div>
+                </div>
+
+                <div class="card module-card access-card disabled hemoterapia">
+                    <span class="module-status status-soon">Em breve</span>
+                    <div class="card-body">
+                        <div class="module-icon">&#129656;</div>
+                        <div>
+                            <h5>Hemoterapia</h5>
+                            <small>Banco de sangue</small>
+                        </div>
+                        <span class="module-action pending">A montar</span>
+                    </div>
+                </div>
+
+                <div class="card module-card access-card disabled rouparia">
+                    <span class="module-status status-soon">Em breve</span>
+                    <div class="card-body">
+                        <div class="module-icon">&#129509;</div>
+                        <div>
+                            <h5>Rouparia</h5>
+                            <small>Enxoval hospitalar</small>
+                        </div>
+                        <span class="module-action pending">A montar</span>
+                    </div>
+                </div>
+
+                <div class="card module-card access-card disabled nutricao-clinica">
+                    <span class="module-status status-soon">Em breve</span>
+                    <div class="card-body">
+                        <div class="module-icon">&#127858;</div>
+                        <div>
+                            <h5>Nutri&ccedil;&atilde;o Cl&iacute;nica</h5>
+                            <small>Dietas por paciente</small>
+                        </div>
+                        <span class="module-action pending">A montar</span>
+                    </div>
+                </div>
+
+                <div class="card module-card access-card disabled ouvidoria">
+                    <span class="module-status status-soon">Em breve</span>
+                    <div class="card-body">
+                        <div class="module-icon">SAC</div>
+                        <div>
+                            <h5>Ouvidoria</h5>
+                            <small>SAC e ocorr&ecirc;ncias</small>
+                        </div>
+                        <span class="module-action pending">A montar</span>
+                    </div>
+                </div>
+
+                <div class="card module-card access-card disabled relatorios">
+                    <span class="module-status status-soon">Em breve</span>
+                    <div class="card-body">
+                        <div class="module-icon">&#128200;</div>
+                        <div>
+                            <h5>Relat&oacute;rios</h5>
+                            <small>Indicadores gerenciais</small>
                         </div>
                         <span class="module-action pending">A montar</span>
                     </div>

@@ -486,6 +486,58 @@ body {
     background: #0f4c81;
 }
 
+.regulacao::before {
+    background: #2563eb;
+}
+
+.solicitacao-ambulancia::before {
+    background: #dc2626;
+}
+
+.alta-medica::before {
+    background: #22c55e;
+}
+
+.servico-social::before {
+    background: #f59e0b;
+}
+
+.higienizacao::before {
+    background: #06b6d4;
+}
+
+.manutencao::before {
+    background: #64748b;
+}
+
+.compras::before {
+    background: #14b8a6;
+}
+
+.cme::before {
+    background: #a855f7;
+}
+
+.hemoterapia::before {
+    background: #dc2626;
+}
+
+.rouparia::before {
+    background: #0ea5e9;
+}
+
+.nutricao-clinica::before {
+    background: #65a30d;
+}
+
+.ouvidoria::before {
+    background: #ea580c;
+}
+
+.relatorios::before {
+    background: #475569;
+}
+
 .navbar-hospital {
     background: #0f4c81;
 }

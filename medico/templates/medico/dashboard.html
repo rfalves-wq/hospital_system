@@ -10,7 +10,7 @@
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
-    <link rel="stylesheet" href="{% static 'medico/css/dashboard.css' %}?v=20260714-2">
+    <link rel="stylesheet" href="{% static 'medico/css/dashboard.css' %}?v=20260718-1">
 </head>
 
 <body>
@@ -247,6 +247,15 @@
                                             {% else %}
                                                 <span class="text-muted">Primeira consulta</span>
                                             {% endif %}
+
+                                            {% if acolhimento.medico_bloqueio %}
+                                                <div class="atendimento-bloqueio-linha">
+                                                    Em atendimento por {{ acolhimento.medico_bloqueio.nome|default:"-" }}
+                                                    {% if acolhimento.medico_bloqueio.consultorio %}
+                                                        <br>{{ acolhimento.medico_bloqueio.consultorio }}
+                                                    {% endif %}
+                                                </div>
+                                            {% endif %}
                                         </td>
 
                                         <td>{{ acolhimento.idade }} anos</td>
@@ -352,7 +361,14 @@
                                                 </span>
 
                                                 {% if acolhimento.painel_pode_chamar %}
-                                                    {% if consultorio_medico_atual %}
+                                                    {% if not acolhimento.medico_pode_editar %}
+                                                        <button type="button"
+                                                                class="btn btn-outline-secondary btn-sm"
+                                                                disabled
+                                                                title="{% if acolhimento.medico_bloqueio %}{{ acolhimento.medico_bloqueio.titulo }}: {{ acolhimento.medico_bloqueio.nome }}{% else %}Paciente indisponivel para chamada{% endif %}">
+                                                            Chamar
+                                                        </button>
+                                                    {% elif consultorio_medico_atual %}
                                                         <form method="post" action="{% url 'chamar_paciente_medico' acolhimento.id %}" class="form-chamada-medica">
                                                             {% csrf_token %}
                                                             <button type="submit"
@@ -372,30 +388,47 @@
                                                 {% endif %}
 
                                                 {% if acolhimento.painel_pode_ausentar %}
-                                                    <form method="post" action="{% url 'ausentar_paciente_medico' acolhimento.id %}" class="d-inline">
-                                                        {% csrf_token %}
-                                                        <button type="submit" class="btn btn-outline-warning btn-sm">
+                                                    {% if not acolhimento.medico_pode_editar %}
+                                                        <button type="button"
+                                                                class="btn btn-outline-secondary btn-sm"
+                                                                disabled
+                                                                title="{% if acolhimento.medico_bloqueio %}{{ acolhimento.medico_bloqueio.titulo }}: {{ acolhimento.medico_bloqueio.nome }}{% else %}Paciente indisponivel para ausencia{% endif %}">
                                                             Ausentar
                                                         </button>
-                                                    </form>
+                                                    {% else %}
+                                                        <form method="post" action="{% url 'ausentar_paciente_medico' acolhimento.id %}" class="d-inline">
+                                                            {% csrf_token %}
+                                                            <button type="submit" class="btn btn-outline-warning btn-sm">
+                                                                Ausentar
+                                                            </button>
+                                                        </form>
+                                                    {% endif %}
                                                 {% endif %}
 
-                                                {% if consultorio_medico_atual %}
-                                                    <a href="{% url 'atender_paciente' acolhimento.id %}"
-                                                       class="btn btn-primary btn-sm"
-                                                       title="Atender em {{ consultorio_medico_atual }}">
-                                                        Atender
-                                                    </a>
+                                                {% if acolhimento.medico_pode_editar %}
+                                                    {% if consultorio_medico_atual %}
+                                                        <a href="{% url 'atender_paciente' acolhimento.id %}"
+                                                           class="btn btn-primary btn-sm"
+                                                           title="Atender em {{ consultorio_medico_atual }}">
+                                                            Atender
+                                                        </a>
+                                                    {% else %}
+                                                        <button type="button"
+                                                                class="btn btn-secondary btn-sm"
+                                                                disabled
+                                                                title="Informe o consultorio antes de atender">
+                                                            Atender
+                                                        </button>
+                                                    {% endif %}
                                                 {% else %}
-                                                    <button type="button"
-                                                            class="btn btn-secondary btn-sm"
-                                                            disabled
-                                                            title="Informe o consultorio antes de atender">
-                                                        Atender
-                                                    </button>
+                                                    <a href="{% url 'atender_paciente' acolhimento.id %}"
+                                                       class="btn btn-outline-secondary btn-sm"
+                                                       title="Visualizar sem alterar">
+                                                        Ver
+                                                    </a>
                                                 {% endif %}
 
-                                                {% if acolhimento.consulta_medica and medico_atual and acolhimento.consulta_medica.medico_responsavel != medico_atual %}
+                                                {% if medico_atual and not acolhimento.medico_pode_editar and acolhimento.status != "FINALIZADO" and acolhimento.status != "AUSENTE" %}
                                                     <form method="post"
                                                           action="{% url 'assumir_paciente_medico' acolhimento.id %}">
                                                         {% csrf_token %}
@@ -695,6 +728,12 @@
                                                     CRM {{ consulta.crm_medico }}
                                                 </small>
                                             {% endif %}
+                                            {% if consulta.medico_bloqueio %}
+                                                <div class="atendimento-bloqueio-linha">
+                                                    {{ consulta.medico_bloqueio.titulo }}
+                                                    <br>{{ consulta.medico_bloqueio.nome|default:"-" }}
+                                                </div>
+                                            {% endif %}
                                         </td>
 
                                         <td>
@@ -734,11 +773,11 @@
                                         <td>
                                             <div class="acao-medica">
                                                 <a href="{% url 'atender_paciente' consulta.acolhimento.id %}"
-                                                   class="btn btn-outline-primary btn-sm">
-                                                    Ver / Editar
+                                                   class="btn {% if consulta.medico_pode_editar %}btn-outline-primary{% else %}btn-outline-secondary{% endif %} btn-sm">
+                                                    {% if consulta.medico_pode_editar %}Ver / Editar{% else %}Ver{% endif %}
                                                 </a>
 
-                                                {% if medico_atual and consulta.medico_responsavel != medico_atual %}
+                                                {% if medico_atual and not consulta.medico_pode_editar and consulta.acolhimento.status != "FINALIZADO" and consulta.acolhimento.status != "AUSENTE" %}
                                                     <form method="post"
                                                           action="{% url 'assumir_paciente_medico' consulta.acolhimento.id %}">
                                                         {% csrf_token %}
@@ -785,7 +824,7 @@
 {% endif %}
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="{% static 'medico/js/impressao.js' %}?v=20260718-2"></script>
+<script src="{% static 'medico/js/impressao.js' %}?v=20260718-4"></script>
 
 <script src="{% static 'medico/js/dashboard.js' %}?v=20260711-2"></script>
 

@@ -90,6 +90,13 @@ PAINEIS_PADRAO = [
         "ordem": 130,
         "prefixos": ["painel/"],
     },
+    {
+        "codigo": "ambulancia",
+        "nome": "Solicitacao de Ambulancia",
+        "descricao": "Remocao, transferencia e transporte de pacientes",
+        "ordem": 140,
+        "prefixos": ["ambulancia/"],
+    },
 ]
 
 PAINEL_CHOICES = [

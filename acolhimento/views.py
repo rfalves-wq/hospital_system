@@ -56,14 +56,20 @@ def tipo_atendimento(request):
                 }
             )
 
-        data_nascimento_str = request.POST.get("data_nascimento")
+        data_nascimento_str = (request.POST.get("data_nascimento") or "").strip()
+        data_nascimento = None
 
-        try:
-            data_nascimento = datetime.strptime(
-                data_nascimento_str,
-                "%Y-%m-%d"
-            ).date()
-        except (ValueError, TypeError):
+        for formato in ("%Y-%m-%d", "%d/%m/%Y"):
+            try:
+                data_nascimento = datetime.strptime(
+                    data_nascimento_str,
+                    formato
+                ).date()
+                break
+            except (ValueError, TypeError):
+                continue
+
+        if data_nascimento is None:
             return render(
                 request,
                 "acolhimento/tipo_atendimento.html",
@@ -243,6 +249,11 @@ def buscar_paciente(request):
             "cpf": paciente.cpf,
             "numero_bam": paciente.numero_bam,
             "data_nascimento": (
+                paciente.data_nascimento.strftime("%d/%m/%Y")
+                if paciente.data_nascimento
+                else ""
+            ),
+            "data_nascimento_iso": (
                 paciente.data_nascimento.strftime("%Y-%m-%d")
                 if paciente.data_nascimento
                 else ""

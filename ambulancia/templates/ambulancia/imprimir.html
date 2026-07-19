@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Solicitacao de Ambulancia #{{ solicitacao.id }}</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #f1f5f9;
+            color: #0f172a;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 18px;
+        }
+
+        .documento {
+            background: #fff;
+            border: 1px solid #94a3b8;
+            margin: 0 auto;
+            max-width: 860px;
+        }
+
+        .cabecalho {
+            align-items: center;
+            background: #0f4c81;
+            color: #fff;
+            display: flex;
+            justify-content: space-between;
+            padding: 16px 18px;
+        }
+
+        .cabecalho small,
+        .cabecalho strong {
+            display: block;
+        }
+
+        .cabecalho h1 {
+            font-size: 22px;
+            margin: 4px 0 0;
+        }
+
+        .badge {
+            background: #fee2e2;
+            border-radius: 999px;
+            color: #991b1b;
+            font-weight: 800;
+            padding: 8px 12px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+        }
+
+        .cell {
+            border-bottom: 1px solid #cbd5e1;
+            border-right: 1px solid #cbd5e1;
+            min-height: 52px;
+            padding: 8px 10px;
+        }
+
+        .cell strong,
+        .full strong {
+            color: #334155;
+            display: block;
+            font-size: 10px;
+            letter-spacing: .05em;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        .cell span,
+        .full span {
+            display: block;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .span-2 {
+            grid-column: span 2;
+        }
+
+        .span-4 {
+            grid-column: span 4;
+        }
+
+        .full {
+            border-bottom: 1px solid #cbd5e1;
+            padding: 10px;
+        }
+
+        .section-title {
+            background: #e0f2fe;
+            border-bottom: 1px solid #cbd5e1;
+            color: #0f4c81;
+            font-weight: 900;
+            padding: 9px 10px;
+            text-transform: uppercase;
+        }
+
+        .checks {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 10px;
+        }
+
+        .checks span {
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 800;
+            padding: 5px 9px;
+        }
+
+        .rodape {
+            display: grid;
+            gap: 22px;
+            grid-template-columns: 1fr 1fr;
+            padding: 42px 18px 18px;
+        }
+
+        .assinatura {
+            border-top: 1px solid #0f172a;
+            padding-top: 6px;
+            text-align: center;
+        }
+
+        .print-actions {
+            margin: 12px auto 0;
+            max-width: 860px;
+            text-align: right;
+        }
+
+        .print-actions button {
+            background: #0f4c81;
+            border: 0;
+            border-radius: 6px;
+            color: #fff;
+            cursor: pointer;
+            font-weight: 800;
+            padding: 9px 14px;
+        }
+
+        @media print {
+            body {
+                background: #fff;
+                padding: 0;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            .print-actions {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <article class="documento">
+        <header class="cabecalho">
+            <div>
+                <strong>Sistema Hospitalar</strong>
+                <h1>Solicita&ccedil;&atilde;o de Ambul&acirc;ncia</h1>
+                <small>Impress&atilde;o: {{ data_impressao|date:"d/m/Y H:i" }}</small>
+            </div>
+            <div class="badge">{{ solicitacao.get_prioridade_display }}</div>
+        </header>
+
+        <div class="grid">
+            <div class="cell">
+                <strong>Registro</strong>
+                <span>#{{ solicitacao.id }}</span>
+            </div>
+            <div class="cell">
+                <strong>Status</strong>
+                <span>{{ solicitacao.get_status_display }}</span>
+            </div>
+            <div class="cell">
+                <strong>Solicitado em</strong>
+                <span>{{ solicitacao.solicitado_em|date:"d/m/Y H:i" }}</span>
+            </div>
+            <div class="cell">
+                <strong>Tipo</strong>
+                <span>{{ solicitacao.get_tipo_transporte_display }}</span>
+            </div>
+        </div>
+
+        <div class="section-title">Paciente</div>
+        <div class="grid">
+            <div class="cell span-2">
+                <strong>Nome</strong>
+                <span>{{ solicitacao.nome_paciente }}</span>
+            </div>
+            <div class="cell">
+                <strong>BAM</strong>
+                <span>{{ solicitacao.numero_bam|default:"-" }}</span>
+            </div>
+            <div class="cell">
+                <strong>CPF</strong>
+                <span>{{ solicitacao.cpf|default:"-" }}</span>
+            </div>
+            <div class="cell">
+                <strong>Nascimento</strong>
+                <span>{% if solicitacao.data_nascimento %}{{ solicitacao.data_nascimento|date:"d/m/Y" }}{% else %}-{% endif %}</span>
+            </div>
+            <div class="cell">
+                <strong>Idade</strong>
+                <span>{{ solicitacao.idade_texto }}</span>
+            </div>
+            <div class="cell span-2">
+                <strong>Contato / setor</strong>
+                <span>{{ solicitacao.setor_solicitante|default:"-" }} &bull; {{ solicitacao.contato|default:"-" }}</span>
+            </div>
+        </div>
+
+        <div class="section-title">Transporte</div>
+        <div class="grid">
+            <div class="cell span-2">
+                <strong>Origem</strong>
+                <span>{{ solicitacao.origem|default:"Hospital" }}</span>
+            </div>
+            <div class="cell span-2">
+                <strong>Destino</strong>
+                <span>{{ solicitacao.destino }}</span>
+            </div>
+            <div class="cell span-4">
+                <strong>Unidade de destino</strong>
+                <span>{{ solicitacao.unidade_destino|default:"-" }}</span>
+            </div>
+        </div>
+
+        <div class="checks">
+            <span>Maca: {% if solicitacao.necessita_maca %}Sim{% else %}Nao{% endif %}</span>
+            <span>Oxig&ecirc;nio: {% if solicitacao.necessita_oxigenio %}Sim{% else %}Nao{% endif %}</span>
+            <span>Isolamento: {% if solicitacao.necessita_isolamento %}Sim{% else %}Nao{% endif %}</span>
+            <span>Acompanhante: {% if solicitacao.acompanhante %}Sim{% else %}Nao{% endif %}</span>
+        </div>
+
+        <div class="section-title">Equipe e ambul&acirc;ncia</div>
+        <div class="grid">
+            <div class="cell">
+                <strong>Motorista</strong>
+                <span>{{ solicitacao.motorista|default:"-" }}</span>
+            </div>
+            <div class="cell">
+                <strong>Ve&iacute;culo</strong>
+                <span>{{ solicitacao.veiculo|default:"-" }}</span>
+            </div>
+            <div class="cell">
+                <strong>Placa</strong>
+                <span>{{ solicitacao.placa|default:"-" }}</span>
+            </div>
+            <div class="cell">
+                <strong>Resp. transporte</strong>
+                <span>{{ solicitacao.responsavel_transporte|default:"-" }}</span>
+            </div>
+            <div class="cell">
+                <strong>M&eacute;dico</strong>
+                <span>{{ solicitacao.medico_transporte|default:"-" }}</span>
+            </div>
+            <div class="cell">
+                <strong>Enfermeiro</strong>
+                <span>{{ solicitacao.enfermeiro_transporte|default:"-" }}</span>
+            </div>
+            <div class="cell">
+                <strong>T&eacute;cnico</strong>
+                <span>{{ solicitacao.tecnico_transporte|default:"-" }}</span>
+            </div>
+            <div class="cell">
+                <strong>Recebedor destino</strong>
+                <span>{{ solicitacao.recebedor_destino|default:"-" }}</span>
+            </div>
+        </div>
+
+        <div class="section-title">Controle da viagem</div>
+        <div class="grid">
+            <div class="cell">
+                <strong>Hora da sa&iacute;da</strong>
+                <span>{% if solicitacao.saida_em %}{{ solicitacao.saida_em|date:"d/m/Y H:i" }}{% else %}-{% endif %}</span>
+            </div>
+            <div class="cell">
+                <strong>Hora da chegada</strong>
+                <span>{% if solicitacao.concluido_em %}{{ solicitacao.concluido_em|date:"d/m/Y H:i" }}{% else %}-{% endif %}</span>
+            </div>
+            <div class="cell">
+                <strong>Km sa&iacute;da</strong>
+                <span>{{ solicitacao.km_saida|default:"-" }}</span>
+            </div>
+            <div class="cell">
+                <strong>Km chegada</strong>
+                <span>{{ solicitacao.km_chegada|default:"-" }}</span>
+            </div>
+            <div class="cell">
+                <strong>Km rodado</strong>
+                <span>{% if solicitacao.km_percorrido is not None %}{{ solicitacao.km_percorrido }} km{% else %}-{% endif %}</span>
+            </div>
+            <div class="cell">
+                <strong>Comb. sa&iacute;da</strong>
+                <span>{{ solicitacao.get_combustivel_saida_display|default:"-" }}</span>
+            </div>
+            <div class="cell">
+                <strong>Comb. chegada</strong>
+                <span>{{ solicitacao.get_combustivel_chegada_display|default:"-" }}</span>
+            </div>
+            <div class="cell">
+                <strong>Status atualizado por</strong>
+                <span>{{ solicitacao.status_atualizado_por|default:"-" }}</span>
+            </div>
+        </div>
+
+        <div class="full">
+            <strong>Equipamentos m&eacute;dicos</strong>
+            <span>{{ solicitacao.equipamentos_medicos|default:"-"|linebreaksbr }}</span>
+        </div>
+        <div class="full">
+            <strong>Checklist de sa&iacute;da</strong>
+            <span>{{ solicitacao.checklist_saida|default:"-"|linebreaksbr }}</span>
+        </div>
+        <div class="full">
+            <strong>Condi&ccedil;&atilde;o do paciente na sa&iacute;da</strong>
+            <span>{{ solicitacao.condicao_paciente_saida|default:"-"|linebreaksbr }}</span>
+        </div>
+        <div class="full">
+            <strong>Condi&ccedil;&atilde;o do paciente na chegada</strong>
+            <span>{{ solicitacao.condicao_paciente_chegada|default:"-"|linebreaksbr }}</span>
+        </div>
+        <div class="full">
+            <strong>Ocorr&ecirc;ncias no transporte</strong>
+            <span>{{ solicitacao.ocorrencias_transporte|default:"-"|linebreaksbr }}</span>
+        </div>
+
+        <div class="section-title">Justificativa</div>
+        <div class="full">
+            <strong>Motivo</strong>
+            <span>{{ solicitacao.motivo|linebreaksbr }}</span>
+        </div>
+        <div class="full">
+            <strong>Resumo cl&iacute;nico</strong>
+            <span>{{ solicitacao.resumo_clinico|default:"-"|linebreaksbr }}</span>
+        </div>
+        <div class="full">
+            <strong>Observa&ccedil;&otilde;es</strong>
+            <span>{{ solicitacao.observacoes|default:"-"|linebreaksbr }}</span>
+        </div>
+
+        <div class="section-title">Solicitante</div>
+        <div class="grid">
+            <div class="cell span-2">
+                <strong>Profissional</strong>
+                <span>{{ solicitacao.profissional_solicitante|default:"-" }}</span>
+            </div>
+            <div class="cell">
+                <strong>Conselho</strong>
+                <span>{{ solicitacao.conselho_solicitante|default:"-" }}</span>
+            </div>
+            <div class="cell">
+                <strong>Registro</strong>
+                <span>{{ solicitacao.registro_solicitante|default:"-" }}</span>
+            </div>
+        </div>
+
+        <div class="rodape">
+            <div class="assinatura">Profissional solicitante</div>
+            <div class="assinatura">Transporte / ambul&acirc;ncia</div>
+        </div>
+    </article>
+
+    <div class="print-actions">
+        <button type="button" onclick="window.print()">Imprimir</button>
+    </div>
+</body>
+</html>

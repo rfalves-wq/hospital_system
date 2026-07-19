@@ -139,6 +139,19 @@ body {
             font-weight: 800;
         }
 
+        .atendimento-bloqueio-linha {
+            background: #fff7ed;
+            border: 1px solid #fed7aa;
+            border-left: 4px solid #f97316;
+            border-radius: 6px;
+            color: #7c2d12;
+            font-size: 12px;
+            font-weight: 800;
+            line-height: 1.25;
+            margin-top: 6px;
+            padding: 6px 8px;
+        }
+
         .table td,
         .table th {
             vertical-align: middle;

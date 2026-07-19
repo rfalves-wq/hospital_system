@@ -22,10 +22,22 @@ urlpatterns = [
         name="cadastrar_paciente"
     ),
     
-      path(
+    path(
         "classificacao/<int:acolhimento_id>/",
         views.enviar_classificacao,
         name="enviar_classificacao"
+    ),
+
+    path(
+        "reimprimir/<int:acolhimento_id>/",
+        views.reimprimir_recepcao,
+        name="reimprimir_recepcao"
+    ),
+
+    path(
+        "reenviar-classificacao/<int:acolhimento_id>/",
+        views.reenviar_classificacao,
+        name="reenviar_classificacao"
     ),
 
     path(

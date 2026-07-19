@@ -23,8 +23,72 @@ document.addEventListener("DOMContentLoaded", function () {
     const dataNascimento = document.getElementById("data_nascimento");
     const idade = document.getElementById("idade");
 
+    function aplicarMascaraData(valor) {
+        const numeros = String(valor || "").replace(/\D/g, "").slice(0, 8);
+
+        if (numeros.length <= 2) {
+            return numeros;
+        }
+
+        if (numeros.length <= 4) {
+            return `${numeros.slice(0, 2)}/${numeros.slice(2)}`;
+        }
+
+        return `${numeros.slice(0, 2)}/${numeros.slice(2, 4)}/${numeros.slice(4)}`;
+    }
+
+    function formatarDataParaTela(valor) {
+        const texto = String(valor || "").trim();
+        const iso = texto.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+
+        if (iso) {
+            return `${iso[3]}/${iso[2]}/${iso[1]}`;
+        }
+
+        return aplicarMascaraData(texto);
+    }
+
+    function dataNascimentoParaDate(valor) {
+        const texto = String(valor || "").trim();
+        let dia;
+        let mes;
+        let ano;
+
+        const dataBr = texto.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+        const dataIso = texto.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+
+        if (dataBr) {
+            dia = Number(dataBr[1]);
+            mes = Number(dataBr[2]);
+            ano = Number(dataBr[3]);
+        } else if (dataIso) {
+            ano = Number(dataIso[1]);
+            mes = Number(dataIso[2]);
+            dia = Number(dataIso[3]);
+        } else {
+            return null;
+        }
+
+        const data = new Date(ano, mes - 1, dia);
+
+        if (
+            data.getFullYear() !== ano ||
+            data.getMonth() !== mes - 1 ||
+            data.getDate() !== dia
+        ) {
+            return null;
+        }
+
+        return data;
+    }
+
     function calcularIdade(data) {
-        const nasc = new Date(data);
+        const nasc = dataNascimentoParaDate(data);
+
+        if (!nasc) {
+            return "";
+        }
+
         const hoje = new Date();
 
         let anos = hoje.getFullYear() - nasc.getFullYear();
@@ -54,8 +118,20 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     if (dataNascimento && idade) {
-        dataNascimento.addEventListener("change", atualizarIdade);
-        dataNascimento.addEventListener("input", atualizarIdade);
+        dataNascimento.addEventListener("input", function () {
+            dataNascimento.value = aplicarMascaraData(dataNascimento.value);
+            atualizarIdade();
+        });
+
+        dataNascimento.addEventListener("change", function () {
+            dataNascimento.value = formatarDataParaTela(dataNascimento.value);
+            atualizarIdade();
+        });
+
+        dataNascimento.addEventListener("blur", function () {
+            dataNascimento.value = formatarDataParaTela(dataNascimento.value);
+            atualizarIdade();
+        });
     }
 
     // =========================
@@ -668,12 +744,12 @@ document.addEventListener("DOMContentLoaded", function () {
                                 <tr
                                     data-nome="${escaparHtml(paciente.nome)}"
                                     data-cpf="${escaparHtml(paciente.cpf)}"
-                                    data-data="${escaparHtml(paciente.data_nascimento)}"
+                                    data-data="${escaparHtml(paciente.data_nascimento_iso || paciente.data_nascimento)}"
                                     data-idade="${escaparHtml(paciente.idade)}"
                                     data-passagens="${passagensCodificadas}">
                                     <td>${escaparHtml(paciente.nome)}</td>
                                     <td>${escaparHtml(paciente.cpf)}</td>
-                                    <td>${escaparHtml(paciente.data_nascimento)}</td>
+                                    <td>${escaparHtml(formatarDataParaTela(paciente.data_nascimento))}</td>
                                     <td>${escaparHtml(paciente.idade)}</td>
                                     <td>
                                         <span class="${totalPassagens > 0 ? "passagens-dia-badge alerta" : "passagens-dia-badge"}">
@@ -713,11 +789,11 @@ document.addEventListener("DOMContentLoaded", function () {
             }
 
             if (dataNascimentoPaciente) {
-                dataNascimentoPaciente.value = linha.dataset.data;
+                dataNascimentoPaciente.value = formatarDataParaTela(linha.dataset.data);
             }
 
             if (idadePaciente) {
-                idadePaciente.value = linha.dataset.idade;
+                idadePaciente.value = linha.dataset.idade || calcularIdade(linha.dataset.data);
             }
 
             try {

@@ -63,8 +63,8 @@
             border: 1px solid var(--borda);
             border-left: 5px solid var(--azul);
             border-radius: 12px;
-            padding: 14px;
-            margin-bottom: 16px;
+            padding: 12px;
+            margin-bottom: 12px;
         }
 
         .passagens-dia-card {
@@ -72,8 +72,8 @@
             border: 1px solid var(--borda);
             border-left: 5px solid var(--verde);
             border-radius: 12px;
-            padding: 14px;
-            margin-bottom: 16px;
+            padding: 12px;
+            margin-bottom: 12px;
         }
 
         .passagens-dia-card.alerta {
@@ -103,6 +103,54 @@
             color: #0f172a;
             font-size: 17px;
             font-weight: 900;
+        }
+
+        .atendimento-bloqueado-alerta {
+            align-items: center;
+            background: #fff7ed;
+            border: 1px solid #fed7aa;
+            border-left: 5px solid #f97316;
+            border-radius: 12px;
+            color: #7c2d12;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            padding: 13px 14px;
+        }
+
+        .atendimento-bloqueado-alerta strong {
+            color: #7c2d12;
+            display: block;
+            font-size: 16px;
+            font-weight: 900;
+            margin-bottom: 4px;
+        }
+
+        .atendimento-bloqueado-alerta p {
+            color: #431407;
+            font-weight: 900;
+            margin: 0 0 3px;
+        }
+
+        .atendimento-bloqueado-alerta span {
+            color: #9a3412;
+            display: block;
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        .atendimento-bloqueado-form {
+            flex: 0 0 auto;
+        }
+
+        .formulario-somente-leitura input:disabled,
+        .formulario-somente-leitura select:disabled,
+        .formulario-somente-leitura textarea:disabled {
+            background: #f8fafc;
+            color: #475569;
+            cursor: not-allowed;
         }
 
         .historico-transferencia {
@@ -284,22 +332,107 @@
             font-weight: 800;
         }
 
-        .nav-tabs {
-            border-bottom: 1px solid var(--borda);
-            gap: 4px;
-        }
-
-        .nav-tabs .nav-link {
-            color: #334155;
-            font-weight: 700;
-            border-radius: 10px 10px 0 0;
-            padding: 10px 14px;
-        }
-
-        .nav-tabs .nav-link.active {
-            color: var(--azul);
+        .consulta-tabs-shell {
             background: #fff;
-            border-color: var(--borda) var(--borda) #fff;
+            border: 1px solid var(--borda);
+            border-radius: 10px;
+            margin: 0 0 14px;
+            padding: 8px;
+            box-shadow: 0 5px 16px rgba(15, 23, 42, .05);
+        }
+
+        .consulta-tabs-scroll {
+            overflow-x: auto;
+            padding-bottom: 2px;
+            scrollbar-color: #94a3b8 #eef2f7;
+            scrollbar-width: thin;
+        }
+
+        .consulta-tabs {
+            border: 0;
+            display: flex;
+            flex-wrap: nowrap;
+            gap: 8px;
+            min-width: max-content;
+        }
+
+        .consulta-tabs .nav-item {
+            flex: 0 0 auto;
+        }
+
+        .consulta-tabs .nav-link {
+            align-items: center;
+            background: #f8fbff;
+            border: 1px solid #cbd8e6;
+            border-radius: 8px;
+            color: #17324d;
+            display: flex;
+            gap: 9px;
+            height: 58px;
+            min-width: 148px;
+            padding: 8px 11px;
+            text-align: left;
+            transition: background-color .16s ease, border-color .16s ease, box-shadow .16s ease, color .16s ease, transform .16s ease;
+            white-space: nowrap;
+        }
+
+        .consulta-tabs .nav-link:hover,
+        .consulta-tabs .nav-link:focus {
+            background: #eef6ff;
+            border-color: #8bb6df;
+            color: var(--azul);
+        }
+
+        .consulta-tabs .nav-link.active {
+            background: var(--azul);
+            border-color: var(--azul);
+            box-shadow: 0 8px 18px rgba(15, 76, 129, .22);
+            color: #fff;
+            transform: translateY(-1px);
+        }
+
+        .consulta-tabs .tab-step {
+            align-items: center;
+            background: #eaf4ff;
+            border: 1px solid #cfe3f8;
+            border-radius: 999px;
+            color: var(--azul);
+            display: inline-flex;
+            flex: 0 0 30px;
+            font-size: 12px;
+            font-weight: 900;
+            height: 30px;
+            justify-content: center;
+            line-height: 1;
+        }
+
+        .consulta-tabs .nav-link.active .tab-step {
+            background: #fff;
+            border-color: #fff;
+            color: var(--azul);
+        }
+
+        .consulta-tabs .tab-copy {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.15;
+            min-width: 0;
+        }
+
+        .consulta-tabs .tab-title {
+            font-size: 14px;
+            font-weight: 900;
+        }
+
+        .consulta-tabs small {
+            color: var(--muted);
+            font-size: 11px;
+            font-weight: 800;
+            margin-top: 3px;
+        }
+
+        .consulta-tabs .nav-link.active small {
+            color: rgba(255, 255, 255, .78);
         }
 
         .section-card {
@@ -342,8 +475,8 @@
             background: #f8fafc;
             border: 1px solid #e5edf5;
             border-radius: 10px;
-            padding: 11px;
-            min-height: 68px;
+            padding: 9px 10px;
+            min-height: 58px;
         }
 
         .info-item.full {
@@ -363,6 +496,176 @@
             color: #0f172a;
             font-weight: 800;
             word-break: break-word;
+        }
+
+        .medico-tab-content {
+            margin-top: 2px;
+        }
+
+        .medico-tab-content .tab-pane {
+            padding-top: 2px;
+        }
+
+        .resumo-medico-layout {
+            align-items: start;
+            display: grid;
+            gap: 12px;
+            grid-template-columns: minmax(0, .95fr) minmax(0, 1.05fr);
+        }
+
+        .resumo-card,
+        .medico-pane-card {
+            border-radius: 10px;
+            box-shadow: 0 4px 14px rgba(15, 23, 42, .04);
+            margin-bottom: 0;
+        }
+
+        .resumo-card .section-head,
+        .medico-pane-card .section-head {
+            padding: 10px 13px;
+        }
+
+        .resumo-card .section-body,
+        .medico-pane-card .section-body {
+            background: #f8fafc;
+            padding: 12px;
+        }
+
+        .resumo-card .info-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px;
+        }
+
+        .resumo-card .info-item,
+        .classificacao-pane-card .info-item {
+            background: #fff;
+            min-height: 56px;
+            padding: 9px 10px;
+        }
+
+        .resumo-classificacao-card .alerta-alergia-card {
+            margin-bottom: 10px;
+            padding: 10px 12px;
+        }
+
+        .classificacao-detalhes-resumo {
+            background: #fff;
+            border: 1px solid var(--borda);
+            border-radius: 10px;
+            margin-top: 10px;
+            padding: 0;
+        }
+
+        .classificacao-detalhes-resumo summary {
+            color: var(--azul);
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 900;
+            list-style-position: inside;
+            padding: 10px 12px;
+        }
+
+        .classificacao-detalhes-resumo[open] summary {
+            border-bottom: 1px solid #e5edf5;
+        }
+
+        .classificacao-detalhes-resumo .info-grid {
+            padding: 10px;
+        }
+
+        .classificacao-pane-card .info-grid {
+            gap: 8px;
+        }
+
+        .classificacao-pane-card .info-item.full,
+        .resumo-card .info-item.full {
+            min-height: 0;
+        }
+
+        .consulta-medica-body > .row:first-child {
+            background: #fff;
+            border: 1px solid var(--borda);
+            border-radius: 10px;
+            margin: 0 0 12px;
+            padding: 10px 4px 0;
+        }
+
+        .consulta-clinica-grid {
+            display: grid;
+            gap: 12px;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .campo-clinico {
+            background: #fff;
+            border: 1px solid var(--borda);
+            border-radius: 10px;
+            padding: 10px;
+        }
+
+        .campo-clinico-queixa {
+            grid-column: 1 / -1;
+        }
+
+        .campo-clinico textarea {
+            min-height: 132px;
+        }
+
+        .campo-clinico-queixa textarea {
+            min-height: 86px;
+        }
+
+        .conduta-principal-box {
+            background: #fff;
+            border: 1px solid var(--borda);
+            border-radius: 10px;
+            margin-bottom: 12px;
+            padding: 12px;
+        }
+
+        .conduta-opcoes-grid {
+            display: grid;
+            gap: 10px;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            margin-bottom: 12px;
+        }
+
+        .conduta-opcao {
+            background: #fff;
+            border: 1px solid var(--borda);
+            border-left: 4px solid var(--verde);
+            border-radius: 10px;
+            min-height: 58px;
+            padding: 12px;
+        }
+
+        .conduta-opcao .form-check {
+            align-items: center;
+            display: flex;
+            gap: 8px;
+            margin: 0;
+            min-height: 28px;
+        }
+
+        .conduta-opcao .form-check-input,
+        .conduta-opcao .form-check input[type="checkbox"] {
+            flex: 0 0 auto;
+            margin: 0;
+        }
+
+        .conduta-medica-body .alert {
+            border-radius: 9px;
+            font-weight: 800;
+        }
+
+        .laboratorio-pane-card .exam-tools,
+        .imagem-pane-card .exam-tools {
+            background: #fff;
+        }
+
+        .resultados-pane-card .resultado-box {
+            background: #fff;
+            box-shadow: 0 4px 14px rgba(15, 23, 42, .04);
         }
 
         .classificacao-destaque {
@@ -431,20 +734,21 @@
             border-left: 8px solid #991b1b;
             border-radius: 12px;
             color: #7f1d1d;
-            margin-bottom: 16px;
-            padding: 14px 16px;
+            display: grid;
+            gap: 6px;
+            margin-bottom: 12px;
+            padding: 12px 14px;
         }
 
         .alerta-alergia-titulo {
-            font-size: 16px;
+            font-size: 14px;
             font-weight: 900;
             text-transform: uppercase;
         }
 
         .alerta-alergia-texto {
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 900;
-            margin-top: 4px;
             white-space: pre-line;
         }
 
@@ -452,7 +756,159 @@
             color: #991b1b;
             font-size: 13px;
             font-weight: 800;
-            margin-top: 6px;
+        }
+
+        .prescricao-card {
+            border-radius: 10px;
+        }
+
+        .prescricao-head {
+            align-items: center;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .prescricao-head > div {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .prescricao-head span {
+            font-size: 16px;
+            font-weight: 900;
+        }
+
+        .prescricao-head small {
+            color: rgba(255, 255, 255, .78);
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .prescricao-body {
+            background: #f8fafc;
+            padding: 12px;
+        }
+
+        .alerta-alergia-compacto {
+            align-items: center;
+            display: grid;
+            gap: 12px;
+            grid-template-columns: minmax(0, 1fr) minmax(280px, .65fr);
+            margin-bottom: 12px;
+            padding: 12px 14px;
+        }
+
+        .alerta-alergia-compacto .alerta-alergia-menor {
+            margin-top: 0;
+        }
+
+        .prescricao-workspace {
+            align-items: start;
+            display: grid;
+            gap: 12px;
+            grid-template-columns: minmax(0, 1.35fr) minmax(420px, .9fr);
+        }
+
+        .prescricao-coluna-principal,
+        .documentos-coluna {
+            min-width: 0;
+        }
+
+        .documentos-coluna {
+            display: grid;
+            gap: 12px;
+        }
+
+        .prescricao-painel,
+        .documento-painel {
+            background: #fff;
+            border: 1px solid var(--borda);
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(15, 23, 42, .04);
+            padding: 12px;
+        }
+
+        .prescricao-painel-destaque {
+            border-top: 4px solid var(--azul);
+        }
+
+        .prescricao-painel-topo,
+        .documento-painel-topo {
+            align-items: flex-start;
+            border-bottom: 1px solid #e5edf5;
+            display: flex;
+            gap: 10px;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+        }
+
+        .prescricao-painel-topo strong,
+        .documento-painel-topo strong {
+            color: #0f172a;
+            display: block;
+            font-size: 15px;
+            font-weight: 900;
+        }
+
+        .prescricao-painel-topo span,
+        .documento-painel-topo span {
+            color: var(--muted);
+            display: block;
+            font-size: 12px;
+            font-weight: 800;
+            margin-top: 2px;
+        }
+
+        .prescricao-painel-topo .btn,
+        .documento-painel-topo .btn {
+            flex: 0 0 auto;
+            white-space: nowrap;
+        }
+
+        .estoque-farmacia-compacto {
+            margin-bottom: 12px;
+            padding: 10px;
+        }
+
+        .prescricao-card .estoque-farmacia-topo {
+            grid-template-columns: 1fr;
+            margin-bottom: 8px;
+        }
+
+        .prescricao-card .estoque-farmacia-controles {
+            grid-template-columns: minmax(240px, 1fr) 190px 180px;
+        }
+
+        .campo-documento textarea {
+            min-height: 118px;
+        }
+
+        .campo-documento-prescricao textarea {
+            min-height: 220px;
+        }
+
+        .documento-painel-orientacoes textarea {
+            min-height: 135px;
+        }
+
+        .campo-documento-atestado textarea {
+            min-height: 105px;
+        }
+
+        .atestado-linha {
+            align-items: start;
+        }
+
+        .prescricao-card .atestado-linha > [class*="col-"] {
+            flex: 1 1 260px;
+            max-width: none;
+        }
+
+        .prescricao-card .atestado-linha > .col-md-3 {
+            flex-basis: 115px;
+            flex-grow: 0;
         }
 
         .info-item.alergia-destaque {
@@ -849,11 +1305,23 @@
             .estoque-farmacia-controles {
                 grid-template-columns: 1fr;
             }
+
+            .prescricao-workspace,
+            .alerta-alergia-compacto,
+            .prescricao-card .estoque-farmacia-controles {
+                grid-template-columns: 1fr;
+            }
         }
 
         @media (max-width: 992px) {
             .info-grid {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .resumo-medico-layout,
+            .consulta-clinica-grid,
+            .conduta-opcoes-grid {
+                grid-template-columns: 1fr;
             }
         }
 
@@ -868,8 +1336,49 @@
                 width: 100%;
             }
 
+            .consulta-tabs-shell {
+                padding: 6px;
+            }
+
+            .consulta-tabs {
+                gap: 6px;
+            }
+
+            .consulta-tabs .nav-link {
+                height: 54px;
+                min-width: 132px;
+                padding: 7px 9px;
+            }
+
+            .consulta-tabs .tab-step {
+                flex-basis: 26px;
+                font-size: 11px;
+                height: 26px;
+            }
+
+            .consulta-tabs .tab-title {
+                font-size: 13px;
+            }
+
+            .atendimento-bloqueado-form,
+            .atendimento-bloqueado-form .btn {
+                width: 100%;
+            }
+
+            .prescricao-painel-topo,
+            .documento-painel-topo {
+                align-items: stretch;
+                flex-direction: column;
+            }
+
+            .prescricao-painel-topo .btn,
+            .documento-painel-topo .btn {
+                width: 100%;
+            }
+
             .info-grid,
             .resumo-medico-grid,
+            .resumo-card .info-grid,
             .exam-list.simple-list,
             .exam-category-body {
                 grid-template-columns: 1fr;

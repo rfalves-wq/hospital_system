@@ -398,6 +398,11 @@ document.addEventListener("DOMContentLoaded", function () {
             localStorage.setItem("abaConsultaMedicaAtiva", abaSalva);
         }
 
+        if (abaSalva === "#classificacao") {
+            abaSalva = "#resumo";
+            localStorage.setItem("abaConsultaMedicaAtiva", abaSalva);
+        }
+
         if (abaSalva) {
             const botaoAba = document.querySelector(`[data-bs-target="${abaSalva}"]`);
 
