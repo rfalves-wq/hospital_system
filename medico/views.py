@@ -405,6 +405,7 @@ def chamar_paciente_medico(request, acolhimento_id):
     consultorio = consultorio_medico_atual(request)
     medico_atual = nome_usuario(request)
     crm_medico_atual = registro_profissional_request(request)
+    ocultar_painel = request.POST.get("ocultar_painel") == "1"
 
     if not consultorio:
         messages.warning(
@@ -458,6 +459,8 @@ def chamar_paciente_medico(request, acolhimento_id):
             acolhimento,
             request,
             local_destino=consultorio,
+            observacao="Chamada oculta pelo medico." if ocultar_painel else "",
+            visivel_painel=not ocultar_painel,
         )
 
         if not chamada:
@@ -474,10 +477,19 @@ def chamar_paciente_medico(request, acolhimento_id):
             consultorio,
         )
 
-        messages.success(
-            request,
-            f"Chamada {total}/4 registrada para o BAM {acolhimento.numero_bam} no {consultorio}."
-        )
+        if ocultar_painel:
+            messages.success(
+                request,
+                (
+                    f"Chamada oculta {total}/4 registrada para o BAM {acolhimento.numero_bam} "
+                    f"no {consultorio}. O paciente nao apareceu no painel."
+                )
+            )
+        else:
+            messages.success(
+                request,
+                f"Chamada {total}/4 registrada para o BAM {acolhimento.numero_bam} no {consultorio}."
+            )
 
     return redirect("medico_dashboard")
 

@@ -42,6 +42,7 @@ def chamadas_recentes():
     return (
         ChamadaPainel.objects
         .select_related("acolhimento")
+        .filter(visivel_painel=True)
         .exclude(tipo=ChamadaPainel.RETORNO)[:12]
     )
 

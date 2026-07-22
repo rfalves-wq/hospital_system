@@ -1,0 +1,271 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'auditoria/css/dashboard.css' %}?v=20260721-2">
+{% endblock %}
+
+{% block content %}
+<div class="auditoria-page">
+    <section class="auditoria-hero">
+        <div>
+            <span>Logs e confer&ecirc;ncias</span>
+            <h1>Auditoria do Sistema</h1>
+            <p>Consulte a&ccedil;&otilde;es gravadas, impress&otilde;es, mudan&ccedil;as de status e acessos dos profissionais.</p>
+        </div>
+        <div class="hero-actions">
+            <a href="{% url 'auditoria_exportar' %}?{{ request.GET.urlencode }}" class="btn btn-warning fw-bold">
+                Exportar CSV
+            </a>
+            <a href="{% url 'dashboard' %}" class="btn btn-light fw-bold">In&iacute;cio</a>
+        </div>
+    </section>
+
+    <section class="auditoria-summary">
+        <div class="summary-card hoje">
+            <small>Hoje</small>
+            <strong>{{ total_hoje }}</strong>
+        </div>
+        <div class="summary-card gravacao">
+            <small>Grava&ccedil;&otilde;es</small>
+            <strong>{{ total_gravacoes }}</strong>
+        </div>
+        <div class="summary-card impressao">
+            <small>Impress&otilde;es</small>
+            <strong>{{ total_impressoes }}</strong>
+        </div>
+        <div class="summary-card erro">
+            <small>Alertas HTTP</small>
+            <strong>{{ total_erros }}</strong>
+        </div>
+    </section>
+
+    <section class="audit-insights">
+        <div class="insight-card">
+            <div class="insight-head">
+                <h2>A&ccedil;&otilde;es mais registradas</h2>
+                <small>No filtro atual</small>
+            </div>
+            <div class="insight-list">
+                {% for item in acoes_resumo %}
+                    <a href="?acao={{ item.acao }}" class="insight-item">
+                        <span>{{ item.rotulo }}</span>
+                        <strong>{{ item.total }}</strong>
+                    </a>
+                {% empty %}
+                    <span class="insight-empty">Sem registros.</span>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="insight-card">
+            <div class="insight-head">
+                <h2>M&oacute;dulos com movimento</h2>
+                <small>No filtro atual</small>
+            </div>
+            <div class="insight-list">
+                {% for item in modulos_resumo %}
+                    <a href="?modulo={{ item.modulo|urlencode }}" class="insight-item">
+                        <span>{{ item.modulo }}</span>
+                        <strong>{{ item.total }}</strong>
+                    </a>
+                {% empty %}
+                    <span class="insight-empty">Sem registros.</span>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="insight-card critical-card">
+            <div class="insight-head">
+                <h2>Aten&ccedil;&otilde;es</h2>
+                <small>Falhas, bloqueios e erros</small>
+            </div>
+            <div class="critical-list">
+                {% for evento in eventos_criticos %}
+                    <div class="critical-item">
+                        <strong>{{ evento.get_acao_display }}</strong>
+                        <span>{{ evento.criado_em|date:"d/m H:i" }} &bull; {{ evento.profissional|default:evento.usuario_login|default:"Sistema" }}</span>
+                    </div>
+                {% empty %}
+                    <span class="insight-empty">Nenhum alerta no filtro atual.</span>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    <section class="auditoria-panel">
+        <div class="panel-head">
+            <div>
+                <h2>Eventos registrados</h2>
+                <small>{{ total_filtrado }} evento(s) encontrado(s). A lista mostra at&eacute; 300 registros.</small>
+            </div>
+        </div>
+
+        <form method="get" class="audit-filters">
+            <div class="quick-filters">
+                <span>Per&iacute;odo r&aacute;pido</span>
+                {% for atalho in atalhos_periodo %}
+                    <a href="?inicio={{ atalho.inicio }}&fim={{ atalho.fim }}"
+                       class="{% if filtros.inicio == atalho.inicio and filtros.fim == atalho.fim %}active{% endif %}">
+                        {{ atalho.rotulo }}
+                    </a>
+                {% endfor %}
+                <a href="{% url 'auditoria_dashboard' %}" class="muted-link">Todos</a>
+            </div>
+
+            <div class="filter-grid">
+                <label>
+                    <span>Buscar</span>
+                    <input type="search"
+                           name="q"
+                           value="{{ filtros.q }}"
+                           class="form-control"
+                           placeholder="Profissional, paciente, BAM, rota ou ID">
+                </label>
+
+                <label>
+                    <span>A&ccedil;&atilde;o</span>
+                    <select name="acao" class="form-select">
+                        <option value="">Todas</option>
+                        {% for valor, rotulo in acoes %}
+                            <option value="{{ valor }}" {% if filtros.acao == valor %}selected{% endif %}>
+                                {{ rotulo }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </label>
+
+                <label>
+                    <span>M&oacute;dulo</span>
+                    <select name="modulo" class="form-select">
+                        <option value="">Todos</option>
+                        {% for modulo in modulos %}
+                            <option value="{{ modulo }}" {% if filtros.modulo == modulo %}selected{% endif %}>
+                                {{ modulo }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </label>
+
+                <label>
+                    <span>In&iacute;cio</span>
+                    <input type="date" name="inicio" value="{{ filtros.inicio }}" class="form-control">
+                </label>
+
+                <label>
+                    <span>Fim</span>
+                    <input type="date" name="fim" value="{{ filtros.fim }}" class="form-control">
+                </label>
+
+                <div class="filter-actions">
+                    <button type="submit" class="btn btn-primary fw-bold">Filtrar</button>
+                    <a href="{% url 'auditoria_dashboard' %}" class="btn btn-outline-secondary fw-bold">Limpar</a>
+                    <a href="{% url 'auditoria_exportar' %}?{{ request.GET.urlencode }}" class="btn btn-success fw-bold">
+                        CSV
+                    </a>
+                </div>
+            </div>
+        </form>
+
+        <div class="professional-strip">
+            <strong>Profissionais no filtro</strong>
+            <div>
+                {% for item in profissionais_resumo %}
+                    <a href="?q={{ item.profissional|urlencode }}" class="professional-chip">
+                        {{ item.profissional }} <span>{{ item.total }}</span>
+                    </a>
+                {% empty %}
+                    <span class="professional-empty">Nenhum profissional encontrado nos registros filtrados.</span>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="audit-table-wrap">
+            <table class="audit-table">
+                <thead>
+                    <tr>
+                        <th>Data/Hora</th>
+                        <th>A&ccedil;&atilde;o</th>
+                        <th>Profissional</th>
+                        <th>M&oacute;dulo</th>
+                        <th>Paciente/BAM</th>
+                        <th>Registro</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for evento in eventos %}
+                        <tr>
+                            <td>
+                                <strong>{{ evento.criado_em|date:"d/m/Y H:i:s" }}</strong>
+                                <span>{{ evento.ip|default:"IP n&atilde;o identificado" }}</span>
+                            </td>
+                            <td>
+                                <span class="action-pill action-{{ evento.acao|lower }}">
+                                    {{ evento.get_acao_display }}
+                                </span>
+                                <small>{{ evento.metodo }}</small>
+                            </td>
+                            <td>
+                                <strong>{{ evento.profissional_com_registro }}</strong>
+                                <span>{{ evento.usuario_login|default:"-" }}</span>
+                            </td>
+                            <td>
+                                <strong>{{ evento.modulo|default:"Sistema" }}</strong>
+                                <span>{{ evento.caminho }}</span>
+                            </td>
+                            <td>
+                                <strong>{{ evento.nome_paciente|default:"-" }}</strong>
+                                <span>{{ evento.numero_bam|default:"-" }}</span>
+                            </td>
+                            <td>
+                                <strong>{{ evento.descricao }}</strong>
+                                {% if evento.objeto_id %}
+                                    <span>{{ evento.objeto_tipo }} #{{ evento.objeto_id }}</span>
+                                {% else %}
+                                    <span>-</span>
+                                {% endif %}
+                                <details class="event-details">
+                                    <summary>Ver detalhes</summary>
+                                    <div class="event-detail-grid">
+                                        <span>
+                                            <b>ID</b>
+                                            {{ evento.id }}
+                                        </span>
+                                        <span>
+                                            <b>Objeto</b>
+                                            {{ evento.objeto_tipo|default:"-" }} {{ evento.objeto_id|default:"" }}
+                                        </span>
+                                        <span>
+                                            <b>IP</b>
+                                            {{ evento.ip|default:"-" }}
+                                        </span>
+                                        <span>
+                                            <b>Rota</b>
+                                            {{ evento.caminho }}
+                                        </span>
+                                    </div>
+                                    {% if evento.dados %}
+                                        <pre>{{ evento.dados }}</pre>
+                                    {% endif %}
+                                </details>
+                            </td>
+                            <td>
+                                <span class="http-status status-{{ evento.status_code|default:'0' }}">
+                                    {{ evento.status_code|default:"-" }}
+                                </span>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="7" class="empty-row">
+                                Nenhum evento encontrado.
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+{% endblock %}

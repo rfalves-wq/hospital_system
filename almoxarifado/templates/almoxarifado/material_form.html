@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'almoxarifado/css/dashboard.css' %}?v=20260721-1">
+{% endblock %}
+
+{% block content %}
+<main class="almox-page">
+    <section class="almox-hero compact">
+        <div>
+            <span>Almoxarifado</span>
+            <h1>{% if material %}Editar material{% else %}Novo material{% endif %}</h1>
+            <p>Cadastre identifica&ccedil;&atilde;o, categoria, estoque e localiza&ccedil;&atilde;o.</p>
+        </div>
+        <a href="{% url 'almoxarifado_dashboard' %}" class="btn btn-light fw-bold">Voltar</a>
+    </section>
+
+    <form method="post" class="almox-form-card">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+
+        <div class="form-grid">
+            <label>
+                <span>Nome</span>
+                {{ form.nome }}
+                {{ form.nome.errors }}
+            </label>
+            <label>
+                <span>C&oacute;digo</span>
+                {{ form.codigo }}
+                {{ form.codigo.errors }}
+            </label>
+            <label>
+                <span>Categoria</span>
+                {{ form.categoria }}
+                {{ form.categoria.errors }}
+            </label>
+            <label>
+                <span>Marca</span>
+                {{ form.marca }}
+                {{ form.marca.errors }}
+            </label>
+            <label class="span-2">
+                <span>Descri&ccedil;&atilde;o</span>
+                {{ form.descricao }}
+                {{ form.descricao.errors }}
+            </label>
+            <label>
+                <span>Unidade de medida</span>
+                {{ form.unidade_medida }}
+                {{ form.unidade_medida.errors }}
+            </label>
+            <label>
+                <span>Fornecedor</span>
+                {{ form.fornecedor }}
+                {{ form.fornecedor.errors }}
+            </label>
+            <label>
+                <span>Localiza&ccedil;&atilde;o</span>
+                {{ form.localizacao }}
+                {{ form.localizacao.errors }}
+            </label>
+            <label>
+                <span>Estoque atual</span>
+                {{ form.estoque_atual }}
+                {{ form.estoque_atual.errors }}
+            </label>
+            <label>
+                <span>Estoque m&iacute;nimo</span>
+                {{ form.estoque_minimo }}
+                {{ form.estoque_minimo.errors }}
+            </label>
+            <label>
+                <span>Lote atual</span>
+                {{ form.lote_atual }}
+                {{ form.lote_atual.errors }}
+            </label>
+            <label>
+                <span>Validade</span>
+                {{ form.validade }}
+                {{ form.validade.errors }}
+            </label>
+            <label class="check-line">
+                {{ form.ativo }}
+                <span>Material ativo</span>
+                {{ form.ativo.errors }}
+            </label>
+        </div>
+
+        <div class="form-actions">
+            <a href="{% url 'almoxarifado_dashboard' %}" class="btn btn-outline-secondary btn-lg">Cancelar</a>
+            <button type="submit" class="btn btn-primary btn-lg fw-bold">Salvar material</button>
+        </div>
+    </form>
+</main>
+{% endblock %}

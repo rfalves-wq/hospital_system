@@ -97,6 +97,41 @@ PAINEIS_PADRAO = [
         "ordem": 140,
         "prefixos": ["ambulancia/"],
     },
+    {
+        "codigo": "auditoria",
+        "nome": "Auditoria do Sistema",
+        "descricao": "Logs, rastreabilidade e conferencias de acoes",
+        "ordem": 150,
+        "prefixos": ["auditoria/"],
+    },
+    {
+        "codigo": "funcionarios",
+        "nome": "Funcionarios",
+        "descricao": "Cadastro, conselho, setores e escala de profissionais",
+        "ordem": 160,
+        "prefixos": ["funcionarios/"],
+    },
+    {
+        "codigo": "relatorios",
+        "nome": "Relatorios",
+        "descricao": "Indicadores gerenciais e exportacao de dados",
+        "ordem": 170,
+        "prefixos": ["relatorios/"],
+    },
+    {
+        "codigo": "almoxarifado",
+        "nome": "Almoxarifado",
+        "descricao": "Materiais, suprimentos e movimentacao de estoque",
+        "ordem": 180,
+        "prefixos": ["almoxarifado/"],
+    },
+    {
+        "codigo": "ouvidoria",
+        "nome": "Ouvidoria / SAC",
+        "descricao": "Manifestacoes, ocorrencias, prazos e respostas",
+        "ordem": 190,
+        "prefixos": ["ouvidoria/"],
+    },
 ]
 
 PAINEL_CHOICES = [

@@ -1,6 +1,21 @@
 from django.contrib import admin
 
-from .models import SolicitacaoAmbulancia
+from .models import (
+    EquipamentoMedicoAmbulancia,
+    EquipamentoSolicitacaoAmbulancia,
+    MembroEquipeAmbulancia,
+    SolicitacaoAmbulancia,
+)
+
+
+class MembroEquipeAmbulanciaInline(admin.TabularInline):
+    model = MembroEquipeAmbulancia
+    extra = 0
+
+
+class EquipamentoSolicitacaoAmbulanciaInline(admin.TabularInline):
+    model = EquipamentoSolicitacaoAmbulancia
+    extra = 0
 
 
 @admin.register(SolicitacaoAmbulancia)
@@ -48,3 +63,28 @@ class SolicitacaoAmbulanciaAdmin(admin.ModelAdmin):
         "concluido_em",
         "cancelado_em",
     ]
+    inlines = [
+        MembroEquipeAmbulanciaInline,
+        EquipamentoSolicitacaoAmbulanciaInline,
+    ]
+
+
+@admin.register(MembroEquipeAmbulancia)
+class MembroEquipeAmbulanciaAdmin(admin.ModelAdmin):
+    list_display = ["solicitacao", "papel", "nome", "conselho", "registro"]
+    list_filter = ["papel"]
+    search_fields = ["solicitacao__nome_paciente", "solicitacao__numero_bam", "nome"]
+
+
+@admin.register(EquipamentoMedicoAmbulancia)
+class EquipamentoMedicoAmbulanciaAdmin(admin.ModelAdmin):
+    list_display = ["nome", "ativo"]
+    list_filter = ["ativo"]
+    search_fields = ["nome", "descricao"]
+
+
+@admin.register(EquipamentoSolicitacaoAmbulancia)
+class EquipamentoSolicitacaoAmbulanciaAdmin(admin.ModelAdmin):
+    list_display = ["solicitacao", "equipamento", "quantidade", "conferido_saida", "conferido_chegada"]
+    list_filter = ["conferido_saida", "conferido_chegada"]
+    search_fields = ["solicitacao__nome_paciente", "solicitacao__numero_bam", "equipamento__nome"]

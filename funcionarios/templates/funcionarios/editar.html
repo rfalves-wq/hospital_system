@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'funcionarios/css/dashboard.css' %}?v=20260721-1">
+{% endblock %}
+
+{% block content %}
+<div class="funcionarios-page">
+    <section class="funcionarios-hero compact">
+        <div>
+            <span>Editar cadastro</span>
+            <h1>{{ funcionario.nome }}</h1>
+            <p>{{ funcionario.cargo|default:"Cargo n&atilde;o informado" }} &bull; {{ funcionario.setor|default:"Setor n&atilde;o informado" }}</p>
+        </div>
+        <a href="{% url 'funcionarios_dashboard' %}" class="btn btn-light fw-bold">Voltar</a>
+    </section>
+
+    {% if messages %}
+        <div class="funcionarios-messages">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags|default:'info' }} mb-2">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="edit-layout">
+        <section class="funcionarios-panel">
+            <div class="panel-head">
+                <div>
+                    <h2>Dados do funcion&aacute;rio</h2>
+                    <small>Atualize cadastro, conselho, setor, contato e v&iacute;nculo com login.</small>
+                </div>
+            </div>
+
+            <form method="post" class="funcionario-form edit-form">
+                {% csrf_token %}
+                <input type="hidden" name="form_tipo" value="funcionario">
+
+                <div class="form-grid wide">
+                    {% for field in form %}
+                        {% if field.name == "ativo" %}
+                            <label class="check-row span-2">
+                                {{ field }}
+                                <span>{{ field.label }}</span>
+                                {{ field.errors }}
+                            </label>
+                        {% elif field.name == "observacoes" %}
+                            <label class="span-2">
+                                <span>{{ field.label }}</span>
+                                {{ field }}
+                                {{ field.errors }}
+                            </label>
+                        {% else %}
+                            <label>
+                                <span>{{ field.label }}</span>
+                                {{ field }}
+                                {{ field.errors }}
+                            </label>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+
+                <div class="form-actions">
+                    <a href="{% url 'funcionarios_dashboard' %}" class="btn btn-outline-secondary fw-bold">Cancelar</a>
+                    <button type="submit" class="btn btn-primary fw-bold">Salvar altera&ccedil;&otilde;es</button>
+                </div>
+            </form>
+        </section>
+
+        <section class="funcionarios-panel">
+            <div class="panel-head scale-head">
+                <div>
+                    <h2>Hist&oacute;rico de v&iacute;nculos</h2>
+                    <small>Registre cada admiss&atilde;o, demiss&atilde;o e readmiss&atilde;o do profissional.</small>
+                </div>
+            </div>
+
+            <form method="post" class="funcionario-form vinculo-form">
+                {% csrf_token %}
+                <input type="hidden" name="form_tipo" value="vinculo">
+
+                <div class="form-grid">
+                    {% for field in vinculo_form %}
+                        {% if field.name == "observacoes" %}
+                            <label class="span-2">
+                                <span>{{ field.label }}</span>
+                                {{ field }}
+                                {{ field.errors }}
+                            </label>
+                        {% else %}
+                            <label>
+                                <span>{{ field.label }}</span>
+                                {{ field }}
+                                {{ field.errors }}
+                            </label>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-success fw-bold">Registrar v&iacute;nculo</button>
+                </div>
+            </form>
+
+            <div class="escala-table-wrap">
+                <table class="escala-table">
+                    <thead>
+                        <tr>
+                            <th>Admiss&atilde;o</th>
+                            <th>Demiss&atilde;o</th>
+                            <th>Cargo / Setor</th>
+                            <th>V&iacute;nculo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for vinculo in vinculos %}
+                            <tr>
+                                <td>{{ vinculo.data_admissao|date:"d/m/Y" }}</td>
+                                <td>
+                                    {% if vinculo.data_demissao %}
+                                        {{ vinculo.data_demissao|date:"d/m/Y" }}
+                                    {% else %}
+                                        <span class="status-pill ativo">Atual</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <strong>{{ vinculo.cargo|default:"-" }}</strong><br>
+                                    {{ vinculo.setor|default:"-" }}
+                                </td>
+                                <td>{{ vinculo.get_tipo_vinculo_display|default:"-" }}</td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="4" class="empty-row">Nenhum v&iacute;nculo registrado.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="funcionarios-panel">
+            <div class="panel-head scale-head">
+                <div>
+                    <h2>Escala</h2>
+                    <small>Registre dias, turnos e faltas do profissional.</small>
+                </div>
+            </div>
+
+            <form method="post" class="funcionario-form escala-form">
+                {% csrf_token %}
+                <input type="hidden" name="form_tipo" value="escala">
+
+                <div class="form-grid">
+                    {% for field in escala_form %}
+                        {% if field.is_hidden %}
+                            {{ field }}
+                        {% else %}
+                            <label>
+                                <span>{{ field.label }}</span>
+                                {{ field }}
+                                {{ field.errors }}
+                            </label>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-success fw-bold">Adicionar escala</button>
+                </div>
+            </form>
+
+            <div class="escala-table-wrap">
+                <table class="escala-table">
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Turno</th>
+                            <th>Hor&aacute;rio</th>
+                            <th>Setor</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for escala in escalas %}
+                            <tr>
+                                <td>{{ escala.data|date:"d/m/Y" }}</td>
+                                <td>{{ escala.get_turno_display }}</td>
+                                <td>
+                                    {% if escala.hora_inicio %}{{ escala.hora_inicio|time:"H:i" }}{% else %}-{% endif %}
+                                    {% if escala.hora_fim %} - {{ escala.hora_fim|time:"H:i" }}{% endif %}
+                                </td>
+                                <td>{{ escala.setor|default:"-" }}</td>
+                                <td>{{ escala.get_status_display }}</td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="5" class="empty-row">Nenhuma escala registrada.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+</div>
+{% endblock %}

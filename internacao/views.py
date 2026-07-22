@@ -1,15 +1,30 @@
 from django.contrib import messages
 from django.core.exceptions import ObjectDoesNotExist
+from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
+from django.views.decorators.http import require_POST
 
 from acolhimento.models import Acolhimento
 from acolhimento.tempos import anexar_entrada_setor
 from acolhimento.utils import periodo_do_dia
 from accounts.utils import nome_profissional_request
 
-from .forms import AltaInternacaoForm, EvolucaoInternacaoForm, InternacaoForm
-from .models import Internacao
+from .forms import (
+    AltaInternacaoForm,
+    EvolucaoInternacaoForm,
+    InternacaoForm,
+    LeitoInternacaoForm,
+    SetorInternacaoForm,
+)
+from .models import Internacao, LeitoInternacao, SetorInternacao
+
+
+LEITOS_PADRAO = {
+    "Clinica medica": [f"CM-{numero:02d}" for numero in range(1, 13)],
+    "Observacao": [f"OBS-{numero:02d}" for numero in range(1, 9)],
+    "Isolamento": [f"ISO-{numero:02d}" for numero in range(1, 5)],
+}
 
 
 def nome_paciente(acolhimento):
@@ -47,6 +62,157 @@ def formatar_decimal(valor):
         return ""
 
     return str(valor).replace(".", ",")
+
+
+def chave_leito(valor, setor=""):
+    codigo = (valor or "").strip().upper()
+    setor = (setor or "").strip().upper()
+
+    if setor:
+        return f"{setor}::{codigo}"
+
+    return codigo
+
+
+def chave_leito_cadastrado(leito_id):
+    return f"LEITO:{leito_id}"
+
+
+def chaves_internacao(internacao):
+    if internacao.leito_ref_id:
+        yield chave_leito_cadastrado(internacao.leito_ref_id)
+
+    if internacao.leito:
+        yield chave_leito(internacao.leito, internacao.setor)
+        yield chave_leito(internacao.leito)
+
+
+def resumo_leito_ocupado(internacao):
+    codigo = internacao.leito or "Sem leito"
+    setor = internacao.setor or "Internacao"
+
+    if internacao.leito_ref_id:
+        codigo = internacao.leito_ref.codigo
+        setor = internacao.leito_ref.setor.nome
+
+    return {
+        "codigo": codigo,
+        "status": "ocupado",
+        "paciente": nome_paciente(internacao.acolhimento),
+        "bam": internacao.acolhimento.numero_bam or "",
+        "setor": setor,
+    }
+
+
+def resumo_leito_vago(codigo, setor):
+    return {
+        "codigo": codigo,
+        "status": "vago",
+        "paciente": "",
+        "bam": "",
+        "setor": setor,
+    }
+
+
+def montar_mapa_leitos(internacoes):
+    internacoes = list(internacoes)
+    ocupados_por_leito = {}
+    for internacao in internacoes:
+        for chave in chaves_internacao(internacao):
+            if chave:
+                ocupados_por_leito[chave] = internacao
+
+    leitos_usados = set()
+    grupos = []
+    leitos_cadastrados = list(
+        LeitoInternacao.objects
+        .select_related("setor")
+        .filter(
+            setor__ativo=True,
+            status_operacional=LeitoInternacao.ATIVO,
+        )
+        .order_by("setor__ordem", "setor__nome", "ordem", "codigo")
+    )
+
+    if leitos_cadastrados:
+        setores = {}
+        for leito in leitos_cadastrados:
+            setores.setdefault(leito.setor.nome, []).append(leito)
+
+        for setor, leitos_do_setor in setores.items():
+            leitos = []
+            for leito in leitos_do_setor:
+                chaves = [
+                    chave_leito_cadastrado(leito.id),
+                    chave_leito(leito.codigo, setor),
+                    chave_leito(leito.codigo),
+                ]
+                internacao = next(
+                    (
+                        ocupados_por_leito.get(chave)
+                        for chave in chaves
+                        if ocupados_por_leito.get(chave)
+                    ),
+                    None,
+                )
+
+                if internacao:
+                    leitos.append(resumo_leito_ocupado(internacao))
+                    leitos_usados.update(chaves)
+                else:
+                    leitos.append(resumo_leito_vago(leito.codigo, setor))
+
+            grupos.append({"setor": setor, "leitos": leitos})
+    else:
+        for setor, codigos in LEITOS_PADRAO.items():
+            leitos = []
+            for codigo in codigos:
+                chaves = [chave_leito(codigo, setor), chave_leito(codigo)]
+                internacao = next(
+                    (
+                        ocupados_por_leito.get(chave)
+                        for chave in chaves
+                        if ocupados_por_leito.get(chave)
+                    ),
+                    None,
+                )
+
+                if internacao:
+                    leitos.append(resumo_leito_ocupado(internacao))
+                    leitos_usados.update(chaves)
+                else:
+                    leitos.append(resumo_leito_vago(codigo, setor))
+
+            grupos.append({"setor": setor, "leitos": leitos})
+
+    ocupados_extras = []
+    for internacao in internacoes:
+        if any(chave in leitos_usados for chave in chaves_internacao(internacao)):
+            continue
+
+        ocupados_extras.append(resumo_leito_ocupado(internacao))
+
+    if ocupados_extras:
+        grupos.append(
+            {
+                "setor": "Outros leitos em uso",
+                "leitos": ocupados_extras,
+            }
+        )
+
+    total_ocupados = len(internacoes)
+    total_vagos = sum(
+        1
+        for grupo in grupos
+        for leito in grupo["leitos"]
+        if leito["status"] == "vago"
+    )
+
+    return {
+        "grupos": grupos,
+        "total_ocupados": total_ocupados,
+        "total_vagos": total_vagos,
+    }
 
 
 def dados_evolucao_para_impressao(evolucao):
@@ -157,6 +323,8 @@ def buscar_dados_impressao_internacao(request):
                 "acolhimento__paciente",
                 "acolhimento__classificacao",
                 "acolhimento__consulta_medica",
+                "leito_ref",
+                "leito_ref__setor",
             )
             .prefetch_related("evolucoes")
             .get(id=internacao_id)
@@ -190,6 +358,8 @@ def internacao_dashboard(request):
             "acolhimento__paciente",
             "acolhimento__classificacao",
             "acolhimento__consulta_medica",
+            "leito_ref",
+            "leito_ref__setor",
         )
         .prefetch_related("evolucoes")
         .filter(status="INTERNADO")
@@ -214,6 +384,7 @@ def internacao_dashboard(request):
         aguardando_internacao,
         "INTERNACAO",
     )
+    mapa_leitos = montar_mapa_leitos(internacoes_ativas)
 
     return render(
         request,
@@ -225,9 +396,226 @@ def internacao_dashboard(request):
             "total_aguardando": len(aguardando_internacao),
             "total_internados": internacoes_ativas.count(),
             "total_altas_hoje": altas_hoje,
+            "mapa_leitos": mapa_leitos,
+            "total_leitos_vagos": mapa_leitos["total_vagos"],
+            "total_leitos_ocupados": mapa_leitos["total_ocupados"],
             "dados_impressao_internacao": dados_impressao,
         }
     )
+
+
+def leitos_ocupados_por_id():
+    return {
+        internacao.leito_ref_id: internacao
+        for internacao in (
+            Internacao.objects
+            .select_related("acolhimento", "acolhimento__paciente")
+            .filter(status="INTERNADO", leito_ref__isnull=False)
+        )
+    }
+
+
+def aplicar_filtros_leitos(queryset, request, ocupados):
+    busca = (request.GET.get("q") or "").strip()
+    setor_id = (request.GET.get("setor") or "").strip()
+    status = (request.GET.get("status") or "").strip()
+    ocupacao = (request.GET.get("ocupacao") or "").strip()
+
+    if busca:
+        queryset = queryset.filter(
+            Q(codigo__icontains=busca)
+            | Q(observacao__icontains=busca)
+            | Q(setor__nome__icontains=busca)
+        )
+
+    if setor_id:
+        queryset = queryset.filter(setor_id=setor_id)
+
+    if status:
+        queryset = queryset.filter(status_operacional=status)
+
+    leitos = list(queryset)
+
+    if ocupacao == "ocupados":
+        leitos = [leito for leito in leitos if leito.id in ocupados]
+    elif ocupacao == "vagos":
+        leitos = [
+            leito
+            for leito in leitos
+            if leito.status_operacional == LeitoInternacao.ATIVO
+            and leito.id not in ocupados
+        ]
+
+    for leito in leitos:
+        leito.internacao_atual = ocupados.get(leito.id)
+        leito.ocupado = leito.internacao_atual is not None
+
+    return leitos, {
+        "q": busca,
+        "setor": setor_id,
+        "status": status,
+        "ocupacao": ocupacao,
+    }
+
+
+def gestao_leitos(request):
+    setor_edicao = None
+    leito_edicao = None
+
+    if request.method == "POST":
+        form_tipo = request.POST.get("form_tipo")
+
+        if form_tipo == "setor":
+            setor_id = request.POST.get("setor_id")
+            if setor_id:
+                setor_edicao = get_object_or_404(SetorInternacao, id=setor_id)
+
+            setor_form = SetorInternacaoForm(request.POST, instance=setor_edicao)
+            leito_form = LeitoInternacaoForm()
+
+            if setor_form.is_valid():
+                setor = setor_form.save()
+                messages.success(request, f"Setor {setor.nome} salvo com sucesso.")
+                return redirect("gestao_leitos")
+
+            messages.error(request, "Confira os dados do setor.")
+
+        elif form_tipo == "leito":
+            leito_id = request.POST.get("leito_id")
+            if leito_id:
+                leito_edicao = get_object_or_404(LeitoInternacao, id=leito_id)
+
+            setor_form = SetorInternacaoForm()
+            leito_form = LeitoInternacaoForm(request.POST, instance=leito_edicao)
+
+            if leito_form.is_valid():
+                leito = leito_form.save()
+                messages.success(request, f"Leito {leito.codigo} salvo com sucesso.")
+                return redirect("gestao_leitos")
+
+            messages.error(request, "Confira os dados do leito.")
+
+        else:
+            setor_form = SetorInternacaoForm()
+            leito_form = LeitoInternacaoForm()
+            messages.warning(request, "Acao invalida.")
+    else:
+        editar_setor = request.GET.get("editar_setor")
+        editar_leito = request.GET.get("editar_leito")
+
+        if editar_setor:
+            setor_edicao = get_object_or_404(SetorInternacao, id=editar_setor)
+
+        if editar_leito:
+            leito_edicao = get_object_or_404(
+                LeitoInternacao.objects.select_related("setor"),
+                id=editar_leito,
+            )
+
+        setor_form = SetorInternacaoForm(instance=setor_edicao)
+        leito_form = LeitoInternacaoForm(instance=leito_edicao)
+
+    setores = (
+        SetorInternacao.objects
+        .annotate(total_leitos=Count("leitos"))
+        .order_by("ordem", "nome")
+    )
+    ocupados = leitos_ocupados_por_id()
+    leitos_queryset = (
+        LeitoInternacao.objects
+        .select_related("setor")
+        .order_by("setor__ordem", "setor__nome", "ordem", "codigo")
+    )
+    leitos, filtros = aplicar_filtros_leitos(leitos_queryset, request, ocupados)
+    total_ativos = LeitoInternacao.objects.filter(
+        status_operacional=LeitoInternacao.ATIVO,
+        setor__ativo=True,
+    ).count()
+    total_ocupados = len(ocupados)
+
+    contexto = {
+        "setor_form": setor_form,
+        "leito_form": leito_form,
+        "setor_edicao": setor_edicao,
+        "leito_edicao": leito_edicao,
+        "setores": setores,
+        "leitos": leitos,
+        "filtros": filtros,
+        "status_choices": LeitoInternacao.STATUS_OPERACIONAL_CHOICES,
+        "total_setores": SetorInternacao.objects.count(),
+        "total_leitos": LeitoInternacao.objects.count(),
+        "total_ativos": total_ativos,
+        "total_ocupados": total_ocupados,
+        "total_vagos": max(total_ativos - total_ocupados, 0),
+        "total_manutencao": LeitoInternacao.objects.filter(
+            status_operacional=LeitoInternacao.MANUTENCAO,
+        ).count(),
+        "total_bloqueados": LeitoInternacao.objects.filter(
+            status_operacional=LeitoInternacao.BLOQUEADO,
+        ).count(),
+    }
+
+    return render(request, "internacao/leitos.html", contexto)
+
+
+@require_POST
+def alterar_status_leito(request, leito_id):
+    leito = get_object_or_404(LeitoInternacao, id=leito_id)
+    novo_status = request.POST.get("status_operacional")
+    status_validos = {
+        codigo
+        for codigo, _rotulo in LeitoInternacao.STATUS_OPERACIONAL_CHOICES
+    }
+
+    if novo_status not in status_validos:
+        messages.error(request, "Status de leito invalido.")
+        return redirect("gestao_leitos")
+
+    internacao = (
+        Internacao.objects
+        .select_related("acolhimento", "acolhimento__paciente")
+        .filter(status="INTERNADO", leito_ref=leito)
+        .first()
+    )
+
+    if internacao and novo_status != LeitoInternacao.ATIVO:
+        messages.error(
+            request,
+            "Nao e possivel bloquear ou colocar em manutencao um leito ocupado.",
+        )
+        return redirect("gestao_leitos")
+
+    leito.status_operacional = novo_status
+    leito.save(update_fields=["status_operacional", "atualizado_em"])
+    messages.success(request, f"Status do leito {leito.codigo} atualizado.")
+
+    return redirect("gestao_leitos")
+
+
+@require_POST
+def alterar_status_setor(request, setor_id):
+    setor = get_object_or_404(SetorInternacao, id=setor_id)
+    ativar = request.POST.get("ativo") == "1"
+
+    if not ativar and Internacao.objects.filter(
+        status="INTERNADO",
+        leito_ref__setor=setor,
+    ).exists():
+        messages.error(
+            request,
+            "Nao e possivel desativar um setor com paciente internado.",
+        )
+        return redirect("gestao_leitos")
+
+    setor.ativo = ativar
+    setor.save(update_fields=["ativo"])
+
+    if setor.ativo:
+        messages.success(request, f"Setor {setor.nome} ativado.")
+    else:
+        messages.warning(request, f"Setor {setor.nome} desativado.")
+
+    return redirect("gestao_leitos")
 
 
 def registrar_internacao(request, acolhimento_id):
@@ -249,6 +637,41 @@ def registrar_internacao(request, acolhimento_id):
         form = InternacaoForm(request.POST, instance=internacao)
 
         if form.is_valid():
+            leito_informado = (form.cleaned_data.get("leito") or "").strip()
+            setor_informado = (form.cleaned_data.get("setor") or "").strip()
+            leito_em_uso = Internacao.objects.filter(status="INTERNADO")
+
+            if setor_informado:
+                leito_em_uso = leito_em_uso.filter(
+                    Q(leito__iexact=leito_informado, setor__iexact=setor_informado)
+                    | Q(
+                        leito_ref__codigo__iexact=leito_informado,
+                        leito_ref__setor__nome__iexact=setor_informado,
+                    )
+                )
+            else:
+                leito_em_uso = leito_em_uso.filter(
+                    Q(leito__iexact=leito_informado)
+                    | Q(leito_ref__codigo__iexact=leito_informado)
+                )
+
+            if internacao and internacao.id:
+                leito_em_uso = leito_em_uso.exclude(id=internacao.id)
+
+            if leito_em_uso.exists():
+                form.add_error("leito", "Este leito ja esta ocupado por outro paciente.")
+                return render(
+                    request,
+                    "internacao/registrar.html",
+                    {
+                        "form": form,
+                        "acolhimento": acolhimento,
+                        "nome_paciente": nome_paciente(acolhimento),
+                        "consulta": related_or_none(acolhimento, "consulta_medica"),
+                        "classificacao": related_or_none(acolhimento, "classificacao"),
+                    }
+                )
+
             internacao = form.save(commit=False)
             internacao.acolhimento = acolhimento
             internacao.status = "INTERNADO"
@@ -274,6 +697,14 @@ def registrar_internacao(request, acolhimento_id):
         initial = {
             "profissional_responsavel": nome_usuario(request),
         }
+        leito_param = (request.GET.get("leito") or "").strip()
+        setor_param = (request.GET.get("setor") or "").strip()
+
+        if leito_param:
+            initial["leito"] = leito_param
+
+        if setor_param:
+            initial["setor"] = setor_param
 
         consulta = related_or_none(acolhimento, "consulta_medica")
 
@@ -303,6 +734,8 @@ def detalhe_internacao(request, internacao_id):
             "acolhimento__paciente",
             "acolhimento__classificacao",
             "acolhimento__consulta_medica",
+            "leito_ref",
+            "leito_ref__setor",
         ).prefetch_related("evolucoes"),
         id=internacao_id,
     )

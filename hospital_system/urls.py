@@ -35,4 +35,14 @@ urlpatterns = [
     path("painel/", include("painel.urls")),
 
     path("ambulancia/", include("ambulancia.urls")),
+
+    path("auditoria/", include("auditoria.urls")),
+
+    path("funcionarios/", include("funcionarios.urls")),
+
+    path("relatorios/", include("relatorios.urls")),
+
+    path("almoxarifado/", include("almoxarifado.urls")),
+
+    path("ouvidoria/", include("ouvidoria.urls")),
 ]

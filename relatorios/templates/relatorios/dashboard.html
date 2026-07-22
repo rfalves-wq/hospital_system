@@ -1,0 +1,410 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'relatorios/css/dashboard.css' %}?v=20260721-4">
+{% endblock %}
+
+{% block content %}
+<main class="reports-page">
+    <section class="report-tabs" id="reportTabs">
+        <button type="button" class="active" data-report-target="#pane-dashboard">Dashboard da<br>unidade</button>
+        <button type="button" data-report-target="#pane-historico">Historico de<br>indicadores</button>
+        <button type="button" data-report-target="#pane-financeiro">Indicadores<br>financeiros</button>
+        <button type="button" data-report-target="#pane-internacao">Relatorio de<br>internacao</button>
+        <button type="button" data-report-target="#pane-enfermaria">Relatorio de<br>enfermaria</button>
+        <button type="button" data-report-target="#pane-insumos">Relatorio de<br>insumos</button>
+        <button type="button" data-report-target="#pane-mensais">Relatorios<br>mensais</button>
+        <button type="button" data-report-target="#pane-risco">Relatorio de<br>classificacao de risco</button>
+        <button type="button" data-report-target="#pane-almoxarifado">Relatorio de<br>almoxarifado</button>
+        <button type="button" data-report-target="#pane-exames">Relatorios de<br>exames</button>
+        <button type="button" data-report-target="#pane-procedimentos">Relatorio de<br>procedimentos</button>
+        <button type="button" data-report-target="#pane-recepcao">Relatorio de<br>recepcao</button>
+        <button type="button" data-report-target="#pane-medico">Relatorio de<br>atendimento medico</button>
+        <button type="button" data-report-target="#pane-recorrentes">Pacientes<br>recorrentes</button>
+        <button type="button" data-report-target="#pane-satisfacao">Pesquisa de<br>satisfacao</button>
+        <button type="button" data-report-target="#pane-satisfacao-mensal">Pesquisa de<br>satisfacao mensal</button>
+    </section>
+
+    <section class="report-filter">
+        <div>
+            <strong>Periodo:</strong>
+            <span>{{ periodo.inicio_data|date:"d/m/Y" }} ate {{ periodo.fim_data|date:"d/m/Y" }}</span>
+        </div>
+        <form method="get">
+            <div class="quick-periods">
+                {% for atalho in atalhos_periodo %}
+                    <a href="?inicio={{ atalho.inicio }}&fim={{ atalho.fim }}"
+                       class="{% if periodo.inicio_iso == atalho.inicio and periodo.fim_iso == atalho.fim %}active{% endif %}">
+                        {{ atalho.rotulo }}
+                    </a>
+                {% endfor %}
+            </div>
+            <input type="date" name="inicio" value="{{ periodo.inicio_data|date:'Y-m-d' }}" class="form-control">
+            <input type="date" name="fim" value="{{ periodo.fim_data|date:'Y-m-d' }}" class="form-control">
+            <button type="submit" class="btn btn-primary fw-bold">Atualizar</button>
+            <a href="{% url 'relatorios_exportar' %}?{{ request.GET.urlencode }}" class="btn btn-outline-dark fw-bold">CSV</a>
+            <a href="{% url 'dashboard' %}" class="btn btn-light fw-bold">Inicio</a>
+        </form>
+    </section>
+
+    <section class="report-pane active" id="pane-dashboard">
+        <article class="ops-section">
+            <header class="ops-head">
+                <i></i>
+                <div>
+                    <h1>Dashboard operacional da unidade</h1>
+                    <p>Indicadores em tempo real para acompanhamento administrativo, com janela operacional de {{ periodo.dias }} dia(s).</p>
+                </div>
+            </header>
+
+            <div class="metric-grid four">
+                {% for card in dashboard_operacional %}
+                    <div class="metric-card {{ card.classe }}">
+                        <span>{{ card.rotulo }}</span>
+                        <strong>{{ card.valor }}</strong>
+                    </div>
+                {% endfor %}
+            </div>
+        </article>
+
+        <article class="ops-section">
+            <header class="ops-head">
+                <i></i>
+                <div>
+                    <h2>Situacao atual da unidade</h2>
+                    <p>Leitura em tempo real das filas e encaminhamentos ativos.</p>
+                </div>
+            </header>
+
+            <div class="metric-grid four">
+                {% for card in situacao_atual %}
+                    <div class="metric-card compact {{ card.classe }}">
+                        <span>{{ card.rotulo }}</span>
+                        <strong>{{ card.valor }}</strong>
+                    </div>
+                {% endfor %}
+            </div>
+        </article>
+
+        <article class="ops-section">
+            <header class="ops-head">
+                <i></i>
+                <div>
+                    <h2>Classificacao de risco ({{ periodo.dias }} dias)</h2>
+                    <p>Distribuicao operacional das triagens registradas no periodo.</p>
+                </div>
+            </header>
+
+            <div class="risk-grid">
+                {% for item in classificacao_resumo %}
+                    <div class="risk-card {{ item.classe }}">
+                        <span>{{ item.rotulo }}</span>
+                        <strong>{{ item.total }}</strong>
+                    </div>
+                {% endfor %}
+            </div>
+        </article>
+
+        <article class="ops-section">
+            <header class="ops-head">
+                <i></i>
+                <div>
+                    <h2>Triagens da ultima semana</h2>
+                    <p>Ultimas triagens classificadas de forma recente.</p>
+                </div>
+            </header>
+
+            <div class="table-frame">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Paciente</th>
+                            <th>Chegada</th>
+                            <th>BAM</th>
+                            <th>Risco</th>
+                            <th>Usuario</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for triagem in triagens_semana %}
+                            <tr>
+                                <td>{{ triagem.paciente }}</td>
+                                <td>{{ triagem.chegada|date:"d/m/Y H:i" }}</td>
+                                <td>{{ triagem.bam }}</td>
+                                <td><span class="risk-pill {{ triagem.risco_classe }}">{{ triagem.risco }}</span></td>
+                                <td>{{ triagem.usuario }}</td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="5" class="empty-cell">Nenhuma triagem registrada nos ultimos 7 dias.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </article>
+
+        <article class="ops-section">
+            <header class="ops-head">
+                <i></i>
+                <div>
+                    <h2>Agenda da ultima semana</h2>
+                    <p>Agendamentos recentes registrados na unidade.</p>
+                </div>
+            </header>
+
+            <div class="agenda-box">
+                {% if agenda_semana %}
+                    {% for item in agenda_semana %}
+                        <div>{{ item }}</div>
+                    {% endfor %}
+                {% else %}
+                    Nenhum agendamento registrado nos ultimos 7 dias.
+                {% endif %}
+            </div>
+        </article>
+    </section>
+
+    <section class="report-pane" id="pane-historico">
+        <article class="ops-section">
+            <header class="ops-head"><i></i><div><h2>Historico de indicadores</h2><p>Movimento diario por atendimento, classificacao, consulta e ambulancia.</p></div></header>
+            {% if serie_operacional.maximo %}
+                <div class="stack-chart">
+                    {% for dia in serie_operacional.dias %}
+                        <div class="stack-day">
+                            <div class="stack-bars">
+                                <i class="bar-atendimento" style="--h: {{ dia.atendimentos_pct }}%;" title="Atendimentos: {{ dia.atendimentos }}"></i>
+                                <i class="bar-risco" style="--h: {{ dia.classificacoes_pct }}%;" title="Classificacoes: {{ dia.classificacoes }}"></i>
+                                <i class="bar-consulta" style="--h: {{ dia.consultas_pct }}%;" title="Consultas: {{ dia.consultas }}"></i>
+                                <i class="bar-ambulancia" style="--h: {{ dia.ambulancias_pct }}%;" title="Ambulancias: {{ dia.ambulancias }}"></i>
+                            </div>
+                            <small>{{ dia.rotulo }}</small>
+                        </div>
+                    {% endfor %}
+                </div>
+                <div class="chart-legend">
+                    <span class="bar-atendimento">Atendimentos</span>
+                    <span class="bar-risco">Classificacoes</span>
+                    <span class="bar-consulta">Consultas</span>
+                    <span class="bar-ambulancia">Ambulancias</span>
+                </div>
+            {% else %}
+                <div class="empty-panel">Sem movimento registrado no periodo.</div>
+            {% endif %}
+        </article>
+    </section>
+
+    <section class="report-pane" id="pane-financeiro">
+        <article class="ops-section">
+            <header class="ops-head"><i></i><div><h2>Indicadores financeiros</h2><p>Resumo reservado para o modulo de faturamento.</p></div></header>
+            <div class="empty-panel">Ainda nao existem dados financeiros cadastrados para este periodo.</div>
+        </article>
+    </section>
+
+    <section class="report-pane" id="pane-internacao">
+        <article class="ops-section">
+            <header class="ops-head"><i></i><div><h2>Relatorio de internacao</h2><p>Pacientes aguardando ou encaminhados para internacao.</p></div></header>
+            <div class="metric-grid three">
+                <div class="metric-card amarelo"><span>Internacoes pendentes</span><strong>{{ situacao_atual.3.valor }}</strong></div>
+                <div class="metric-card verde"><span>Ambulancias ativas</span><strong>{{ ambulancia.ativas }}</strong></div>
+                <div class="metric-card azul"><span>Tempo medio hospital</span><strong>{{ cards.3.valor }}</strong></div>
+            </div>
+        </article>
+    </section>
+
+    <section class="report-pane" id="pane-enfermaria">
+        <article class="ops-section">
+            <header class="ops-head"><i></i><div><h2>Relatorio de enfermaria</h2><p>Tempo medio e registros por setor assistencial.</p></div></header>
+            <div class="hbar-list">
+                {% for item in tempos_setores %}
+                    <div class="hbar-row">
+                        <div><span>{{ item.setor }}</span><strong>{{ item.media }}</strong></div>
+                        <b><i style="width: {{ item.percentual_media }}%"></i></b>
+                    </div>
+                {% empty %}
+                    <div class="empty-panel">Sem tempos registrados no periodo.</div>
+                {% endfor %}
+            </div>
+        </article>
+    </section>
+
+    <section class="report-pane" id="pane-insumos">
+        <article class="ops-section">
+            <header class="ops-head"><i></i><div><h2>Relatorio de insumos</h2><p>Farmacia e almoxarifado.</p></div></header>
+            <div class="metric-grid four">
+                <div class="metric-card amarelo"><span>Farmacia estoque baixo</span><strong>{{ farmacia.estoque_baixo }}</strong></div>
+                <div class="metric-card vermelho"><span>Farmacia vencidos</span><strong>{{ farmacia.vencidos }}</strong></div>
+                <div class="metric-card amarelo"><span>Almox estoque baixo</span><strong>{{ almoxarifado.estoque_baixo }}</strong></div>
+                <div class="metric-card vermelho"><span>Almox zerados</span><strong>{{ almoxarifado.zerados }}</strong></div>
+            </div>
+        </article>
+    </section>
+
+    <section class="report-pane" id="pane-mensais">
+        <article class="ops-section">
+            <header class="ops-head"><i></i><div><h2>Relatorios mensais</h2><p>Resumo do periodo selecionado para exportacao.</p></div></header>
+            <div class="metric-grid three">
+                {% for card in cards %}
+                    <div class="metric-card {{ card.classe }}"><span>{{ card.rotulo }}</span><strong>{{ card.valor }}</strong></div>
+                {% endfor %}
+            </div>
+        </article>
+    </section>
+
+    <section class="report-pane" id="pane-risco">
+        <article class="ops-section">
+            <header class="ops-head"><i></i><div><h2>Relatorio de classificacao de risco</h2><p>Distribuicao por cor e status de atendimento.</p></div></header>
+            <div class="risk-grid">
+                {% for item in classificacao_resumo %}
+                    <div class="risk-card {{ item.classe }}"><span>{{ item.rotulo }}</span><strong>{{ item.total }}</strong></div>
+                {% endfor %}
+            </div>
+            <div class="hbar-list">
+                {% for item in status_atendimento %}
+                    <div class="hbar-row">
+                        <div><span>{{ item.rotulo }}</span><strong>{{ item.total }}</strong></div>
+                        <b><i style="width: {{ item.percentual }}%"></i></b>
+                    </div>
+                {% empty %}
+                    <div class="empty-panel">Sem atendimentos no periodo.</div>
+                {% endfor %}
+            </div>
+        </article>
+    </section>
+
+    <section class="report-pane" id="pane-almoxarifado">
+        <article class="ops-section">
+            <header class="ops-head"><i></i><div><h2>Relatorio de almoxarifado</h2><p>Materiais, alertas e saidas do estoque.</p></div></header>
+            <div class="metric-grid four">
+                <div class="metric-card azul"><span>Materiais ativos</span><strong>{{ almoxarifado.materiais_ativos }}</strong></div>
+                <div class="metric-card amarelo"><span>Estoque baixo</span><strong>{{ almoxarifado.estoque_baixo }}</strong></div>
+                <div class="metric-card vermelho"><span>Zerados</span><strong>{{ almoxarifado.zerados }}</strong></div>
+                <div class="metric-card verde"><span>Saidas no periodo</span><strong>{{ almoxarifado.saidas }}</strong></div>
+            </div>
+            <div class="hbar-list">
+                {% for item in almoxarifado_top_saidas %}
+                    <div class="hbar-row">
+                        <div><span>{{ item.rotulo }}</span><strong>{{ item.total }}</strong></div>
+                        <b><i style="width: {{ item.percentual_maximo }}%"></i></b>
+                    </div>
+                {% empty %}
+                    <div class="empty-panel">Sem saidas do almoxarifado no periodo.</div>
+                {% endfor %}
+            </div>
+        </article>
+    </section>
+
+    <section class="report-pane" id="pane-exames">
+        <article class="ops-section">
+            <header class="ops-head"><i></i><div><h2>Relatorios de exames</h2><p>Solicitacoes e resultados de laboratorio e imagem.</p></div></header>
+            <div class="metric-grid four">
+                <div class="metric-card azul"><span>Lab. solicitados</span><strong>{{ procedimentos_medicos.laboratorio_solicitado }}</strong></div>
+                <div class="metric-card verde"><span>Lab. realizados</span><strong>{{ procedimentos_medicos.laboratorio_realizado }}</strong></div>
+                <div class="metric-card azul"><span>Imagem solicitada</span><strong>{{ procedimentos_medicos.imagem_solicitada }}</strong></div>
+                <div class="metric-card verde"><span>Imagem realizada</span><strong>{{ procedimentos_medicos.imagem_realizada }}</strong></div>
+            </div>
+        </article>
+    </section>
+
+    <section class="report-pane" id="pane-procedimentos">
+        <article class="ops-section">
+            <header class="ops-head"><i></i><div><h2>Relatorio de procedimentos</h2><p>Medicacao, exames e procedimentos solicitados pelo medico.</p></div></header>
+            <div class="metric-grid three">
+                <div class="metric-card azul"><span>Medicacao solicitada</span><strong>{{ procedimentos_medicos.medicacao_solicitada }}</strong></div>
+                <div class="metric-card verde"><span>Medicacao realizada</span><strong>{{ procedimentos_medicos.medicacao_realizada }}</strong></div>
+                <div class="metric-card amarelo"><span>Pendencias abertas</span><strong>{{ cards.4.valor }}</strong></div>
+            </div>
+        </article>
+    </section>
+
+    <section class="report-pane" id="pane-recepcao">
+        <article class="ops-section">
+            <header class="ops-head"><i></i><div><h2>Relatorio de recepcao</h2><p>Fila administrativa e boletins do periodo.</p></div></header>
+            <div class="metric-grid four">
+                <div class="metric-card verde"><span>Aguardando recepcao</span><strong>{{ situacao_atual.1.valor }}</strong></div>
+                <div class="metric-card azul"><span>Atendimentos no periodo</span><strong>{{ cards.0.valor }}</strong></div>
+                <div class="metric-card verde"><span>Finalizados</span><strong>{{ cards.1.valor }}</strong></div>
+                <div class="metric-card vermelho"><span>Alertas auditoria</span><strong>{{ cards.5.valor }}</strong></div>
+            </div>
+        </article>
+    </section>
+
+    <section class="report-pane" id="pane-medico">
+        <article class="ops-section">
+            <header class="ops-head"><i></i><div><h2>Relatorio de atendimento medico</h2><p>Consultas, condutas, CIDs e continuidade medica.</p></div></header>
+            <div class="metric-grid four">
+                <div class="metric-card azul"><span>Consultas</span><strong>{{ cards.2.valor }}</strong></div>
+                <div class="metric-card amarelo"><span>Transferencias</span><strong>{{ transferencias_medicas }}</strong></div>
+                <div class="metric-card verde"><span>Reavaliacoes</span><strong>{{ reavaliacoes_medicas }}</strong></div>
+                <div class="metric-card cinza"><span>Fila medica agora</span><strong>{{ situacao_atual.2.valor }}</strong></div>
+            </div>
+            <div class="hbar-list">
+                {% for item in condutas_medicas %}
+                    <div class="hbar-row">
+                        <div><span>{{ item.rotulo }}</span><strong>{{ item.total }}</strong></div>
+                        <b><i style="width: {{ item.percentual }}%"></i></b>
+                    </div>
+                {% empty %}
+                    <div class="empty-panel">Sem consultas no periodo.</div>
+                {% endfor %}
+            </div>
+        </article>
+    </section>
+
+    <section class="report-pane" id="pane-recorrentes">
+        <article class="ops-section">
+            <header class="ops-head"><i></i><div><h2>Pacientes recorrentes</h2><p>Pacientes com mais de uma passagem no periodo.</p></div></header>
+            <div class="table-frame">
+                <table>
+                    <thead><tr><th>Paciente</th><th>CPF</th><th>Passagens</th></tr></thead>
+                    <tbody>
+                        {% for item in pacientes_recorrentes %}
+                            <tr><td>{{ item.nome_paciente }}</td><td>{{ item.cpf }}</td><td>{{ item.total }}</td></tr>
+                        {% empty %}
+                            <tr><td colspan="3" class="empty-cell">Nenhum paciente recorrente no periodo.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </article>
+    </section>
+
+    <section class="report-pane" id="pane-satisfacao">
+        <article class="ops-section">
+            <header class="ops-head"><i></i><div><h2>Pesquisa de satisfacao</h2><p>Indicadores de experiencia do paciente.</p></div></header>
+            <div class="empty-panel">Ainda nao existem pesquisas de satisfacao cadastradas.</div>
+        </article>
+    </section>
+
+    <section class="report-pane" id="pane-satisfacao-mensal">
+        <article class="ops-section">
+            <header class="ops-head"><i></i><div><h2>Pesquisa de satisfacao mensal</h2><p>Consolidado mensal das pesquisas.</p></div></header>
+            <div class="empty-panel">Ainda nao existem pesquisas mensais cadastradas.</div>
+        </article>
+    </section>
+</main>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.querySelectorAll("#reportTabs [data-report-target]").forEach(function (botao) {
+        botao.addEventListener("click", function () {
+            var alvo = document.querySelector(botao.getAttribute("data-report-target"));
+            if (!alvo) {
+                return;
+            }
+
+            document.querySelectorAll("#reportTabs button").forEach(function (item) {
+                item.classList.remove("active");
+            });
+            document.querySelectorAll(".report-pane").forEach(function (painel) {
+                painel.classList.remove("active");
+            });
+
+            botao.classList.add("active");
+            alvo.classList.add("active");
+        });
+    });
+</script>
+{% endblock %}

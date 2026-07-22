@@ -29,4 +29,31 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
     }
+
+    document.querySelectorAll("[data-bed-code]").forEach(function (botaoLeito) {
+        botaoLeito.addEventListener("click", function () {
+            const codigo = botaoLeito.dataset.bedCode || "";
+            const setor = botaoLeito.dataset.bedSector || "";
+            const tituloLeito = document.getElementById("modal-leito-codigo");
+
+            if (tituloLeito) {
+                tituloLeito.textContent = codigo;
+            }
+
+            document.querySelectorAll("[data-internacao-link]").forEach(function (link) {
+                const baseUrl = link.dataset.baseUrl || link.getAttribute("href");
+                const params = new URLSearchParams();
+
+                if (codigo) {
+                    params.set("leito", codigo);
+                }
+
+                if (setor) {
+                    params.set("setor", setor);
+                }
+
+                link.setAttribute("href", `${baseUrl}?${params.toString()}`);
+            });
+        });
+    });
 });

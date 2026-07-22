@@ -2,6 +2,8 @@ from datetime import date
 
 from django.conf import settings
 from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from django.utils import timezone
 
 from acolhimento.models import Acolhimento
@@ -230,3 +232,160 @@ class SolicitacaoAmbulancia(models.Model):
             return None
 
         return self.km_chegada - self.km_saida
+
+
+class MembroEquipeAmbulancia(models.Model):
+    RESPONSAVEL = "RESPONSAVEL"
+    MOTORISTA = "MOTORISTA"
+    MEDICO = "MEDICO"
+    ENFERMEIRO = "ENFERMEIRO"
+    TECNICO = "TECNICO"
+    OUTRO = "OUTRO"
+
+    PAPEL_CHOICES = [
+        (RESPONSAVEL, "Responsavel pelo transporte"),
+        (MOTORISTA, "Motorista"),
+        (MEDICO, "Medico"),
+        (ENFERMEIRO, "Enfermeiro"),
+        (TECNICO, "Tecnico de enfermagem"),
+        (OUTRO, "Outro"),
+    ]
+
+    solicitacao = models.ForeignKey(
+        SolicitacaoAmbulancia,
+        on_delete=models.CASCADE,
+        related_name="equipe_normalizada",
+    )
+    funcionario = models.ForeignKey(
+        "funcionarios.Funcionario",
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name="transportes_ambulancia",
+    )
+    papel = models.CharField(max_length=20, choices=PAPEL_CHOICES, db_index=True)
+    nome = models.CharField(max_length=150)
+    conselho = models.CharField(max_length=20, blank=True, default="")
+    registro = models.CharField(max_length=60, blank=True, default="")
+    telefone = models.CharField(max_length=30, blank=True, default="")
+    ordem = models.PositiveSmallIntegerField(default=0)
+    criado_em = models.DateTimeField(auto_now_add=True)
+    atualizado_em = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["solicitacao", "ordem", "nome"]
+        verbose_name = "Membro da equipe da ambulancia"
+        verbose_name_plural = "Membros da equipe da ambulancia"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["solicitacao", "papel", "nome"],
+                name="amb_equipe_papel_nome_unico",
+            ),
+        ]
+        indexes = [
+            models.Index(fields=["solicitacao", "papel"], name="amb_eq_solic_papel_idx"),
+        ]
+
+    def __str__(self):
+        return f"{self.get_papel_display()} - {self.nome}"
+
+    @classmethod
+    def sincronizar_legado(cls, solicitacao):
+        dados = [
+            (cls.RESPONSAVEL, solicitacao.responsavel_transporte, 1),
+            (cls.MOTORISTA, solicitacao.motorista, 2),
+            (cls.MEDICO, solicitacao.medico_transporte, 3),
+            (cls.ENFERMEIRO, solicitacao.enfermeiro_transporte, 4),
+            (cls.TECNICO, solicitacao.tecnico_transporte, 5),
+        ]
+
+        for papel, nome, ordem in dados:
+            nome = (nome or "").strip()
+            if not nome:
+                continue
+
+            cls.objects.update_or_create(
+                solicitacao=solicitacao,
+                papel=papel,
+                nome=nome,
+                defaults={"ordem": ordem},
+            )
+
+
+class EquipamentoMedicoAmbulancia(models.Model):
+    nome = models.CharField(max_length=120, unique=True, db_index=True)
+    descricao = models.CharField(max_length=220, blank=True, default="")
+    ativo = models.BooleanField(default=True, db_index=True)
+    criado_em = models.DateTimeField(auto_now_add=True)
+    atualizado_em = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["nome"]
+        verbose_name = "Equipamento medico da ambulancia"
+        verbose_name_plural = "Equipamentos medicos da ambulancia"
+
+    def __str__(self):
+        return self.nome
+
+
+class EquipamentoSolicitacaoAmbulancia(models.Model):
+    solicitacao = models.ForeignKey(
+        SolicitacaoAmbulancia,
+        on_delete=models.CASCADE,
+        related_name="equipamentos_normalizados",
+    )
+    equipamento = models.ForeignKey(
+        EquipamentoMedicoAmbulancia,
+        on_delete=models.PROTECT,
+        related_name="solicitacoes",
+    )
+    quantidade = models.PositiveSmallIntegerField(default=1)
+    conferido_saida = models.BooleanField(default=False)
+    conferido_chegada = models.BooleanField(default=False)
+    observacao = models.CharField(max_length=255, blank=True, default="")
+    criado_em = models.DateTimeField(auto_now_add=True)
+    atualizado_em = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["solicitacao", "equipamento__nome"]
+        verbose_name = "Equipamento da solicitacao de ambulancia"
+        verbose_name_plural = "Equipamentos das solicitacoes de ambulancia"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["solicitacao", "equipamento"],
+                name="amb_solic_equip_unico",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.solicitacao_id} - {self.equipamento}"
+
+    @classmethod
+    def sincronizar_legado(cls, solicitacao):
+        import re
+
+        texto = solicitacao.equipamentos_medicos or ""
+        itens = [
+            item.strip()
+            for item in re.split(r"[\n;,]+", texto)
+            if item.strip()
+        ]
+
+        for item in itens:
+            equipamento, _criado = EquipamentoMedicoAmbulancia.objects.get_or_create(
+                nome=item[:120],
+            )
+            cls.objects.update_or_create(
+                solicitacao=solicitacao,
+                equipamento=equipamento,
+                defaults={"quantidade": 1},
+            )
+
+
+@receiver(post_save, sender=SolicitacaoAmbulancia)
+def sincronizar_ambulancia_normalizada(sender, instance, raw=False, **kwargs):
+    if raw:
+        return
+
+    MembroEquipeAmbulancia.sincronizar_legado(instance)
+    EquipamentoSolicitacaoAmbulancia.sincronizar_legado(instance)

@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'almoxarifado/css/dashboard.css' %}?v=20260721-1">
+{% endblock %}
+
+{% block content %}
+<main class="almox-page">
+    <section class="almox-hero">
+        <div>
+            <span>Materiais e suprimentos</span>
+            <h1>Almoxarifado</h1>
+            <p>Controle de entrada, sa&iacute;da, ajuste, estoque m&iacute;nimo e validade dos materiais.</p>
+        </div>
+        <div class="hero-actions">
+            <a href="{% url 'almoxarifado_material_novo' %}" class="btn btn-warning fw-bold">Novo material</a>
+            <a href="{% url 'dashboard' %}" class="btn btn-light fw-bold">In&iacute;cio</a>
+        </div>
+    </section>
+
+    {% if messages %}
+        <section class="messages-wrap">
+            {% for message in messages %}
+                <div class="alert {% if message.tags == 'success' %}alert-success{% elif message.tags == 'error' %}alert-danger{% elif message.tags == 'warning' %}alert-warning{% else %}alert-info{% endif %} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        </section>
+    {% endif %}
+
+    <section class="almox-metrics">
+        <article>
+            <span>Materiais ativos</span>
+            <strong>{{ total_ativos }}</strong>
+        </article>
+        <article class="warning">
+            <span>Estoque baixo</span>
+            <strong>{{ total_baixos }}</strong>
+        </article>
+        <article class="danger">
+            <span>Zerados</span>
+            <strong>{{ total_zerados }}</strong>
+        </article>
+        <article class="warning">
+            <span>Vencendo 30 dias</span>
+            <strong>{{ total_vencendo }}</strong>
+        </article>
+        <article class="danger">
+            <span>Vencidos</span>
+            <strong>{{ total_vencidos }}</strong>
+        </article>
+    </section>
+
+    <section class="almox-filter">
+        <form method="get">
+            <input type="text" name="q" value="{{ busca }}" class="form-control" placeholder="Buscar por material, c&oacute;digo, marca, fornecedor, localiza&ccedil;&atilde;o ou lote">
+            <select name="categoria" class="form-select">
+                <option value="">Todas as categorias</option>
+                {% for codigo, rotulo in categorias %}
+                    <option value="{{ codigo }}" {% if categoria == codigo %}selected{% endif %}>{{ rotulo }}</option>
+                {% endfor %}
+            </select>
+            <select name="status" class="form-select">
+                <option value="">Todos os status</option>
+                <option value="ativos" {% if status == "ativos" %}selected{% endif %}>Ativos</option>
+                <option value="baixos" {% if status == "baixos" %}selected{% endif %}>Estoque baixo</option>
+                <option value="zerados" {% if status == "zerados" %}selected{% endif %}>Zerados</option>
+                <option value="vencendo" {% if status == "vencendo" %}selected{% endif %}>Vencendo</option>
+                <option value="vencidos" {% if status == "vencidos" %}selected{% endif %}>Vencidos</option>
+                <option value="inativos" {% if status == "inativos" %}selected{% endif %}>Inativos</option>
+            </select>
+            <button type="submit" class="btn btn-primary fw-bold">Filtrar</button>
+            <a href="{% url 'almoxarifado_dashboard' %}" class="btn btn-outline-secondary fw-bold">Limpar</a>
+        </form>
+    </section>
+
+    <section class="almox-layout">
+        <div class="stock-panel">
+            <div class="panel-head">
+                <div>
+                    <h2>Estoque</h2>
+                    <small>{{ total_filtrado }} material(is) encontrado(s)</small>
+                </div>
+            </div>
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Material</th>
+                            <th>Categoria</th>
+                            <th>Estoque</th>
+                            <th>Local / validade</th>
+                            <th>Status</th>
+                            <th>A&ccedil;&atilde;o</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for material in materiais %}
+                            <tr>
+                                <td>
+                                    <strong>{{ material.nome }}</strong>
+                                    {% if material.codigo %}
+                                        <span>C&oacute;digo: {{ material.codigo }}</span>
+                                    {% endif %}
+                                    {% if material.descricao or material.marca %}
+                                        <small>{{ material.marca }}{% if material.marca and material.descricao %} - {% endif %}{{ material.descricao }}</small>
+                                    {% endif %}
+                                </td>
+                                <td>{{ material.get_categoria_display }}</td>
+                                <td>
+                                    <strong>{{ material.estoque_atual }}</strong>
+                                    <span>{{ material.unidade_medida }}</span>
+                                    <small>M&iacute;nimo: {{ material.estoque_minimo }}</small>
+                                </td>
+                                <td>
+                                    <span>{{ material.localizacao|default:"-" }}</span>
+                                    <small>Lote: {{ material.lote_atual|default:"-" }}</small>
+                                    <small>{{ material.texto_validade }}</small>
+                                </td>
+                                <td>
+                                    {% if not material.ativo %}
+                                        <span class="status-pill muted">Inativo</span>
+                                    {% elif material.zerado %}
+                                        <span class="status-pill danger">Zerado</span>
+                                    {% elif material.estoque_baixo %}
+                                        <span class="status-pill warning">Baixo</span>
+                                    {% else %}
+                                        <span class="status-pill success">OK</span>
+                                    {% endif %}
+                                    {% if material.classe_validade == "vencido" %}
+                                        <span class="status-pill danger">Vencido</span>
+                                    {% elif material.classe_validade == "vence-logo" %}
+                                        <span class="status-pill warning">Vence logo</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="action-row">
+                                        <a href="{% url 'almoxarifado_movimentar' material.id 'ENTRADA' %}" class="btn btn-outline-success btn-sm">Entrada</a>
+                                        <a href="{% url 'almoxarifado_movimentar' material.id 'SAIDA' %}" class="btn btn-outline-danger btn-sm">Sa&iacute;da</a>
+                                        <a href="{% url 'almoxarifado_movimentar' material.id 'AJUSTE' %}" class="btn btn-outline-secondary btn-sm">Ajuste</a>
+                                        <a href="{% url 'almoxarifado_material_editar' material.id %}" class="btn btn-primary btn-sm">Editar</a>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="6" class="empty-row">Nenhum material encontrado.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% if page_obj.paginator.num_pages > 1 %}
+                <nav class="pagination-wrap">
+                    {% if page_obj.has_previous %}
+                        <a href="?page={{ page_obj.previous_page_number }}{% if filtros_querystring %}&{{ filtros_querystring }}{% endif %}" class="btn btn-outline-primary btn-sm">Anterior</a>
+                    {% endif %}
+                    <span>P&aacute;gina {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+                    {% if page_obj.has_next %}
+                        <a href="?page={{ page_obj.next_page_number }}{% if filtros_querystring %}&{{ filtros_querystring }}{% endif %}" class="btn btn-outline-primary btn-sm">Pr&oacute;xima</a>
+                    {% endif %}
+                </nav>
+            {% endif %}
+        </div>
+
+        <aside class="movement-panel">
+            <div class="panel-head">
+                <div>
+                    <h2>Movimenta&ccedil;&otilde;es</h2>
+                    <small>&Uacute;ltimos registros</small>
+                </div>
+            </div>
+
+            <div class="movement-list">
+                {% for movimento in ultimas_movimentacoes %}
+                    <article class="{{ movimento.tipo|lower }}">
+                        <div>
+                            <strong>{{ movimento.material.nome }}</strong>
+                            <span>{{ movimento.get_tipo_display }} de {{ movimento.quantidade }} {{ movimento.material.unidade_medida }}</span>
+                        </div>
+                        <small>
+                            {{ movimento.criado_em|date:"d/m/Y H:i" }}
+                            {% if movimento.setor_destino %} - {{ movimento.setor_destino }}{% endif %}
+                        </small>
+                        <small>Saldo: {{ movimento.saldo_anterior }} &rarr; {{ movimento.saldo_atual }}</small>
+                    </article>
+                {% empty %}
+                    <div class="empty-side">Nenhuma movimenta&ccedil;&atilde;o registrada.</div>
+                {% endfor %}
+            </div>
+        </aside>
+    </section>
+</main>
+{% endblock %}

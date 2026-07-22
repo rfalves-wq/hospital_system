@@ -43,21 +43,29 @@ body {
 }
 
 .dashboard-page {
-    background: var(--bg);
+    background:
+        linear-gradient(180deg, #e8f1f9 0, #f4f7fb 240px, #f4f7fb 100%);
     min-height: calc(100vh - 54px);
 }
 
 .dashboard-container {
-    padding: 14px 12px 28px;
+    max-width: 1480px;
+    padding: 16px 14px 30px;
 }
 
 .dashboard-header {
-    background: linear-gradient(135deg, #0f4c81, #1d6fa5);
+    align-items: center;
+    background:
+        linear-gradient(135deg, rgba(15, 76, 129, .97), rgba(20, 124, 161, .96)),
+        #0f4c81;
     border-radius: 8px;
-    box-shadow: 0 6px 18px rgba(15, 76, 129, .14);
+    box-shadow: 0 10px 28px rgba(15, 76, 129, .20);
     color: #fff;
-    margin-bottom: 16px;
-    padding: 16px 20px;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 14px;
+    min-height: 118px;
+    padding: 20px 24px;
 }
 
 .dashboard-kicker {
@@ -86,14 +94,37 @@ body {
     margin: 4px 0 0;
 }
 
+.dashboard-header-badge {
+    align-items: flex-end;
+    background: rgba(255, 255, 255, .12);
+    border: 1px solid rgba(255, 255, 255, .22);
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    min-width: 132px;
+    padding: 12px 14px;
+}
+
+.dashboard-header-badge strong {
+    color: #fff;
+    font-size: 14px;
+    font-weight: 900;
+}
+
+.dashboard-header-badge span {
+    color: #dbeafe;
+    font-size: 12px;
+    font-weight: 800;
+}
+
 .dashboard-access-section {
     background: #fff;
     border: 1px solid var(--border);
     border-radius: 8px;
-    box-shadow: 0 3px 12px rgba(15, 23, 42, .055);
+    box-shadow: 0 6px 20px rgba(15, 23, 42, .06);
     margin: 0 auto;
-    max-width: 1180px;
-    padding: 14px;
+    max-width: 100%;
+    padding: 16px;
 }
 
 .pending-modules-section {
@@ -108,7 +139,7 @@ body {
     justify-content: space-between;
     margin-bottom: 12px;
     padding-bottom: 12px;
-    text-align: center;
+    text-align: left;
 }
 
 .dashboard-section-head > div {
@@ -117,7 +148,7 @@ body {
 
 .dashboard-section-head h4 {
     color: var(--text);
-    font-size: 17px;
+    font-size: 18px;
     font-weight: 850;
     margin: 0;
 }
@@ -131,13 +162,14 @@ body {
 
 .dashboard-access-grid {
     display: grid;
-    gap: 14px;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 320px));
-    justify-content: center;
+    gap: 12px;
+    grid-template-columns: repeat(auto-fit, minmax(245px, 1fr));
+    justify-content: stretch;
 }
 
 .pending-modules-grid {
-    grid-template-columns: repeat(auto-fit, minmax(220px, 260px));
+    gap: 10px;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
 }
 
 .module-link {
@@ -210,26 +242,27 @@ body {
 }
 
 .module-card.access-card {
-    height: 148px;
+    height: 116px;
     width: 100%;
 }
 
 .module-card.access-card .card-body {
     align-items: center;
-    flex-direction: column;
-    gap: 7px;
-    justify-content: center;
-    padding: 24px 16px 14px;
-    text-align: center;
+    flex-direction: row;
+    gap: 12px;
+    justify-content: flex-start;
+    padding: 22px 14px 14px;
+    text-align: left;
 }
 
 .module-card.access-card .module-icon {
-    flex: 0 0 42px;
+    flex: 0 0 46px;
     margin-bottom: 0;
 }
 
 .module-card.access-card h5 {
     font-size: 15px;
+    line-height: 1.18;
     padding-right: 0;
 }
 
@@ -245,7 +278,9 @@ body {
     color: var(--primary);
     font-size: 11px;
     font-weight: 850;
-    margin-top: 2px;
+    margin-left: auto;
+    margin-top: 0;
+    white-space: nowrap;
     padding: 5px 8px;
 }
 
@@ -271,7 +306,7 @@ body {
 .module-card.disabled {
     background: #f8fafc;
     cursor: not-allowed;
-    opacity: .72;
+    opacity: .82;
 }
 
 .module-card.disabled:hover {
@@ -282,13 +317,14 @@ body {
 
 .module-card.disabled.access-card {
     background: #fff;
-    height: 132px;
+    height: 94px;
 }
 
 .module-card.disabled .module-action.pending {
     background: #eef2f7;
     border-color: #d7dee8;
     color: #64748b;
+    display: none;
 }
 
 .module-card .card-body {
@@ -309,10 +345,10 @@ body {
     border-radius: 10px;
     display: flex;
     font-size: 22px;
-    height: 40px;
+    height: 46px;
     justify-content: center;
     margin-bottom: 2px;
-    width: 40px;
+    width: 46px;
 }
 
 .module-card h5 {
@@ -544,11 +580,19 @@ body {
 
 @media (max-width: 768px) {
     .dashboard-container {
-        padding: 14px;
+        padding: 10px;
     }
 
     .dashboard-header {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 12px;
         padding: 18px;
+    }
+
+    .dashboard-header-badge {
+        align-items: flex-start;
+        width: 100%;
     }
 
     .dashboard-header h2 {
@@ -572,11 +616,17 @@ body {
     }
 
     .module-card.access-card {
-        height: 138px;
+        height: auto;
+        min-height: 112px;
     }
 
     .module-card.access-card .card-body {
+        align-items: center;
         padding: 26px 12px 12px;
+    }
+
+    .module-action {
+        margin-left: 0;
     }
 
     .module-icon {

@@ -1,6 +1,20 @@
 from django.contrib import admin
 
-from .models import EvolucaoInternacao, Internacao
+from .models import EvolucaoInternacao, Internacao, LeitoInternacao, SetorInternacao
+
+
+@admin.register(SetorInternacao)
+class SetorInternacaoAdmin(admin.ModelAdmin):
+    list_display = ("codigo", "nome", "ativo", "ordem")
+    list_filter = ("ativo",)
+    search_fields = ("codigo", "nome")
+
+
+@admin.register(LeitoInternacao)
+class LeitoInternacaoAdmin(admin.ModelAdmin):
+    list_display = ("codigo", "setor", "tipo", "status_operacional", "ordem")
+    list_filter = ("setor", "tipo", "status_operacional")
+    search_fields = ("codigo", "setor__nome")
 
 
 class EvolucaoInternacaoInline(admin.TabularInline):

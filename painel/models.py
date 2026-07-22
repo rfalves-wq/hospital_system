@@ -44,6 +44,7 @@ class ChamadaPainel(models.Model):
     paciente_nome = models.CharField(max_length=200)
     local_destino = models.CharField(max_length=120, blank=True, default="")
     observacao = models.CharField(max_length=160, blank=True, default="")
+    visivel_painel = models.BooleanField(default=True, verbose_name="Visivel no painel")
     chamado_por = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         blank=True,

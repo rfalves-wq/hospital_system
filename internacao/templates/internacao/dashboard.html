@@ -10,7 +10,7 @@
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
-    <link rel="stylesheet" href="{% static 'internacao/css/dashboard.css' %}?v=20260711-2">
+    <link rel="stylesheet" href="{% static 'internacao/css/dashboard.css' %}?v=20260721-3">
 </head>
 
 <body>
@@ -27,7 +27,11 @@
             <div class="d-flex flex-wrap gap-2">
                 <span class="metric">{{ total_aguardando }} aguardando leito</span>
                 <span class="metric">{{ total_internados }} internado(s)</span>
+                <span class="metric">{{ total_leitos_vagos }} leito(s) vago(s)</span>
                 <span class="metric">{{ total_altas_hoje }} alta(s) hoje</span>
+                <a href="{% url 'gestao_leitos' %}" class="btn btn-outline-light fw-bold">
+                    Gest&atilde;o de leitos
+                </a>
                 <a href="{% url 'dashboard' %}" class="btn btn-light fw-bold">
                     Voltar
                 </a>
@@ -75,6 +79,57 @@
                 </div>
             {% endif %}
 
+            <div class="modal fade" id="modal-selecionar-leito" tabindex="-1" aria-labelledby="titulo-modal-selecionar-leito" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <div>
+                                <h5 class="modal-title" id="titulo-modal-selecionar-leito">
+                                    Internar em <span id="modal-leito-codigo">leito vago</span>
+                                </h5>
+                                <small class="text-muted">
+                                    Escolha um paciente aguardando leito para abrir a interna&ccedil;&atilde;o com o leito preenchido.
+                                </small>
+                            </div>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                        </div>
+
+                        <div class="modal-body">
+                            <div class="waiting-patient-list">
+                                {% for acolhimento in aguardando_internacao %}
+                                    <article>
+                                        <div>
+                                            <strong>
+                                                {% if acolhimento.paciente %}
+                                                    {{ acolhimento.paciente.nome_completo }}
+                                                {% else %}
+                                                    {{ acolhimento.nome_paciente }}
+                                                {% endif %}
+                                            </strong>
+                                            <span>BAM {{ acolhimento.numero_bam }} - {{ acolhimento.idade }} anos</span>
+                                            {% if acolhimento.classificacao %}
+                                                <small>{{ acolhimento.classificacao.get_cor_display }}</small>
+                                            {% endif %}
+                                        </div>
+                                        <a
+                                            href="{% url 'registrar_internacao' acolhimento.id %}"
+                                            data-internacao-link
+                                            data-base-url="{% url 'registrar_internacao' acolhimento.id %}"
+                                            class="btn btn-primary btn-sm fw-bold">
+                                            Internar neste leito
+                                        </a>
+                                    </article>
+                                {% empty %}
+                                    <div class="empty-box">
+                                        Nenhum paciente aguardando leito no momento.
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <ul class="nav nav-tabs mb-3" id="abasInternacao" role="tablist">
                 <li class="nav-item" role="presentation">
                     <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#aguardando" type="button">
@@ -99,6 +154,76 @@
 
             <div class="tab-content">
                 <div class="tab-pane fade show active" id="aguardando">
+                    <section class="bed-map-panel">
+                        <div class="bed-map-head">
+                            <div>
+                                <h4>Mapa de leitos</h4>
+                                <p>Camas em vermelho est&atilde;o ocupadas. Camas em azul est&atilde;o vagas para admiss&atilde;o.</p>
+                            </div>
+                            <div class="bed-legend">
+                                <span><i class="legend-bed occupied"></i> Ocupado</span>
+                                <span><i class="legend-bed vacant"></i> Vago</span>
+                            </div>
+                        </div>
+
+                        <div class="bed-map-summary">
+                            <article>
+                                <span>Ocupados</span>
+                                <strong>{{ total_leitos_ocupados }}</strong>
+                            </article>
+                            <article class="vacant">
+                                <span>Vagos</span>
+                                <strong>{{ total_leitos_vagos }}</strong>
+                            </article>
+                            <article class="waiting">
+                                <span>Aguardando leito</span>
+                                <strong>{{ total_aguardando }}</strong>
+                            </article>
+                        </div>
+
+                        <div class="bed-map-grid">
+                            {% for grupo in mapa_leitos.grupos %}
+                                <div class="bed-sector">
+                                    <h5>{{ grupo.setor }}</h5>
+                                    <div class="bed-list">
+                                        {% for leito in grupo.leitos %}
+                                            {% if leito.status == "vago" %}
+                                                <button
+                                                    type="button"
+                                                    class="bed-card {{ leito.status }}"
+                                                    title="Selecionar paciente para o leito {{ leito.codigo }}"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#modal-selecionar-leito"
+                                                    data-bed-code="{{ leito.codigo }}"
+                                                    data-bed-sector="{{ leito.setor }}">
+                                                    <div class="bed-icon" aria-hidden="true">
+                                                        <span class="bed-pillow"></span>
+                                                        <span class="bed-mattress"></span>
+                                                        <span class="bed-foot"></span>
+                                                    </div>
+                                                    <span class="bed-state">Vago</span>
+                                                    <strong>{{ leito.codigo }}</strong>
+                                                    <small>Clique para internar</small>
+                                                </button>
+                                            {% else %}
+                                                <div class="bed-card {{ leito.status }}" title="{{ leito.paciente }} - BAM {{ leito.bam }}">
+                                                    <div class="bed-icon" aria-hidden="true">
+                                                        <span class="bed-pillow"></span>
+                                                        <span class="bed-mattress"></span>
+                                                        <span class="bed-foot"></span>
+                                                    </div>
+                                                    <span class="bed-state">Ocupado</span>
+                                                    <strong>{{ leito.codigo }}</strong>
+                                                    <small>{{ leito.paciente|truncatechars:26 }}</small>
+                                                </div>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </section>
+
                     <div class="table-responsive">
                         <table class="table table-striped table-hover align-middle">
                             <thead class="table-primary">
@@ -287,7 +412,7 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="{% static 'internacao/js/impressao.js' %}?v=20260711-1"></script>
 
-<script src="{% static 'internacao/js/dashboard.js' %}?v=20260711-2"></script>
+<script src="{% static 'internacao/js/dashboard.js' %}?v=20260721-1"></script>
 
 </body>
 </html>

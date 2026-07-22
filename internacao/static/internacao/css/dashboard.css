@@ -65,3 +65,400 @@ body {
             padding: 34px;
             text-align: center;
         }
+
+        .bed-map-panel {
+            background: #f8fbff;
+            border: 1px solid #d5e3f3;
+            border-radius: 12px;
+            box-shadow: 0 6px 18px rgba(15, 23, 42, .045);
+            margin-bottom: 16px;
+            padding: 14px;
+        }
+
+        .bed-map-head {
+            align-items: flex-start;
+            border-bottom: 1px solid #dce8f5;
+            display: flex;
+            gap: 12px;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+        }
+
+        .bed-map-head h4,
+        .bed-sector h5 {
+            color: #0f172a;
+            font-weight: 900;
+            margin: 0;
+        }
+
+        .bed-map-head h4 {
+            font-size: 18px;
+        }
+
+        .bed-map-head p {
+            color: #64748b;
+            font-size: 13px;
+            font-weight: 700;
+            margin: 3px 0 0;
+        }
+
+        .bed-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+
+        .bed-legend span {
+            align-items: center;
+            background: #fff;
+            border: 1px solid #dbe4ee;
+            border-radius: 999px;
+            color: #334155;
+            display: inline-flex;
+            font-size: 12px;
+            font-weight: 900;
+            gap: 6px;
+            padding: 7px 10px;
+        }
+
+        .legend-bed {
+            border-radius: 6px 6px 3px 3px;
+            display: inline-block;
+            height: 13px;
+            position: relative;
+            width: 24px;
+        }
+
+        .legend-bed::before {
+            background: rgba(255, 255, 255, .9);
+            border-radius: 2px;
+            content: "";
+            height: 6px;
+            left: 3px;
+            position: absolute;
+            top: 3px;
+            width: 7px;
+        }
+
+        .legend-bed.occupied {
+            background: #dc2626;
+        }
+
+        .legend-bed.vacant {
+            background: #0d6efd;
+        }
+
+        .bed-map-summary {
+            display: grid;
+            gap: 8px;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            margin-bottom: 12px;
+        }
+
+        .bed-map-summary article {
+            background: #fff;
+            border: 1px solid #fecaca;
+            border-left: 5px solid #dc2626;
+            border-radius: 8px;
+            padding: 10px 12px;
+        }
+
+        .bed-map-summary article.vacant {
+            border-color: #bfdbfe;
+            border-left-color: #0d6efd;
+        }
+
+        .bed-map-summary article.waiting {
+            border-color: #fde68a;
+            border-left-color: #f59e0b;
+        }
+
+        .bed-map-summary span {
+            color: #64748b;
+            display: block;
+            font-size: 11px;
+            font-weight: 900;
+            text-transform: uppercase;
+        }
+
+        .bed-map-summary strong {
+            color: #0f172a;
+            display: block;
+            font-size: 26px;
+            font-weight: 900;
+            line-height: 1;
+            margin-top: 6px;
+        }
+
+        .bed-map-grid {
+            display: grid;
+            gap: 12px;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        }
+
+        .bed-sector {
+            background: #fff;
+            border: 1px solid #dbe4ee;
+            border-radius: 10px;
+            padding: 12px;
+        }
+
+        .bed-sector h5 {
+            border-bottom: 1px solid #e5edf6;
+            font-size: 15px;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+        }
+
+        .bed-list {
+            display: grid;
+            gap: 10px;
+            grid-template-columns: repeat(auto-fit, minmax(118px, 1fr));
+        }
+
+        .bed-card {
+            background: #fff;
+            border: 1px solid #dbe4ee;
+            border-radius: 12px;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, .86), 0 4px 12px rgba(15, 23, 42, .05);
+            cursor: default;
+            display: flex;
+            flex-direction: column;
+            font-family: inherit;
+            min-height: 128px;
+            overflow: hidden;
+            padding: 12px 10px 10px;
+            position: relative;
+            text-align: center;
+            width: 100%;
+        }
+
+        .bed-card::before {
+            content: "";
+            height: 5px;
+            left: 0;
+            position: absolute;
+            right: 0;
+            top: 0;
+        }
+
+        .bed-card::after {
+            border-radius: 999px;
+            content: "";
+            height: 10px;
+            position: absolute;
+            right: 10px;
+            top: 10px;
+            width: 10px;
+        }
+
+        .bed-card.ocupado {
+            background: linear-gradient(180deg, #fff7f7 0%, #fff 100%);
+            border-color: #fca5a5;
+        }
+
+        .bed-card.ocupado::before,
+        .bed-card.ocupado::after {
+            background: #dc2626;
+        }
+
+        .bed-card.vago {
+            background: linear-gradient(180deg, #f0f7ff 0%, #fff 100%);
+            border-color: #93c5fd;
+            cursor: pointer;
+            transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease;
+        }
+
+        .bed-card.vago::before,
+        .bed-card.vago::after {
+            background: #0d6efd;
+        }
+
+        .bed-card.vago:hover,
+        .bed-card.vago:focus {
+            border-color: #0d6efd;
+            box-shadow: 0 12px 24px rgba(13, 110, 253, .2);
+            outline: none;
+            transform: translateY(-2px);
+        }
+
+        .bed-icon {
+            height: 46px;
+            margin: 2px auto 9px;
+            position: relative;
+            width: 82px;
+        }
+
+        .bed-icon::before,
+        .bed-icon::after,
+        .bed-pillow,
+        .bed-mattress,
+        .bed-foot {
+            display: block;
+            position: absolute;
+        }
+
+        .bed-icon::before {
+            border-radius: 5px 2px 2px 5px;
+            content: "";
+            height: 34px;
+            left: 0;
+            top: 8px;
+            width: 8px;
+            z-index: 3;
+        }
+
+        .bed-icon::after {
+            border-radius: 0 0 6px 6px;
+            bottom: 2px;
+            content: "";
+            height: 6px;
+            left: 6px;
+            width: 68px;
+            z-index: 1;
+        }
+
+        .bed-pillow {
+            background: #fff;
+            border: 1px solid rgba(15, 23, 42, .12);
+            border-radius: 7px;
+            box-shadow: 0 2px 4px rgba(15, 23, 42, .08);
+            height: 22px;
+            left: 10px;
+            top: 11px;
+            width: 24px;
+            z-index: 4;
+        }
+
+        .bed-mattress {
+            border-radius: 10px 10px 6px 6px;
+            box-shadow: inset 0 2px 0 rgba(255, 255, 255, .34);
+            height: 30px;
+            left: 7px;
+            top: 12px;
+            width: 66px;
+            z-index: 2;
+        }
+
+        .bed-foot {
+            border-radius: 3px;
+            height: 38px;
+            right: 0;
+            top: 5px;
+            width: 8px;
+            z-index: 3;
+        }
+
+        .bed-card.ocupado .bed-icon::before,
+        .bed-card.ocupado .bed-icon::after,
+        .bed-card.ocupado .bed-mattress,
+        .bed-card.ocupado .bed-foot {
+            background: #dc2626;
+        }
+
+        .bed-card.vago .bed-icon::before,
+        .bed-card.vago .bed-icon::after,
+        .bed-card.vago .bed-mattress,
+        .bed-card.vago .bed-foot {
+            background: #0d6efd;
+        }
+
+        .bed-state {
+            align-self: center;
+            border-radius: 999px;
+            display: inline-flex;
+            font-size: 10px;
+            font-weight: 900;
+            letter-spacing: 0;
+            line-height: 1;
+            margin-bottom: 6px;
+            padding: 5px 8px;
+            text-transform: uppercase;
+        }
+
+        .bed-card.ocupado .bed-state {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .bed-card.vago .bed-state {
+            background: #dbeafe;
+            color: #0b4fb3;
+        }
+
+        .bed-card strong,
+        .bed-card small {
+            display: block;
+        }
+
+        .bed-card strong {
+            color: #0f172a;
+            font-size: 14px;
+            font-weight: 900;
+            line-height: 1.15;
+        }
+
+        .bed-card small {
+            color: #475569;
+            font-size: 11px;
+            font-weight: 800;
+            line-height: 1.25;
+            margin-top: 4px;
+            min-height: 28px;
+        }
+
+        .waiting-patient-list {
+            display: grid;
+            gap: 10px;
+        }
+
+        .waiting-patient-list article {
+            align-items: center;
+            background: #f8fbff;
+            border: 1px solid #dbe4ee;
+            border-radius: 10px;
+            display: flex;
+            gap: 12px;
+            justify-content: space-between;
+            padding: 12px;
+        }
+
+        .waiting-patient-list strong,
+        .waiting-patient-list span,
+        .waiting-patient-list small {
+            display: block;
+        }
+
+        .waiting-patient-list strong {
+            color: #0f172a;
+            font-size: 14px;
+            font-weight: 900;
+        }
+
+        .waiting-patient-list span,
+        .waiting-patient-list small {
+            color: #64748b;
+            font-size: 12px;
+            font-weight: 750;
+        }
+
+        @media (max-width: 768px) {
+            .bed-map-head {
+                flex-direction: column;
+            }
+
+            .bed-legend {
+                justify-content: flex-start;
+            }
+
+            .bed-map-summary {
+                grid-template-columns: 1fr;
+            }
+
+            .waiting-patient-list article {
+                align-items: stretch;
+                flex-direction: column;
+            }
+        }

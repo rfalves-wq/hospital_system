@@ -9,7 +9,7 @@
     <title>Sistema Hospitalar</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=20260718-1">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=20260721-2">
     {% block extra_css %}{% endblock %}
 </head>
 
@@ -35,7 +35,9 @@
 
         <div class="collapse navbar-collapse" id="menuPrincipal">
 
-            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+            <div class="me-auto"></div>
+            {% comment %}
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0 d-none">
 
                 <li class="nav-item">
                     <a class="nav-link" href="{% url 'dashboard' %}">
@@ -139,6 +141,14 @@
                     </li>
                 {% endif %}
 
+                {% if paineis_usuario.auditoria %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'auditoria_dashboard' %}">
+                            Auditoria
+                        </a>
+                    </li>
+                {% endif %}
+
                 {% if request.user.is_staff or request.user.is_superuser %}
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'seguranca_dashboard' %}">
@@ -148,6 +158,7 @@
                 {% endif %}
 
             </ul>
+            {% endcomment %}
 
             <div class="d-flex align-items-center gap-2">
                 {% include "includes/relogio_global.html" with hide_logout=True %}

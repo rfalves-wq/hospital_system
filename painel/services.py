@@ -69,6 +69,7 @@ def registrar_chamada(
     local_destino="",
     observacao="",
     tipo=ChamadaPainel.CHAMADA,
+    visivel_painel=True,
 ):
     return ChamadaPainel.objects.create(
         tipo=tipo,
@@ -78,6 +79,7 @@ def registrar_chamada(
         paciente_nome=nome_paciente_acolhimento(acolhimento),
         local_destino=local_destino,
         observacao=observacao,
+        visivel_painel=visivel_painel,
         chamado_por=request.user if request and request.user.is_authenticated else None,
         chamado_por_nome=nome_usuario(request),
     )
@@ -89,6 +91,7 @@ def registrar_chamada_limitada(
     request=None,
     local_destino="",
     observacao="",
+    visivel_painel=True,
 ):
     total = total_chamadas_setor(setor, acolhimento)
 
@@ -101,6 +104,7 @@ def registrar_chamada_limitada(
         request,
         local_destino=local_destino,
         observacao=observacao,
+        visivel_painel=visivel_painel,
     )
 
     return chamada, total + 1

@@ -68,9 +68,36 @@ class Usuario(AbstractUser):
         blank=True
     )
 
+    cargo_ref = models.ForeignKey(
+        "cadastros.CargoProfissional",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="usuarios",
+        verbose_name="Cargo normalizado",
+    )
+
+    funcao_ref = models.ForeignKey(
+        "cadastros.FuncaoProfissional",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="usuarios",
+        verbose_name="Funcao normalizada",
+    )
+
     cargo = models.CharField(
         max_length=100,
         blank=True
+    )
+
+    conselho_ref = models.ForeignKey(
+        "cadastros.ConselhoProfissional",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="usuarios",
+        verbose_name="Conselho normalizado",
     )
 
     conselho_profissional = models.CharField(

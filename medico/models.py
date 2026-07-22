@@ -303,6 +303,116 @@ class ConsultaMedica(models.Model):
         return True
 
 
+class DocumentoConsultaMedica(models.Model):
+    PRESCRICAO = "PRESCRICAO"
+    RECEITA = "RECEITA"
+    ATESTADO = "ATESTADO"
+    ORIENTACAO = "ORIENTACAO"
+
+    TIPO_CHOICES = [
+        (PRESCRICAO, "Prescricao medica"),
+        (RECEITA, "Receita medica"),
+        (ATESTADO, "Atestado medico"),
+        (ORIENTACAO, "Orientacoes ao paciente"),
+    ]
+
+    consulta = models.ForeignKey(
+        ConsultaMedica,
+        on_delete=models.CASCADE,
+        related_name="documentos_clinicos",
+    )
+    tipo = models.CharField(max_length=20, choices=TIPO_CHOICES, db_index=True)
+    texto = models.TextField(blank=True, default="")
+    dias_atestado = models.PositiveSmallIntegerField(blank=True, null=True)
+    cid = models.ForeignKey(
+        CID,
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name="documentos_consulta",
+    )
+    cid_codigo = models.CharField(max_length=20, blank=True, default="")
+    profissional_nome = models.CharField(max_length=150, blank=True, default="")
+    profissional_registro = models.CharField(max_length=60, blank=True, default="")
+    criado_em = models.DateTimeField(auto_now_add=True)
+    atualizado_em = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["consulta", "tipo"]
+        verbose_name = "Documento da consulta medica"
+        verbose_name_plural = "Documentos da consulta medica"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["consulta", "tipo"],
+                name="doc_consulta_tipo_unico",
+            ),
+        ]
+        indexes = [
+            models.Index(fields=["tipo", "atualizado_em"], name="doc_tipo_dt_idx"),
+            models.Index(fields=["cid_codigo"], name="doc_cid_codigo_idx"),
+        ]
+
+    def __str__(self):
+        return f"{self.consulta.acolhimento.numero_bam} - {self.get_tipo_display()}"
+
+    @classmethod
+    def sincronizar_da_consulta(cls, consulta):
+        cls.sincronizar_tipo(
+            consulta,
+            cls.PRESCRICAO,
+            consulta.prescricao,
+        )
+        cls.sincronizar_tipo(
+            consulta,
+            cls.RECEITA,
+            consulta.receita,
+        )
+        cls.sincronizar_tipo(
+            consulta,
+            cls.ATESTADO,
+            consulta.atestado,
+            dias_atestado=consulta.atestado_dias,
+            cid_codigo=consulta.atestado_cid,
+        )
+        cls.sincronizar_tipo(
+            consulta,
+            cls.ORIENTACAO,
+            consulta.orientacoes,
+        )
+
+    @classmethod
+    def sincronizar_tipo(
+        cls,
+        consulta,
+        tipo,
+        texto,
+        dias_atestado=None,
+        cid_codigo="",
+    ):
+        texto = texto or ""
+        cid_codigo = (cid_codigo or "").strip().upper()
+
+        if not texto and not dias_atestado and not cid_codigo:
+            return
+
+        cid = None
+        if cid_codigo:
+            cid = CID.objects.filter(codigo__iexact=cid_codigo).first()
+
+        cls.objects.update_or_create(
+            consulta=consulta,
+            tipo=tipo,
+            defaults={
+                "texto": texto,
+                "dias_atestado": dias_atestado,
+                "cid": cid,
+                "cid_codigo": cid_codigo,
+                "profissional_nome": consulta.medico_responsavel,
+                "profissional_registro": consulta.crm_medico or "",
+            },
+        )
+
+
 class TransferenciaConsultaMedica(models.Model):
     MOTIVO_CHOICES = [
         ("PLANTAO", "Passagem de plantão"),
@@ -378,3 +488,11 @@ def sincronizar_tempos_procedimentos(sender, instance, **kwargs):
     from acolhimento.tempos import sincronizar_procedimentos_consulta
 
     sincronizar_procedimentos_consulta(instance)
+
+
+@receiver(post_save, sender=ConsultaMedica)
+def sincronizar_documentos_clinicos(sender, instance, raw=False, **kwargs):
+    if raw:
+        return
+
+    DocumentoConsultaMedica.sincronizar_da_consulta(instance)

@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'ouvidoria/css/dashboard.css' %}?v=20260721-1">
+{% endblock %}
+
+{% block content %}
+<main class="sac-page">
+    <section class="sac-hero">
+        <div>
+            <span>Ouvidoria / SAC</span>
+            <h1>Manifesta&ccedil;&otilde;es e ocorr&ecirc;ncias</h1>
+            <p>Controle de reclama&ccedil;&otilde;es, elogios, sugest&otilde;es, den&uacute;ncias, prazos e respostas ao paciente.</p>
+        </div>
+        <div class="hero-actions">
+            <a href="{% url 'ouvidoria_nova' %}" class="btn btn-warning fw-bold">Nova manifesta&ccedil;&atilde;o</a>
+            <a href="{% url 'dashboard' %}" class="btn btn-light fw-bold">In&iacute;cio</a>
+        </div>
+    </section>
+
+    {% if messages %}
+        <section class="messages-wrap">
+            {% for message in messages %}
+                <div class="alert {% if message.tags == 'success' %}alert-success{% elif message.tags == 'error' %}alert-danger{% elif message.tags == 'warning' %}alert-warning{% else %}alert-info{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </section>
+    {% endif %}
+
+    <section class="sac-metrics">
+        <article><span>Abertas</span><strong>{{ total_abertas }}</strong></article>
+        <article class="danger"><span>Vencidas</span><strong>{{ total_vencidas }}</strong></article>
+        <article class="warning"><span>Vencem hoje</span><strong>{{ total_vence_hoje }}</strong></article>
+        <article class="danger"><span>Cr&iacute;ticas</span><strong>{{ total_criticas }}</strong></article>
+        <article class="success"><span>Conclu&iacute;das</span><strong>{{ total_concluidas }}</strong></article>
+    </section>
+
+    <section class="sac-filter">
+        <form method="get">
+            <input type="text" name="q" value="{{ filtros.q }}" class="form-control" placeholder="Buscar protocolo, paciente, CPF, BAM, setor ou t&iacute;tulo">
+            <select name="status" class="form-select">
+                <option value="">Todos os status</option>
+                <option value="ativos" {% if filtros.status == "ativos" %}selected{% endif %}>Ativos</option>
+                {% for codigo, rotulo in status_choices %}
+                    <option value="{{ codigo }}" {% if filtros.status == codigo %}selected{% endif %}>{{ rotulo }}</option>
+                {% endfor %}
+            </select>
+            <select name="tipo" class="form-select">
+                <option value="">Todos os tipos</option>
+                {% for codigo, rotulo in tipo_choices %}
+                    <option value="{{ codigo }}" {% if filtros.tipo == codigo %}selected{% endif %}>{{ rotulo }}</option>
+                {% endfor %}
+            </select>
+            <select name="prioridade" class="form-select">
+                <option value="">Prioridade</option>
+                {% for codigo, rotulo in prioridade_choices %}
+                    <option value="{{ codigo }}" {% if filtros.prioridade == codigo %}selected{% endif %}>{{ rotulo }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="btn btn-primary fw-bold">Filtrar</button>
+            <a href="{% url 'ouvidoria_dashboard' %}" class="btn btn-outline-secondary fw-bold">Limpar</a>
+        </form>
+    </section>
+
+    <section class="sac-layout">
+        <div class="manifest-panel">
+            <div class="panel-head">
+                <div>
+                    <h2>Manifesta&ccedil;&otilde;es</h2>
+                    <small>Atendimento, acompanhamento e resposta</small>
+                </div>
+            </div>
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Protocolo</th>
+                            <th>Manifestante</th>
+                            <th>Tipo</th>
+                            <th>Setor</th>
+                            <th>Prazo</th>
+                            <th>Status</th>
+                            <th>A&ccedil;&atilde;o</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in manifestacoes %}
+                            <tr>
+                                <td>
+                                    <strong>{{ item.protocolo }}</strong>
+                                    <small>{{ item.criado_em|date:"d/m/Y H:i" }}</small>
+                                </td>
+                                <td>
+                                    <strong>{{ item.nome_manifestante }}</strong>
+                                    <small>{{ item.paciente_nome|default:"-" }}</small>
+                                    {% if item.numero_bam %}<small>BAM {{ item.numero_bam }}</small>{% endif %}
+                                </td>
+                                <td>
+                                    <span class="type-pill">{{ item.get_tipo_display }}</span>
+                                    <small>{{ item.get_canal_display }}</small>
+                                </td>
+                                <td>{{ item.setor_envolvido|default:"-" }}</td>
+                                <td>
+                                    {% if item.prazo_vencido %}
+                                        <span class="deadline danger">Vencido</span>
+                                    {% elif item.vence_hoje %}
+                                        <span class="deadline warning">Hoje</span>
+                                    {% elif item.prazo_resposta %}
+                                        <span class="deadline">{{ item.prazo_resposta|date:"d/m/Y" }}</span>
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                                <td><span class="status-pill {{ item.status|lower }}">{{ item.get_status_display }}</span></td>
+                                <td><a href="{% url 'ouvidoria_editar' item.id %}" class="btn btn-primary btn-sm">Ver / editar</a></td>
+                            </tr>
+                        {% empty %}
+                            <tr><td colspan="7" class="empty-row">Nenhuma manifesta&ccedil;&atilde;o encontrada.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <aside class="side-panel">
+            <section>
+                <h3>Por tipo</h3>
+                <div class="side-list">
+                    {% for item in por_tipo %}
+                        <div><span>{{ item.rotulo }}</span><strong>{{ item.total }}</strong></div>
+                    {% empty %}
+                        <p>Nenhum registro.</p>
+                    {% endfor %}
+                </div>
+            </section>
+
+            <section>
+                <h3>Setores citados</h3>
+                <div class="side-list">
+                    {% for item in por_setor %}
+                        <div><span>{{ item.setor_envolvido }}</span><strong>{{ item.total }}</strong></div>
+                    {% empty %}
+                        <p>Nenhum setor informado.</p>
+                    {% endfor %}
+                </div>
+            </section>
+
+            <section>
+                <h3>&Uacute;ltimos andamentos</h3>
+                <div class="timeline-mini">
+                    {% for andamento in ultimos_andamentos %}
+                        <article>
+                            <strong>{{ andamento.manifestacao.protocolo }}</strong>
+                            <span>{{ andamento.anotacao|truncatechars:80 }}</span>
+                            <small>{{ andamento.criado_em|date:"d/m/Y H:i" }}</small>
+                        </article>
+                    {% empty %}
+                        <p>Nenhum andamento registrado.</p>
+                    {% endfor %}
+                </div>
+            </section>
+        </aside>
+    </section>
+</main>
+{% endblock %}

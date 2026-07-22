@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'ouvidoria/css/dashboard.css' %}?v=20260721-1">
+{% endblock %}
+
+{% block content %}
+<main class="sac-page">
+    <section class="sac-hero compact">
+        <div>
+            <span>Ouvidoria / SAC</span>
+            {% if manifestacao %}
+                <h1>{{ manifestacao.protocolo }}</h1>
+                <p>{{ manifestacao.get_status_display }} - {{ manifestacao.titulo }}</p>
+            {% else %}
+                <h1>Nova manifesta&ccedil;&atilde;o</h1>
+                <p>Registre o contato do paciente, relato, prioridade e prazo de resposta.</p>
+            {% endif %}
+        </div>
+        <div class="hero-actions">
+            <a href="{% url 'ouvidoria_dashboard' %}" class="btn btn-light fw-bold">Voltar</a>
+        </div>
+    </section>
+
+    {% if messages %}
+        <section class="messages-wrap">
+            {% for message in messages %}
+                <div class="alert {% if message.tags == 'success' %}alert-success{% elif message.tags == 'error' %}alert-danger{% elif message.tags == 'warning' %}alert-warning{% else %}alert-info{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </section>
+    {% endif %}
+
+    <section class="form-layout">
+        <form method="post" class="sac-form">
+            {% csrf_token %}
+            <div class="form-section">
+                <h2>Identifica&ccedil;&atilde;o</h2>
+                <div class="form-grid three">
+                    <label><span>Atendimento vinculado</span>{{ form.acolhimento }}{{ form.acolhimento.errors }}</label>
+                    <label><span>BAM</span>{{ form.numero_bam }}{{ form.numero_bam.errors }}</label>
+                    <label><span>Paciente</span>{{ form.paciente_nome }}{{ form.paciente_nome.errors }}</label>
+                    <label><span>Manifestante</span>{{ form.nome_manifestante }}{{ form.nome_manifestante.errors }}</label>
+                    <label><span>CPF</span>{{ form.cpf_manifestante }}{{ form.cpf_manifestante.errors }}</label>
+                    <label><span>Telefone</span>{{ form.telefone }}{{ form.telefone.errors }}</label>
+                    <label class="span-3"><span>E-mail</span>{{ form.email }}{{ form.email.errors }}</label>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h2>Classifica&ccedil;&atilde;o da manifesta&ccedil;&atilde;o</h2>
+                <div class="form-grid four">
+                    <label><span>Tipo</span>{{ form.tipo }}{{ form.tipo.errors }}</label>
+                    <label><span>Canal</span>{{ form.canal }}{{ form.canal.errors }}</label>
+                    <label><span>Prioridade</span>{{ form.prioridade }}{{ form.prioridade.errors }}</label>
+                    <label><span>Status</span>{{ form.status }}{{ form.status.errors }}</label>
+                    <label><span>Setor envolvido</span>{{ form.setor_envolvido }}{{ form.setor_envolvido.errors }}</label>
+                    <label><span>Prazo de resposta</span>{{ form.prazo_resposta }}{{ form.prazo_resposta.errors }}</label>
+                    <label><span>Respons&aacute;vel</span>{{ form.responsavel_nome }}{{ form.responsavel_nome.errors }}</label>
+                    <label><span>Registro</span>{{ form.responsavel_registro }}{{ form.responsavel_registro.errors }}</label>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h2>Relato e resposta</h2>
+                <div class="form-grid">
+                    <label class="span-2"><span>T&iacute;tulo</span>{{ form.titulo }}{{ form.titulo.errors }}</label>
+                    <label class="span-2"><span>Relato</span>{{ form.relato }}{{ form.relato.errors }}</label>
+                    <label class="span-2"><span>Provid&ecirc;ncias</span>{{ form.providencias }}{{ form.providencias.errors }}</label>
+                    <label class="span-2"><span>Resposta ao manifestante</span>{{ form.resposta }}{{ form.resposta.errors }}</label>
+                    <label class="span-2"><span>Observa&ccedil;&otilde;es internas</span>{{ form.observacoes_internas }}{{ form.observacoes_internas.errors }}</label>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <a href="{% url 'ouvidoria_dashboard' %}" class="btn btn-outline-secondary btn-lg">Cancelar</a>
+                <button type="submit" class="btn btn-primary btn-lg">Salvar manifesta&ccedil;&atilde;o</button>
+            </div>
+        </form>
+
+        <aside class="andamento-card">
+            {% if manifestacao %}
+                <section class="manifest-summary">
+                    <h2>Resumo</h2>
+                    <div><span>Status</span><strong>{{ manifestacao.get_status_display }}</strong></div>
+                    <div><span>Prazo</span><strong>{{ manifestacao.prazo_resposta|date:"d/m/Y"|default:"-" }}</strong></div>
+                    <div><span>Respons&aacute;vel</span><strong>{{ manifestacao.responsavel_nome|default:"-" }}</strong></div>
+                </section>
+
+                <section>
+                    <h2>Novo andamento</h2>
+                    <form method="post" action="{% url 'ouvidoria_andamento' manifestacao.id %}" class="andamento-form">
+                        {% csrf_token %}
+                        <label><span>Novo status</span>{{ andamento_form.status }}{{ andamento_form.status.errors }}</label>
+                        <label><span>Anota&ccedil;&atilde;o</span>{{ andamento_form.anotacao }}{{ andamento_form.anotacao.errors }}</label>
+                        <label><span>Profissional</span>{{ andamento_form.profissional_nome }}{{ andamento_form.profissional_nome.errors }}</label>
+                        <label><span>Registro</span>{{ andamento_form.profissional_registro }}{{ andamento_form.profissional_registro.errors }}</label>
+                        <button type="submit" class="btn btn-success w-100 fw-bold">Registrar andamento</button>
+                    </form>
+                </section>
+
+                <section>
+                    <h2>Hist&oacute;rico</h2>
+                    <div class="timeline">
+                        {% for andamento in andamentos %}
+                            <article>
+                                <strong>{{ andamento.criado_em|date:"d/m/Y H:i" }}</strong>
+                                {% if andamento.status %}<span>{{ andamento.get_status_display }}</span>{% endif %}
+                                <p>{{ andamento.anotacao }}</p>
+                                <small>{{ andamento.profissional_nome|default:"-" }} {{ andamento.profissional_registro }}</small>
+                            </article>
+                        {% empty %}
+                            <div class="empty-side">Nenhum andamento registrado.</div>
+                        {% endfor %}
+                    </div>
+                </section>
+            {% else %}
+                <section class="manifest-summary">
+                    <h2>Como usar</h2>
+                    <p>Salve a manifesta&ccedil;&atilde;o primeiro. Depois o sistema libera o hist&oacute;rico para registrar respostas, retornos e mudan&ccedil;as de status.</p>
+                </section>
+            {% endif %}
+        </aside>
+    </section>
+</main>
+{% endblock %}

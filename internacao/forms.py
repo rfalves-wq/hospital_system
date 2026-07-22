@@ -1,6 +1,79 @@
 from django import forms
 
-from .models import EvolucaoInternacao, Internacao
+from .models import (
+    EvolucaoInternacao,
+    Internacao,
+    LeitoInternacao,
+    SetorInternacao,
+)
+
+
+class SetorInternacaoForm(forms.ModelForm):
+    class Meta:
+        model = SetorInternacao
+        fields = ["nome", "codigo", "ativo", "ordem"]
+        widgets = {
+            "nome": forms.TextInput(attrs={
+                "class": "form-control",
+                "placeholder": "Ex: Clinica medica",
+            }),
+            "codigo": forms.TextInput(attrs={
+                "class": "form-control",
+                "placeholder": "Ex: CLINICA_MEDICA",
+            }),
+            "ativo": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "ordem": forms.NumberInput(attrs={
+                "class": "form-control",
+                "min": "0",
+            }),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["codigo"].required = False
+
+    def clean_codigo(self):
+        return (self.cleaned_data.get("codigo") or "").strip().upper()
+
+
+class LeitoInternacaoForm(forms.ModelForm):
+    class Meta:
+        model = LeitoInternacao
+        fields = [
+            "setor",
+            "codigo",
+            "tipo",
+            "status_operacional",
+            "observacao",
+            "ordem",
+        ]
+        widgets = {
+            "setor": forms.Select(attrs={"class": "form-select"}),
+            "codigo": forms.TextInput(attrs={
+                "class": "form-control",
+                "placeholder": "Ex: CM-01",
+            }),
+            "tipo": forms.Select(attrs={"class": "form-select"}),
+            "status_operacional": forms.Select(attrs={"class": "form-select"}),
+            "observacao": forms.TextInput(attrs={
+                "class": "form-control",
+                "placeholder": "Ex: proximo ao posto, isolamento, manutencao",
+            }),
+            "ordem": forms.NumberInput(attrs={
+                "class": "form-control",
+                "min": "0",
+            }),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["setor"].queryset = SetorInternacao.objects.order_by(
+            "ordem",
+            "nome",
+        )
+
+    def clean_codigo(self):
+        return (self.cleaned_data.get("codigo") or "").strip().upper()
 
 
 class InternacaoForm(forms.ModelForm):

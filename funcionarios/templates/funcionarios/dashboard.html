@@ -1,0 +1,335 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'funcionarios/css/dashboard.css' %}?v=20260721-1">
+{% endblock %}
+
+{% block content %}
+<div class="funcionarios-page">
+    <section class="funcionarios-hero">
+        <div>
+            <span>Cadastro e escala</span>
+            <h1>Funcion&aacute;rios</h1>
+            <p>Controle profissionais, cargos, conselhos, setores, login vinculado e escala de trabalho.</p>
+        </div>
+        <a href="{% url 'dashboard' %}" class="btn btn-light fw-bold">In&iacute;cio</a>
+    </section>
+
+    {% if messages %}
+        <div class="funcionarios-messages">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags|default:'info' }} mb-2">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <section class="funcionarios-summary">
+        <div class="summary-card ativos">
+            <small>Ativos</small>
+            <strong>{{ total_ativos }}</strong>
+        </div>
+        <div class="summary-card plantao">
+            <small>Escala hoje</small>
+            <strong>{{ total_plantao_hoje }}</strong>
+        </div>
+        <div class="summary-card conselho">
+            <small>Sem conselho</small>
+            <strong>{{ total_sem_conselho }}</strong>
+        </div>
+        <div class="summary-card login">
+            <small>Sem login</small>
+            <strong>{{ total_sem_login }}</strong>
+        </div>
+        <div class="summary-card readmissao">
+            <small>Readmitidos</small>
+            <strong>{{ total_readmitidos }}</strong>
+        </div>
+    </section>
+
+    <section class="funcionarios-insights">
+        <div class="insight-card">
+            <div class="insight-head">
+                <h2>Funcion&aacute;rios por setor</h2>
+                <small>Ativos</small>
+            </div>
+            <div class="insight-list">
+                {% for item in por_setor %}
+                    <a href="?setor={{ item.setor|urlencode }}" class="insight-item">
+                        <span>{{ item.setor }}</span>
+                        <strong>{{ item.total }}</strong>
+                    </a>
+                {% empty %}
+                    <span class="empty-text">Nenhum setor registrado.</span>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="insight-card">
+            <div class="insight-head">
+                <h2>Escala de hoje</h2>
+                <small>Plant&atilde;o</small>
+            </div>
+            <div class="scale-list">
+                {% for escala in escalas_hoje %}
+                    <div class="scale-item">
+                        <strong>{{ escala.funcionario.nome }}</strong>
+                        <span>
+                            {{ escala.get_turno_display }}
+                            {% if escala.hora_inicio %} &bull; {{ escala.hora_inicio|time:"H:i" }}{% endif %}
+                            {% if escala.hora_fim %} - {{ escala.hora_fim|time:"H:i" }}{% endif %}
+                        </span>
+                    </div>
+                {% empty %}
+                    <span class="empty-text">Nenhuma escala registrada para hoje.</span>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="insight-card sync-card">
+            <div class="insight-head">
+                <h2>Logins sem cadastro</h2>
+                <small>Importa&ccedil;&atilde;o</small>
+            </div>
+            <div class="sync-body">
+                {% for usuario in usuarios_sem_funcionario %}
+                    <span>{{ usuario.get_full_name|default:usuario.username }}</span>
+                {% empty %}
+                    <span class="empty-text">Todos os logins j&aacute; t&ecirc;m cadastro de funcion&aacute;rio.</span>
+                {% endfor %}
+            </div>
+            <form method="post" action="{% url 'funcionarios_sincronizar' %}" class="sync-action">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm btn-success fw-bold">
+                    Importar logins
+                </button>
+            </form>
+        </div>
+    </section>
+
+    <div class="funcionarios-layout">
+        <section class="funcionarios-panel form-panel">
+            <div class="panel-head">
+                <div>
+                    <h2>Novo funcion&aacute;rio</h2>
+                    <small>Cadastre o profissional e vincule ao login, se existir.</small>
+                </div>
+                <span>RH</span>
+            </div>
+
+            <form method="post" class="funcionario-form">
+                {% csrf_token %}
+                {% if form.non_field_errors %}
+                    <div class="form-alert">{{ form.non_field_errors }}</div>
+                {% endif %}
+
+                <div class="form-grid">
+                    <label class="span-2">
+                        <span>Login vinculado</span>
+                        {{ form.usuario }}
+                        {{ form.usuario.errors }}
+                    </label>
+                    <label class="span-2">
+                        <span>Nome completo</span>
+                        {{ form.nome }}
+                        {{ form.nome.errors }}
+                    </label>
+                    <label>
+                        <span>CPF</span>
+                        {{ form.cpf }}
+                        {{ form.cpf.errors }}
+                    </label>
+                    <label>
+                        <span>Matr&iacute;cula</span>
+                        {{ form.matricula }}
+                        {{ form.matricula.errors }}
+                    </label>
+                    <label>
+                        <span>Cargo ou fun&ccedil;&atilde;o</span>
+                        {{ form.cargo }}
+                        {{ form.cargo.errors }}
+                    </label>
+                    <label>
+                        <span>Setor</span>
+                        {{ form.setor }}
+                        {{ form.setor.errors }}
+                    </label>
+                    <label>
+                        <span>Conselho</span>
+                        {{ form.conselho_profissional }}
+                        {{ form.conselho_profissional.errors }}
+                    </label>
+                    <label>
+                        <span>N&uacute;mero do conselho</span>
+                        {{ form.registro_profissional }}
+                        {{ form.registro_profissional.errors }}
+                    </label>
+                    <label>
+                        <span>Telefone</span>
+                        {{ form.telefone }}
+                        {{ form.telefone.errors }}
+                    </label>
+                    <label>
+                        <span>E-mail</span>
+                        {{ form.email }}
+                        {{ form.email.errors }}
+                    </label>
+                    <label>
+                        <span>Unidade</span>
+                        {{ form.unidade }}
+                        {{ form.unidade.errors }}
+                    </label>
+                    <label>
+                        <span>Tipo de v&iacute;nculo</span>
+                        {{ form.tipo_vinculo }}
+                        {{ form.tipo_vinculo.errors }}
+                    </label>
+                    <label>
+                        <span>Admiss&atilde;o</span>
+                        {{ form.data_admissao }}
+                        {{ form.data_admissao.errors }}
+                    </label>
+                    <label>
+                        <span>Demiss&atilde;o</span>
+                        {{ form.data_demissao }}
+                        {{ form.data_demissao.errors }}
+                    </label>
+                    <label>
+                        <span>Carga semanal</span>
+                        {{ form.carga_horaria_semanal }}
+                        {{ form.carga_horaria_semanal.errors }}
+                    </label>
+                    <label class="span-2">
+                        <span>Fun&ccedil;&atilde;o complementar</span>
+                        {{ form.funcao }}
+                        {{ form.funcao.errors }}
+                    </label>
+                    <label class="span-2">
+                        <span>Observa&ccedil;&otilde;es</span>
+                        {{ form.observacoes }}
+                        {{ form.observacoes.errors }}
+                    </label>
+                    <label class="check-row span-2">
+                        {{ form.ativo }}
+                        <span>Funcion&aacute;rio ativo</span>
+                    </label>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary fw-bold">
+                        Salvar funcion&aacute;rio
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <section class="funcionarios-panel list-panel">
+            <div class="panel-head list-head">
+                <div>
+                    <h2>Equipe cadastrada</h2>
+                    <small>Use os filtros para localizar profissionais e conferir pend&ecirc;ncias.</small>
+                </div>
+            </div>
+
+            <form method="get" class="funcionarios-filters">
+                <input type="hidden" name="status" value="{{ filtros.status }}">
+                <div class="status-tabs">
+                    <button type="submit" name="status" value="ativos" class="{% if filtros.status == 'ativos' %}active{% endif %}">Ativos</button>
+                    <button type="submit" name="status" value="inativos" class="{% if filtros.status == 'inativos' %}active{% endif %}">Inativos</button>
+                    <button type="submit" name="status" value="sem_login" class="{% if filtros.status == 'sem_login' %}active{% endif %}">Sem login</button>
+                    <button type="submit" name="status" value="sem_conselho" class="{% if filtros.status == 'sem_conselho' %}active{% endif %}">Sem conselho</button>
+                    <button type="submit" name="status" value="todos" class="{% if filtros.status == 'todos' %}active{% endif %}">Todos</button>
+                </div>
+
+                <div class="filter-grid">
+                    <input type="search"
+                           name="q"
+                           value="{{ filtros.q }}"
+                           class="form-control"
+                           placeholder="Buscar por nome, CPF, matr&iacute;cula, cargo ou conselho">
+                    <select name="setor" class="form-select">
+                        {% for valor, rotulo in setores %}
+                            <option value="{{ valor }}" {% if filtros.setor == valor %}selected{% endif %}>{{ rotulo }}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit" class="btn btn-outline-primary fw-bold">Filtrar</button>
+                </div>
+            </form>
+
+            <div class="funcionarios-table-wrap">
+                <table class="funcionarios-table">
+                    <thead>
+                        <tr>
+                            <th>Profissional</th>
+                            <th>Cargo / Setor</th>
+                            <th>Conselho</th>
+                            <th>Contato</th>
+                            <th>Status</th>
+                            <th>A&ccedil;&atilde;o</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for funcionario in funcionarios %}
+                            <tr>
+                                <td>
+                                    <strong>{{ funcionario.nome }}</strong>
+                                    <span>Matr&iacute;cula: {{ funcionario.matricula|default:"-" }}</span>
+                                    <span>CPF: {{ funcionario.cpf|default:"-" }}</span>
+                                </td>
+                                <td>
+                                    <strong>{{ funcionario.cargo|default:"-" }}</strong>
+                                    <span>{{ funcionario.setor|default:"Setor n&atilde;o informado" }}</span>
+                                    <span>{{ funcionario.unidade|default:"-" }}</span>
+                                </td>
+                                <td>
+                                    <strong>{{ funcionario.conselho_registro }}</strong>
+                                    {% if not funcionario.conselho_profissional or not funcionario.registro_profissional %}
+                                        <span class="warning-text">Pendente</span>
+                                    {% else %}
+                                        <span>Regular</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <strong>{{ funcionario.telefone|default:"-" }}</strong>
+                                    <span>{{ funcionario.email|default:"-" }}</span>
+                                </td>
+                                <td>
+                                    <span class="status-pill {% if funcionario.ativo %}ativo{% else %}inativo{% endif %}">
+                                        {% if funcionario.ativo %}Ativo{% else %}Inativo{% endif %}
+                                    </span>
+                                    <span>{{ funcionario.login_status }}</span>
+                                    <span>Adm: {{ funcionario.data_admissao|date:"d/m/Y"|default:"-" }}</span>
+                                    {% if funcionario.data_demissao %}
+                                        <span>Dem: {{ funcionario.data_demissao|date:"d/m/Y" }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="row-actions">
+                                        <a href="{% url 'funcionarios_editar' funcionario.id %}" class="btn btn-sm btn-primary fw-bold">
+                                            Editar
+                                        </a>
+                                        <form method="post" action="{% url 'funcionarios_status' funcionario.id %}">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-sm btn-outline-secondary fw-bold">
+                                                {% if funcionario.ativo %}Inativar{% else %}Ativar{% endif %}
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="6" class="empty-row">
+                                    Nenhum funcion&aacute;rio encontrado.
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+</div>
+{% endblock %}

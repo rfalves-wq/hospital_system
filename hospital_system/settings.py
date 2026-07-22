@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    'cadastros',
     'accounts',
     'unidades',
     'dashboard',
@@ -56,6 +57,11 @@ INSTALLED_APPS = [
     "tecnologia",
     "painel",
     "ambulancia",
+    "auditoria",
+    "funcionarios",
+    "relatorios",
+    "almoxarifado",
+    "ouvidoria",
     
 ]
 
@@ -68,6 +74,7 @@ MIDDLEWARE = [
     'django.middleware.http.ConditionalGetMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'auditoria.middleware.AuditoriaMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'accounts.middleware.LoginPermissaoMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',

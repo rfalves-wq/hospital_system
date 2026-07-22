@@ -11,6 +11,10 @@
                 <h2 id="dashboard-greeting">Bem-vindo</h2>
                 <p>Estes s&atilde;o os pain&eacute;is liberados para o seu usu&aacute;rio.</p>
             </div>
+            <div class="dashboard-header-badge">
+                <strong>Operacional</strong>
+                <span>Porta 8000</span>
+            </div>
         </section>
 
         {% if not codigos_paineis_usuario and not request.user.is_staff and not request.user.is_superuser %}
@@ -23,7 +27,7 @@
                 <div class="dashboard-section-head">
                     <div>
                         <h4>Acessos dispon&iacute;veis</h4>
-                        <p>Escolha um painel para iniciar o atendimento ou gerenciamento.</p>
+                        <p>Pain&eacute;is ativos para atendimento, gest&atilde;o e apoio operacional.</p>
                     </div>
                 </div>
 
@@ -189,6 +193,86 @@
                         </a>
                     {% endif %}
 
+                    {% if paineis_usuario.auditoria %}
+                        <a href="{% url 'auditoria_dashboard' %}" class="module-link">
+                            <div class="card module-card access-card auditoria-sistema">
+                                <span class="module-status status-active">Ativo</span>
+                                <div class="card-body">
+                                    <div class="module-icon">AUD</div>
+                                    <div>
+                                        <h5>Auditoria do Sistema</h5>
+                                        <small>Logs e confer&ecirc;ncias</small>
+                                    </div>
+                                    <span class="module-action">Acessar</span>
+                                </div>
+                            </div>
+                        </a>
+                    {% endif %}
+
+                    {% if paineis_usuario.funcionarios %}
+                        <a href="{% url 'funcionarios_dashboard' %}" class="module-link">
+                            <div class="card module-card access-card funcionarios">
+                                <span class="module-status status-active">Ativo</span>
+                                <div class="card-body">
+                                    <div class="module-icon">RH</div>
+                                    <div>
+                                        <h5>Funcion&aacute;rios</h5>
+                                        <small>Cadastro e escala</small>
+                                    </div>
+                                    <span class="module-action">Acessar</span>
+                                </div>
+                            </div>
+                        </a>
+                    {% endif %}
+
+                    {% if paineis_usuario.relatorios %}
+                        <a href="{% url 'relatorios_dashboard' %}" class="module-link">
+                            <div class="card module-card access-card relatorios">
+                                <span class="module-status status-active">Ativo</span>
+                                <div class="card-body">
+                                    <div class="module-icon">&#128200;</div>
+                                    <div>
+                                        <h5>Relat&oacute;rios</h5>
+                                        <small>Indicadores gerenciais</small>
+                                    </div>
+                                    <span class="module-action">Acessar</span>
+                                </div>
+                            </div>
+                        </a>
+                    {% endif %}
+
+                    {% if paineis_usuario.almoxarifado %}
+                        <a href="{% url 'almoxarifado_dashboard' %}" class="module-link">
+                            <div class="card module-card access-card almoxarifado">
+                                <span class="module-status status-active">Ativo</span>
+                                <div class="card-body">
+                                    <div class="module-icon">&#128230;</div>
+                                    <div>
+                                        <h5>Almoxarifado</h5>
+                                        <small>Materiais e suprimentos</small>
+                                    </div>
+                                    <span class="module-action">Acessar</span>
+                                </div>
+                            </div>
+                        </a>
+                    {% endif %}
+
+                    {% if paineis_usuario.ouvidoria %}
+                        <a href="{% url 'ouvidoria_dashboard' %}" class="module-link">
+                            <div class="card module-card access-card ouvidoria">
+                                <span class="module-status status-active">Ativo</span>
+                                <div class="card-body">
+                                    <div class="module-icon">SAC</div>
+                                    <div>
+                                        <h5>Ouvidoria</h5>
+                                        <small>SAC e ocorr&ecirc;ncias</small>
+                                    </div>
+                                    <span class="module-action">Acessar</span>
+                                </div>
+                            </div>
+                        </a>
+                    {% endif %}
+
                     {% if paineis_usuario.laboratorio %}
                         <a href="{% url 'laboratorio_dashboard' %}" class="module-link">
                             <div class="card module-card access-card laboratorio">
@@ -293,7 +377,7 @@
             <div class="dashboard-section-head">
                 <div>
                     <h4>M&oacute;dulos a montar</h4>
-                    <p>Cards planejados que ainda est&atilde;o pendentes de desenvolvimento.</p>
+                    <p>Planejamento dos pr&oacute;ximos setores. Eles ficam discretos at&eacute; serem ativados.</p>
                 </div>
             </div>
 
@@ -310,18 +394,6 @@
                     </div>
                 </div>
 
-                <div class="card module-card access-card disabled funcionarios">
-                    <span class="module-status status-soon">Em breve</span>
-                    <div class="card-body">
-                        <div class="module-icon">RH</div>
-                        <div>
-                            <h5>Funcion&aacute;rios</h5>
-                            <small>Cadastro e escala</small>
-                        </div>
-                        <span class="module-action pending">A montar</span>
-                    </div>
-                </div>
-
                 <div class="card module-card access-card disabled nutricao-estoque">
                     <span class="module-status status-soon">Em breve</span>
                     <div class="card-body">
@@ -329,30 +401,6 @@
                         <div>
                             <h5>Estoque de Nutri&ccedil;&atilde;o</h5>
                             <small>Insumos e dietas</small>
-                        </div>
-                        <span class="module-action pending">A montar</span>
-                    </div>
-                </div>
-
-                <div class="card module-card access-card disabled almoxarifado">
-                    <span class="module-status status-soon">Em breve</span>
-                    <div class="card-body">
-                        <div class="module-icon">&#128230;</div>
-                        <div>
-                            <h5>Almoxarifado</h5>
-                            <small>Materiais e suprimentos</small>
-                        </div>
-                        <span class="module-action pending">A montar</span>
-                    </div>
-                </div>
-
-                <div class="card module-card access-card disabled auditoria-sistema">
-                    <span class="module-status status-soon">Em breve</span>
-                    <div class="card-body">
-                        <div class="module-icon">AUD</div>
-                        <div>
-                            <h5>Auditoria do Sistema</h5>
-                            <small>Logs e confer&ecirc;ncias</small>
                         </div>
                         <span class="module-action pending">A montar</span>
                     </div>
@@ -634,29 +682,6 @@
                     </div>
                 </div>
 
-                <div class="card module-card access-card disabled ouvidoria">
-                    <span class="module-status status-soon">Em breve</span>
-                    <div class="card-body">
-                        <div class="module-icon">SAC</div>
-                        <div>
-                            <h5>Ouvidoria</h5>
-                            <small>SAC e ocorr&ecirc;ncias</small>
-                        </div>
-                        <span class="module-action pending">A montar</span>
-                    </div>
-                </div>
-
-                <div class="card module-card access-card disabled relatorios">
-                    <span class="module-status status-soon">Em breve</span>
-                    <div class="card-body">
-                        <div class="module-icon">&#128200;</div>
-                        <div>
-                            <h5>Relat&oacute;rios</h5>
-                            <small>Indicadores gerenciais</small>
-                        </div>
-                        <span class="module-action pending">A montar</span>
-                    </div>
-                </div>
             </div>
         </section>
 

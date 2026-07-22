@@ -1,8 +1,26 @@
 from django import forms
+from django.apps import apps
 from django.contrib.auth import password_validation
+
+from cadastros.models import normalizar_codigo
 
 from .models import PainelSistema, PerfilAcesso, Usuario
 from .utils import CONSELHO_PADRAO_POR_CARGO
+
+
+def resolver_cadastro(model_name, valor):
+    valor = (valor or "").strip()
+
+    if not valor:
+        return None
+
+    model = apps.get_model("cadastros", model_name)
+    codigo = normalizar_codigo(valor)
+
+    return (
+        model.objects.filter(codigo=codigo).first()
+        or model.objects.filter(nome__iexact=valor).first()
+    )
 
 
 CARGO_FUNCAO_CHOICES = [
@@ -228,6 +246,15 @@ class UsuarioSistemaForm(forms.ModelForm):
     def save(self, commit=True):
         usuario = super().save(commit=False)
         password = self.cleaned_data.get("password1")
+
+        if usuario.cargo and not usuario.cargo_ref_id:
+            usuario.cargo_ref = resolver_cadastro("CargoProfissional", usuario.cargo)
+
+        if usuario.conselho_profissional and not usuario.conselho_ref_id:
+            usuario.conselho_ref = resolver_cadastro(
+                "ConselhoProfissional",
+                usuario.conselho_profissional,
+            )
 
         if password:
             usuario.set_password(password)
